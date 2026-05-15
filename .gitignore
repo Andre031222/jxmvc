@@ -1,0 +1,33 @@
+# Maven
+target/
+*.class
+
+# Logs
+*.log
+lux-server*.log
+
+# IDE
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+nbproject/
+nb-configuration.xml
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Backup / temporal
+*.zip
+*.bak
+Archive.zip
+
+# Credenciales — NUNCA subir
+*.env
+secrets.properties
+
+# Claude Code internal
+.claude/
