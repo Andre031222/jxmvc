@@ -10,7 +10,7 @@
         </p>
     </div>
 
-    <div class="bg-white/90 dark:bg-slate-900/70 border border-slate-200 rounded-3xl p-8 shadow-sm mt-10">
+    <div class="bg-white/90 dark:bg-[#111111]/70 border border-slate-200 rounded-3xl p-8 shadow-sm mt-10">
         <div class="grid gap-6">
             <div>
                 <p class="text-xs uppercase tracking-[0.3em] text-slate-400">Ruta invocada</p>
@@ -29,7 +29,7 @@
         </div>
     </div>
                 
-    <div class="mt-10 bg-white/80 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 shadow-xl">            
+    <div class="mt-10 bg-white/80 dark:bg-[#111111]/70 border border-slate-200 dark:border-slate-800 rounded-3xl p-8 shadow-xl">            
         <div class="flex items-center justify-between mb-6">
             <div>
                 <p class="text-sm uppercase tracking-[0.3em] text-slate-400 dark:text-slate-500">Quick links</p>

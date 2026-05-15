@@ -799,7 +799,7 @@ jxmvc.security.hsts.maxage   = 31536000   # 1 año en segundos</code></pre>
   </h2>
   <div class="divide-y divide-slate-100 dark:divide-slate-800 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden">
 
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between px-5 py-4 gap-2 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between px-5 py-4 gap-2 hover:bg-slate-50 dark:hover:bg-[#111111] transition-colors">
       <div class="flex items-center gap-4">
         <span class="text-xs font-mono text-emerald-600 dark:text-emerald-400 w-8 shrink-0">GET</span>
         <div>
@@ -811,7 +811,7 @@ jxmvc.security.hsts.maxage   = 31536000   # 1 año en segundos</code></pre>
          class="text-xs font-mono text-accent hover:underline shrink-0">probar →</a>
     </div>
 
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between px-5 py-4 gap-2 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between px-5 py-4 gap-2 hover:bg-slate-50 dark:hover:bg-[#111111] transition-colors">
       <div class="flex items-center gap-4">
         <span class="text-xs font-mono text-emerald-600 dark:text-emerald-400 w-8 shrink-0">GET</span>
         <div>
@@ -823,7 +823,7 @@ jxmvc.security.hsts.maxage   = 31536000   # 1 año en segundos</code></pre>
          class="text-xs font-mono text-accent hover:underline shrink-0">probar →</a>
     </div>
 
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between px-5 py-4 gap-2 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between px-5 py-4 gap-2 hover:bg-slate-50 dark:hover:bg-[#111111] transition-colors">
       <div class="flex items-center gap-4">
         <span class="text-xs font-mono text-emerald-600 dark:text-emerald-400 w-8 shrink-0">GET</span>
         <div>
@@ -835,7 +835,7 @@ jxmvc.security.hsts.maxage   = 31536000   # 1 año en segundos</code></pre>
          class="text-xs font-mono text-accent hover:underline shrink-0">probar →</a>
     </div>
 
-    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between px-5 py-4 gap-2 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between px-5 py-4 gap-2 hover:bg-slate-50 dark:hover:bg-[#111111] transition-colors">
       <div class="flex items-center gap-4">
         <span class="text-xs font-mono text-emerald-600 dark:text-emerald-400 w-8 shrink-0">GET</span>
         <div>

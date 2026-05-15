@@ -11,7 +11,7 @@
     </div>
 
     <div class="grid gap-4 md:gap-6 mt-10">
-        <div class="bg-white/90 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-lg">
+        <div class="bg-white/90 dark:bg-[#111111]/70 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-lg">
             <h2 class="text-xl font-semibold">Conectividad</h2>
             <div class="mt-4">
                 <a class="inline-flex px-5 py-3 rounded-full bg-ink text-white text-sm font-semibold"
@@ -21,7 +21,7 @@
             </div>
         </div>
 
-        <div class="bg-white/90 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-lg">
+        <div class="bg-white/90 dark:bg-[#111111]/70 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-lg">
             <h2 class="text-xl font-semibold">Read</h2>
             <div class="flex flex-wrap gap-4 mt-4">
                 <a class="inline-flex px-5 py-3 rounded-full bg-emerald-600 text-white text-sm font-semibold"
@@ -39,7 +39,7 @@
             </div>
         </div>
 
-        <div class="bg-white/90 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-lg">
+        <div class="bg-white/90 dark:bg-[#111111]/70 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-lg">
             <h2 class="text-xl font-semibold">Create</h2>
             <p class="text-sm text-slate-600 dark:text-slate-300 mt-2">
                 Inserta un registro usando los campos reales <code>DNI</code> y <code>Nombres</code>.
@@ -52,7 +52,7 @@
             </div>
         </div>
 
-        <div class="bg-white/90 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-lg">
+        <div class="bg-white/90 dark:bg-[#111111]/70 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-lg">
             <h2 class="text-xl font-semibold">Update</h2>
             <p class="text-sm text-slate-600 dark:text-slate-300 mt-2">
                 Actualiza el registro con <code>DNI=42708896</code> y cambia <code>Nombres</code> segun el clic.
@@ -73,7 +73,7 @@
             </div>
         </div>
 
-        <div class="bg-white/90 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-lg">
+        <div class="bg-white/90 dark:bg-[#111111]/70 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-lg">
             <h2 class="text-xl font-semibold">Delete</h2>
             <p class="text-sm text-slate-600 dark:text-slate-300 mt-2">
                 Borra el registro <code>Id=1</code>.

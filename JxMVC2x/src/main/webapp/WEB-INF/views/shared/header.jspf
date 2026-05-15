@@ -108,8 +108,8 @@
         'f1.t':'Routing inteligente','f1.d':'Convención + anotaciones. @JxGetMapping, plantillas {id} y args posicionales.',
         'f2.t':'Pool de conexiones','f2.d':'JxPool con keepalive y timeout. PostgreSQL, MySQL, SQL Server.',
         'f3.t':'Pipeline 14 etapas','f3.d':'Rate limit → Auth → CORS → Filtros → DI → Async/Retry → Render.',
-        'f4.t':'JxRepository','f4.d':'CRUD genérico, paginación, soft delete, @JxQuery personalizado.',
-        'f5.t':'Zero dependencias','f5.d':'JAR ~177 KB. JSON, validación y scheduler propios.',
+        'f4.t':'GenApi + Acceso directo','f4.d':'DBRow.Get() sin POJOs. GenApi.JsonStr(), JsonArray(), JsonPaged().',
+        'f5.t':'Zero dependencias','f5.d':'205 KB. JSON, validacion, pool, scheduler y WebSocket propios.',
         'f6.t':'Métricas + OpenAPI','f6.d':'/jx/health, /jx/metrics, /jx/openapi sin configuración.',
         'ep.label':'Endpoints del sistema','ep.try':'probar →',
         'dl.title':'Descargar JxMVC','dl.subtitle':'Genera un proyecto starter personalizado y listo para desplegar.',
@@ -125,8 +125,8 @@
         'f1.t':'Smart routing','f1.d':'Convention + annotations. @JxGetMapping, {id} templates and positional args.',
         'f2.t':'Connection pool','f2.d':'JxPool with keepalive and timeout. PostgreSQL, MySQL, SQL Server.',
         'f3.t':'14-stage pipeline','f3.d':'Rate limit → Auth → CORS → Filters → DI → Async/Retry → Render.',
-        'f4.t':'JxRepository','f4.d':'Generic CRUD, pagination, soft delete, custom @JxQuery.',
-        'f5.t':'Zero dependencies','f5.d':'~177 KB JAR. Own JSON, validation and scheduler.',
+        'f4.t':'GenApi + Direct access','f4.d':'DBRow.Get() without POJOs. GenApi.JsonStr(), JsonArray(), JsonPaged().' ,
+        'f5.t':'Zero dependencies','f5.d':'205 KB. JSON, validation, pool, scheduler and WebSocket built-in.',
         'f6.t':'Metrics + OpenAPI','f6.d':'/jx/health, /jx/metrics, /jx/openapi with no configuration.',
         'ep.label':'System endpoints','ep.try':'try →',
         'dl.title':'Download JxMVC','dl.subtitle':'Generate a custom starter project ready to deploy.',
@@ -142,8 +142,8 @@
         'f1.t':'Roteamento inteligente','f1.d':'Convenção + anotações. @JxGetMapping, templates {id} e args posicionais.',
         'f2.t':'Pool de conexões','f2.d':'JxPool com keepalive e timeout. PostgreSQL, MySQL, SQL Server.',
         'f3.t':'Pipeline 14 estágios','f3.d':'Rate limit → Auth → CORS → Filtros → DI → Async/Retry → Render.',
-        'f4.t':'JxRepository','f4.d':'CRUD genérico, paginação, soft delete, @JxQuery personalizado.',
-        'f5.t':'Zero dependências','f5.d':'JAR ~177 KB. JSON, validação e scheduler próprios.',
+        'f4.t':'GenApi + Acesso direto','f4.d':'DBRow.Get() sem POJOs. GenApi.JsonStr(), JsonArray(), JsonPaged().' ,
+        'f5.t':'Zero dependências','f5.d':'205 KB. JSON, validacao, pool, scheduler e WebSocket proprios.',
         'f6.t':'Métricas + OpenAPI','f6.d':'/jx/health, /jx/metrics, /jx/openapi sem configuração.',
         'ep.label':'Endpoints do sistema','ep.try':'testar →',
         'dl.title':'Baixar JxMVC','dl.subtitle':'Gere um projeto starter personalizado pronto para implantar.',
@@ -159,8 +159,8 @@
         'f1.t':'Умная маршрутизация','f1.d':'Соглашение + аннотации. @JxGetMapping, шаблоны {id} и позиционные аргументы.',
         'f2.t':'Пул соединений','f2.d':'JxPool с keepalive и таймаутом. PostgreSQL, MySQL, SQL Server.',
         'f3.t':'Конвейер из 14 этапов','f3.d':'Rate limit → Auth → CORS → Фильтры → DI → Async/Retry → Render.',
-        'f4.t':'JxRepository','f4.d':'Общий CRUD, пагинация, мягкое удаление, @JxQuery.',
-        'f5.t':'Нет зависимостей','f5.d':'JAR ~177 КБ. Собственные JSON, валидация и планировщик.',
+        'f4.t':'GenApi + Прямой доступ','f4.d':'DBRow.Get() без POJOs. GenApi.JsonStr(), JsonArray(), JsonPaged().' ,
+        'f5.t':'Нет зависимостей','f5.d':'205 КБ. JSON, валидация, пул, планировщик и WebSocket встроены.',
         'f6.t':'Метрики + OpenAPI','f6.d':'/jx/health, /jx/metrics, /jx/openapi без настройки.',
         'ep.label':'Системные эндпоинты','ep.try':'открыть →',
         'dl.title':'Скачать JxMVC','dl.subtitle':'Сгенерируйте стартовый проект для развёртывания.',
@@ -176,8 +176,8 @@
         'f1.t':'Routage intelligent','f1.d':'Convention + annotations. @JxGetMapping, templates {id} et args positionnels.',
         'f2.t':'Pool de connexions','f2.d':'JxPool avec keepalive et timeout. PostgreSQL, MySQL, SQL Server.',
         'f3.t':'Pipeline en 14 étapes','f3.d':'Rate limit → Auth → CORS → Filtres → DI → Async/Retry → Render.',
-        'f4.t':'JxRepository','f4.d':'CRUD générique, pagination, soft delete, @JxQuery personnalisé.',
-        'f5.t':'Zéro dépendance','f5.d':'JAR ~177 Ko. JSON, validation et scheduler intégrés.',
+        'f4.t':'GenApi + Accès direct','f4.d':'DBRow.Get() sans POJOs. GenApi.JsonStr(), JsonArray(), JsonPaged().',
+        'f5.t':'Zéro dépendance','f5.d':'205 Ko. JSON, validation, pool, scheduler et WebSocket intégrés.',
         'f6.t':'Métriques + OpenAPI','f6.d':'/jx/health, /jx/metrics, /jx/openapi sans configuration.',
         'ep.label':'Endpoints système','ep.try':'tester →',
         'dl.title':'Télécharger JxMVC','dl.subtitle':'Générez un projet starter personnalisé prêt à déployer.',
@@ -224,10 +224,10 @@
     </script>
 </head>
 
-<body class="bg-surface dark:bg-[#161617] text-ink dark:text-[#f5f5f7] min-h-screen font-sans antialiased">
+<body class="bg-surface dark:bg-black text-ink dark:text-[#f5f5f7] min-h-screen font-sans antialiased">
 
 <%-- ══ Nav ════════════════════════════════════════════════════════════ --%>
-<header class="sticky top-0 z-50 bg-[rgba(245,245,247,0.88)] dark:bg-[rgba(22,22,23,0.88)] backdrop-blur-2xl border-b border-black/[0.07] dark:border-white/[0.07]">
+<header class="sticky top-0 z-50 bg-[rgba(245,245,247,0.88)] dark:bg-[rgba(0,0,0,0.90)] backdrop-blur-2xl border-b border-black/[0.07] dark:border-white/[0.08]">
     <div class="max-w-6xl mx-auto px-4 sm:px-6 h-12 flex items-center justify-between gap-4">
 
         <%-- Logo — inline SVG (colorful, same as hero) --%>

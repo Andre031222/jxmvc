@@ -97,7 +97,7 @@
 
     <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 jx-reveal jx-delay-2">
 
-        <div class="bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.06] rounded-2xl p-6 hover:border-apple/30 transition-colors">
+        <div class="bg-white dark:bg-white/[0.05] border border-black/[0.06] dark:border-white/[0.06] rounded-2xl p-6 hover:border-apple/30 transition-colors">
             <div class="w-8 h-8 rounded-lg bg-apple/10 flex items-center justify-center mb-4">
                 <svg class="w-4 h-4 text-apple" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/>
@@ -109,7 +109,7 @@
             </p>
         </div>
 
-        <div class="bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.06] rounded-2xl p-6 hover:border-apple/30 transition-colors">
+        <div class="bg-white dark:bg-white/[0.05] border border-black/[0.06] dark:border-white/[0.06] rounded-2xl p-6 hover:border-apple/30 transition-colors">
             <div class="w-8 h-8 rounded-lg bg-apple/10 flex items-center justify-center mb-4">
                 <svg class="w-4 h-4 text-apple" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"/>
@@ -121,7 +121,7 @@
             </p>
         </div>
 
-        <div class="bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.06] rounded-2xl p-6 hover:border-apple/30 transition-colors">
+        <div class="bg-white dark:bg-white/[0.05] border border-black/[0.06] dark:border-white/[0.06] rounded-2xl p-6 hover:border-apple/30 transition-colors">
             <div class="w-8 h-8 rounded-lg bg-apple/10 flex items-center justify-center mb-4">
                 <svg class="w-4 h-4 text-apple" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path d="M13 10V3L4 14h7v7l9-11h-7z"/>
@@ -133,7 +133,7 @@
             </p>
         </div>
 
-        <div class="bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.06] rounded-2xl p-6 hover:border-apple/30 transition-colors">
+        <div class="bg-white dark:bg-white/[0.05] border border-black/[0.06] dark:border-white/[0.06] rounded-2xl p-6 hover:border-apple/30 transition-colors">
             <div class="w-8 h-8 rounded-lg bg-apple/10 flex items-center justify-center mb-4">
                 <svg class="w-4 h-4 text-apple" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
@@ -145,7 +145,7 @@
             </p>
         </div>
 
-        <div class="bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.06] rounded-2xl p-6 hover:border-apple/30 transition-colors">
+        <div class="bg-white dark:bg-white/[0.05] border border-black/[0.06] dark:border-white/[0.06] rounded-2xl p-6 hover:border-apple/30 transition-colors">
             <div class="w-8 h-8 rounded-lg bg-apple/10 flex items-center justify-center mb-4">
                 <svg class="w-4 h-4 text-apple" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/>
@@ -157,7 +157,7 @@
             </p>
         </div>
 
-        <div class="bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.06] rounded-2xl p-6 hover:border-apple/30 transition-colors">
+        <div class="bg-white dark:bg-white/[0.05] border border-black/[0.06] dark:border-white/[0.06] rounded-2xl p-6 hover:border-apple/30 transition-colors">
             <div class="w-8 h-8 rounded-lg bg-apple/10 flex items-center justify-center mb-4">
                 <svg class="w-4 h-4 text-apple" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
@@ -177,7 +177,7 @@
     <p class="text-xs font-mono uppercase tracking-[0.25em] text-muted dark:text-[#86868b] mb-4 jx-reveal jx-delay-1"
        data-i18n="ep.label">Endpoints del sistema</p>
 
-    <div class="bg-white dark:bg-white/[0.04] border border-black/[0.06] dark:border-white/[0.06] rounded-2xl overflow-hidden divide-y divide-black/[0.05] dark:divide-white/[0.05] jx-reveal jx-delay-2">
+    <div class="bg-white dark:bg-white/[0.05] border border-black/[0.06] dark:border-white/[0.06] rounded-2xl overflow-hidden divide-y divide-black/[0.05] dark:divide-white/[0.05] jx-reveal jx-delay-2">
 
         <% for (String[] ep : new String[][]{
             {"/jx/health",   "Estado del pool, uptime y threads activos"},

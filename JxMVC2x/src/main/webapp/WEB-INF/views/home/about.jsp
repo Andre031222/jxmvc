@@ -16,19 +16,19 @@
 
 <%-- ── Métricas clave ──────────────────────────────────────────────── --%>
 <div class="grid grid-cols-2 sm:grid-cols-4 gap-px bg-slate-200 dark:bg-slate-800 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden mb-12 jx-reveal jx-delay-2">
-    <div class="bg-white dark:bg-slate-950 px-6 py-5">
+    <div class="bg-white dark:bg-[#0a0a0a] px-6 py-5">
         <p class="text-2xl font-bold font-mono">205<span class="text-sm font-normal text-slate-400"> KB</span></p>
         <p class="text-xs text-slate-400 mt-1">Tamaño del JAR</p>
     </div>
-    <div class="bg-white dark:bg-slate-950 px-6 py-5">
+    <div class="bg-white dark:bg-[#0a0a0a] px-6 py-5">
         <p class="text-2xl font-bold font-mono">0</p>
         <p class="text-xs text-slate-400 mt-1">Dependencias runtime</p>
     </div>
-    <div class="bg-white dark:bg-slate-950 px-6 py-5">
+    <div class="bg-white dark:bg-[#0a0a0a] px-6 py-5">
         <p class="text-2xl font-bold font-mono">14</p>
         <p class="text-xs text-slate-400 mt-1">Etapas del pipeline</p>
     </div>
-    <div class="bg-white dark:bg-slate-950 px-6 py-5">
+    <div class="bg-white dark:bg-[#0a0a0a] px-6 py-5">
         <p class="text-2xl font-bold font-mono">48</p>
         <p class="text-xs text-slate-400 mt-1">Clases en el core</p>
     </div>
@@ -57,7 +57,7 @@
         };
         for (String[] step : steps) {
         %>
-        <div class="flex items-start gap-5 px-5 py-3.5 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">
+        <div class="flex items-start gap-5 px-5 py-3.5 hover:bg-slate-50 dark:hover:bg-[#111111] transition-colors">
             <span class="text-xs font-mono text-slate-300 dark:text-slate-600 w-6 shrink-0 pt-px"><%= step[0] %></span>
             <div class="min-w-0">
                 <p class="text-sm font-medium"><%= step[1] %></p>
@@ -74,7 +74,7 @@
     <div class="overflow-x-auto border border-slate-200 dark:border-slate-800 rounded-xl">
         <table class="w-full text-xs">
             <thead>
-                <tr class="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900">
+                <tr class="border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-[#111111]">
                     <th class="text-left px-5 py-3 font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider">Aspecto</th>
                     <th class="text-center px-4 py-3 font-semibold text-accent">JxMVC 3.0</th>
                     <th class="text-center px-4 py-3 font-semibold text-slate-500">Spring Boot 3</th>
@@ -98,7 +98,7 @@
                 };
                 for (String[] row : rows) {
                 %>
-                <tr class="hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">
+                <tr class="hover:bg-slate-50 dark:hover:bg-[#111111] transition-colors">
                     <td class="px-5 py-3 text-slate-600 dark:text-slate-300 font-medium"><%= row[0] %></td>
                     <td class="px-4 py-3 text-center font-mono text-accent font-medium"><%= row[1] %></td>
                     <td class="px-4 py-3 text-center text-slate-400 font-mono"><%= row[2] %></td>
@@ -125,7 +125,7 @@
         };
         for (String[] s : stack) {
         %>
-        <div class="bg-white dark:bg-slate-950 px-5 py-4 hover:bg-slate-50 dark:hover:bg-slate-900 transition-colors">
+        <div class="bg-white dark:bg-[#0a0a0a] px-5 py-4 hover:bg-slate-50 dark:hover:bg-[#111111] transition-colors">
             <p class="text-xs text-slate-400 mb-1"><%= s[0] %></p>
             <p class="text-sm font-medium mb-0.5"><%= s[1] %></p>
             <p class="text-xs text-slate-400"><%= s[2] %></p>

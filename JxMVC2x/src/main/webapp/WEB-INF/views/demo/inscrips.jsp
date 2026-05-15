@@ -15,7 +15,7 @@
         </p>
     </div>
 
-    <div class="bg-white/90 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-lg mt-10">
+    <div class="bg-white/90 dark:bg-[#111111]/70 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-lg mt-10">
         <p class="text-xs uppercase tracking-[0.3em] text-slate-400">Estado conexión</p>
         <p class="text-sm text-slate-600 dark:text-slate-300 mt-2">${connState}</p>
         <jx:if test="${hasRows}">
