@@ -16,7 +16,7 @@
     <div class="mt-10 divide-y divide-slate-100 dark:divide-slate-800 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden jx-reveal jx-delay-4">
 
         <%-- 403 --%>
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between px-4 sm:px-6 py-4 gap-3 sm:gap-0 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between px-4 sm:px-6 py-4 gap-3 sm:gap-0 hover:bg-slate-50 dark:hover:bg-[#111111]/50 transition-colors">
             <div class="flex items-center gap-4 sm:gap-5">
                 <span class="text-xs font-mono font-medium text-slate-400 w-8">403</span>
                 <div>
@@ -35,7 +35,7 @@
         </div>
 
         <%-- 404 --%>
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between px-4 sm:px-6 py-4 gap-3 sm:gap-0 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between px-4 sm:px-6 py-4 gap-3 sm:gap-0 hover:bg-slate-50 dark:hover:bg-[#111111]/50 transition-colors">
             <div class="flex items-center gap-4 sm:gap-5">
                 <span class="text-xs font-mono font-medium text-slate-400 w-8">404</span>
                 <div>
@@ -54,7 +54,7 @@
         </div>
 
         <%-- 405 --%>
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between px-4 sm:px-6 py-4 gap-3 sm:gap-0 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between px-4 sm:px-6 py-4 gap-3 sm:gap-0 hover:bg-slate-50 dark:hover:bg-[#111111]/50 transition-colors">
             <div class="flex items-center gap-4 sm:gap-5">
                 <span class="text-xs font-mono font-medium text-slate-400 w-8">405</span>
                 <div>
@@ -75,7 +75,7 @@
         </div>
 
         <%-- 500 --%>
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between px-4 sm:px-6 py-4 gap-3 sm:gap-0 hover:bg-slate-50 dark:hover:bg-slate-900/50 transition-colors">
+        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between px-4 sm:px-6 py-4 gap-3 sm:gap-0 hover:bg-slate-50 dark:hover:bg-[#111111]/50 transition-colors">
             <div class="flex items-center gap-4 sm:gap-5">
                 <span class="text-xs font-mono font-medium text-slate-400 w-8">500</span>
                 <div>

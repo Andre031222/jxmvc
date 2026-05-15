@@ -22,7 +22,7 @@
           class="mt-12 grid md:grid-cols-2 gap-8 jx-reveal jx-delay-4">
 
         <%-- Columna izquierda: identidad del proyecto --%>
-        <div class="bg-white/90 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800
+        <div class="bg-white/90 dark:bg-[#111111]/70 border border-slate-200 dark:border-slate-800
                     rounded-3xl p-8 shadow-lg flex flex-col gap-6">
 
             <p class="text-xs uppercase tracking-[0.35em] text-slate-400">Proyecto</p>
@@ -67,7 +67,7 @@
         <%-- Columna derecha: base de datos + boton --%>
         <div class="flex flex-col gap-6">
 
-            <div class="bg-white/90 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800
+            <div class="bg-white/90 dark:bg-[#111111]/70 border border-slate-200 dark:border-slate-800
                         rounded-3xl p-8 shadow-lg flex flex-col gap-4">
 
                 <p class="text-xs uppercase tracking-[0.35em] text-slate-400">Base de datos</p>
@@ -132,7 +132,7 @@
         <p class="text-sm uppercase tracking-[0.35em] text-slate-400">Descarga manual</p>
         <div class="mt-6 grid sm:grid-cols-2 gap-4 sm:gap-6">
 
-            <div class="bg-white/90 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800
+            <div class="bg-white/90 dark:bg-[#111111]/70 border border-slate-200 dark:border-slate-800
                         rounded-3xl p-6 shadow-lg">
                 <p class="text-xs uppercase tracking-[0.35em] text-slate-400">JAR del framework</p>
                 <h3 class="text-lg font-semibold mt-2">jxmvc-core-3.0.0.jar</h3>
@@ -144,7 +144,7 @@
                 </p>
             </div>
 
-            <div class="bg-white/90 dark:bg-slate-900/70 border border-slate-200 dark:border-slate-800
+            <div class="bg-white/90 dark:bg-[#111111]/70 border border-slate-200 dark:border-slate-800
                         rounded-3xl p-6 shadow-lg">
                 <p class="text-xs uppercase tracking-[0.35em] text-slate-400">Dependencia Maven</p>
                 <h3 class="text-lg font-semibold mt-2">pom.xml</h3>
