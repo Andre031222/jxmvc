@@ -1,0 +1,465 @@
+<%@page pageEncoding="UTF-8"%>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>${empty title ? 'JxMVC' : title}</title>
+    <link rel="icon" type="image/svg+xml"  href="${pageContext.request.contextPath}/assets/jxlogo.svg?v=3">
+    <link rel="icon" type="image/png"      href="${pageContext.request.contextPath}/assets/jxlogo.png?v=3" sizes="192x192">
+    <link rel="apple-touch-icon"           href="${pageContext.request.contextPath}/assets/jxlogo.png?v=3">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,300;0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+    tailwind.config = {
+        darkMode: 'class',
+        theme: {
+            extend: {
+                fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui'] },
+                colors: {
+                    apple:  '#0071e3',
+                    ink:    '#1d1d1f',
+                    muted:  '#6e6e73',
+                    surface:'#f5f5f7'
+                }
+            }
+        }
+    }
+    </script>
+    <style>
+        /* Reveal animation */
+        .jx-reveal { opacity:0; transform:translateY(12px); animation:jxIn .55s cubic-bezier(.22,1,.36,1) forwards; }
+        .jx-delay-1{animation-delay:.06s} .jx-delay-2{animation-delay:.12s}
+        .jx-delay-3{animation-delay:.18s} .jx-delay-4{animation-delay:.26s}
+        @keyframes jxIn { to { opacity:1; transform:translateY(0) } }
+
+        /* Nav active underline */
+        .nav-link { position: relative; }
+        .nav-link.active::after {
+            content:''; position:absolute; bottom:-2px; left:4px; right:4px;
+            height:2px; background:#0071e3; border-radius:2px;
+        }
+
+        code { font-family: 'Menlo','Consolas','Monaco',monospace; }
+
+        /* ── Bottom tab bar ─────────────────────────────────────────────── */
+        .jx-tab { color: #6e6e73; }
+        .dark .jx-tab { color: #636366; }
+        .jx-tab:hover { color: #1d1d1f; }
+        .dark .jx-tab:hover { color: #e5e5ea; }
+        .jx-tab.jx-tab-active { color: #0071e3; }
+        .dark .jx-tab.jx-tab-active { color: #5ac8fa; }
+        .jx-tab.jx-tab-active svg { stroke-width: 2.4; }
+
+        /* ── Language segmented control ─────────────────────────────────── */
+        .jx-lang-seg {
+            background: rgba(0,0,0,0.06);
+            border-radius: 9px;
+            padding: 2px;
+            display: flex;
+            gap: 1px;
+        }
+        .dark .jx-lang-seg { background: rgba(255,255,255,0.07); }
+
+        .jx-lang-btn {
+            padding: 3px 8px;
+            font-size: 10px;
+            font-family: 'Menlo','Consolas','Monaco',monospace;
+            font-weight: 500;
+            color: #6e6e73;
+            border-radius: 7px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            transition: all .15s ease;
+            line-height: 1.4;
+            letter-spacing: .02em;
+        }
+        .dark .jx-lang-btn { color: #86868b; }
+        .jx-lang-btn:hover { color: #1d1d1f; background: rgba(0,0,0,0.04); }
+        .dark .jx-lang-btn:hover { color: #e5e5ea; background: rgba(255,255,255,0.07); }
+
+        /* Active / selected state — iOS-style pill */
+        .jx-lang-btn.jx-active {
+            background: #ffffff;
+            color: #0071e3;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.14), 0 0 0 0.5px rgba(0,0,0,0.04);
+            font-weight: 700;
+        }
+        .dark .jx-lang-btn.jx-active {
+            background: rgba(255,255,255,0.16);
+            color: #5ac8fa;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+        }
+    </style>
+
+    <%-- ── Translations ────────────────────────────────────────────────── --%>
+    <script>
+    const JX_T = {
+      es:{
+        'nav.home':'Inicio','nav.about':'About','nav.docs':'Docs',
+        'nav.downloads':'Descargas','nav.errors':'Errores',
+        'hero.tag':'Lightning-X Web Framework',
+        'hero.desc':'Framework MVC para Jakarta EE. Cero dependencias en runtime, pipeline de 14 etapas, routing por convención y anotaciones, pool de conexiones, métricas y OpenAPI integrados.',
+        'hero.dl':'Descargar','hero.docs':'Documentación','hero.errors':'Probar errores',
+        'feat.label':'Características',
+        'f1.t':'Routing inteligente','f1.d':'Convención + anotaciones. @JxGetMapping, plantillas {id} y args posicionales.',
+        'f2.t':'Pool de conexiones','f2.d':'JxPool con keepalive y timeout. PostgreSQL, MySQL, SQL Server.',
+        'f3.t':'Pipeline 14 etapas','f3.d':'Rate limit → Auth → CORS → Filtros → DI → Async/Retry → Render.',
+        'f4.t':'JxRepository','f4.d':'CRUD genérico, paginación, soft delete, @JxQuery personalizado.',
+        'f5.t':'Zero dependencias','f5.d':'JAR ~177 KB. JSON, validación y scheduler propios.',
+        'f6.t':'Métricas + OpenAPI','f6.d':'/jx/health, /jx/metrics, /jx/openapi sin configuración.',
+        'ep.label':'Endpoints del sistema','ep.try':'probar →',
+        'dl.title':'Descargar JxMVC','dl.subtitle':'Genera un proyecto starter personalizado y listo para desplegar.',
+        'footer.by':'Hecho con','footer.stack':'Jakarta EE 11 · Java 17+','footer.year':'© 2026'
+      },
+      en:{
+        'nav.home':'Home','nav.about':'About','nav.docs':'Docs',
+        'nav.downloads':'Downloads','nav.errors':'Errors',
+        'hero.tag':'Lightning-X Web Framework',
+        'hero.desc':'MVC Framework for Jakarta EE. Zero runtime dependencies, 14-stage pipeline, convention and annotation routing, connection pool, built-in metrics and OpenAPI.',
+        'hero.dl':'Download','hero.docs':'Documentation','hero.errors':'Test errors',
+        'feat.label':'Features',
+        'f1.t':'Smart routing','f1.d':'Convention + annotations. @JxGetMapping, {id} templates and positional args.',
+        'f2.t':'Connection pool','f2.d':'JxPool with keepalive and timeout. PostgreSQL, MySQL, SQL Server.',
+        'f3.t':'14-stage pipeline','f3.d':'Rate limit → Auth → CORS → Filters → DI → Async/Retry → Render.',
+        'f4.t':'JxRepository','f4.d':'Generic CRUD, pagination, soft delete, custom @JxQuery.',
+        'f5.t':'Zero dependencies','f5.d':'~177 KB JAR. Own JSON, validation and scheduler.',
+        'f6.t':'Metrics + OpenAPI','f6.d':'/jx/health, /jx/metrics, /jx/openapi with no configuration.',
+        'ep.label':'System endpoints','ep.try':'try →',
+        'dl.title':'Download JxMVC','dl.subtitle':'Generate a custom starter project ready to deploy.',
+        'footer.by':'Built with','footer.stack':'Jakarta EE 11 · Java 17+','footer.year':'© 2026'
+      },
+      pt:{
+        'nav.home':'Início','nav.about':'Sobre','nav.docs':'Docs',
+        'nav.downloads':'Downloads','nav.errors':'Erros',
+        'hero.tag':'Lightning-X Web Framework',
+        'hero.desc':'Framework MVC para Jakarta EE. Zero dependências em runtime, pipeline de 14 estágios, roteamento por convenção e anotações, pool de conexões, métricas e OpenAPI integrados.',
+        'hero.dl':'Baixar','hero.docs':'Documentação','hero.errors':'Testar erros',
+        'feat.label':'Recursos',
+        'f1.t':'Roteamento inteligente','f1.d':'Convenção + anotações. @JxGetMapping, templates {id} e args posicionais.',
+        'f2.t':'Pool de conexões','f2.d':'JxPool com keepalive e timeout. PostgreSQL, MySQL, SQL Server.',
+        'f3.t':'Pipeline 14 estágios','f3.d':'Rate limit → Auth → CORS → Filtros → DI → Async/Retry → Render.',
+        'f4.t':'JxRepository','f4.d':'CRUD genérico, paginação, soft delete, @JxQuery personalizado.',
+        'f5.t':'Zero dependências','f5.d':'JAR ~177 KB. JSON, validação e scheduler próprios.',
+        'f6.t':'Métricas + OpenAPI','f6.d':'/jx/health, /jx/metrics, /jx/openapi sem configuração.',
+        'ep.label':'Endpoints do sistema','ep.try':'testar →',
+        'dl.title':'Baixar JxMVC','dl.subtitle':'Gere um projeto starter personalizado pronto para implantar.',
+        'footer.by':'Feito com','footer.stack':'Jakarta EE 11 · Java 17+','footer.year':'© 2026'
+      },
+      ru:{
+        'nav.home':'Главная','nav.about':'О нас','nav.docs':'Документация',
+        'nav.downloads':'Загрузки','nav.errors':'Ошибки',
+        'hero.tag':'Lightning-X Web Framework',
+        'hero.desc':'MVC-фреймворк для Jakarta EE. Нет зависимостей в runtime, конвейер из 14 этапов, маршрутизация по соглашению и аннотациям, пул соединений, метрики и OpenAPI.',
+        'hero.dl':'Скачать','hero.docs':'Документация','hero.errors':'Тест ошибок',
+        'feat.label':'Возможности',
+        'f1.t':'Умная маршрутизация','f1.d':'Соглашение + аннотации. @JxGetMapping, шаблоны {id} и позиционные аргументы.',
+        'f2.t':'Пул соединений','f2.d':'JxPool с keepalive и таймаутом. PostgreSQL, MySQL, SQL Server.',
+        'f3.t':'Конвейер из 14 этапов','f3.d':'Rate limit → Auth → CORS → Фильтры → DI → Async/Retry → Render.',
+        'f4.t':'JxRepository','f4.d':'Общий CRUD, пагинация, мягкое удаление, @JxQuery.',
+        'f5.t':'Нет зависимостей','f5.d':'JAR ~177 КБ. Собственные JSON, валидация и планировщик.',
+        'f6.t':'Метрики + OpenAPI','f6.d':'/jx/health, /jx/metrics, /jx/openapi без настройки.',
+        'ep.label':'Системные эндпоинты','ep.try':'открыть →',
+        'dl.title':'Скачать JxMVC','dl.subtitle':'Сгенерируйте стартовый проект для развёртывания.',
+        'footer.by':'Создано с','footer.stack':'Jakarta EE 11 · Java 17+','footer.year':'© 2026'
+      },
+      fr:{
+        'nav.home':'Accueil','nav.about':'À propos','nav.docs':'Docs',
+        'nav.downloads':'Téléchargements','nav.errors':'Erreurs',
+        'hero.tag':'Lightning-X Web Framework',
+        'hero.desc':'Framework MVC pour Jakarta EE. Zéro dépendance en runtime, pipeline en 14 étapes, routage par convention et annotations, pool de connexions, métriques et OpenAPI intégrés.',
+        'hero.dl':'Télécharger','hero.docs':'Documentation','hero.errors':'Tester les erreurs',
+        'feat.label':'Fonctionnalités',
+        'f1.t':'Routage intelligent','f1.d':'Convention + annotations. @JxGetMapping, templates {id} et args positionnels.',
+        'f2.t':'Pool de connexions','f2.d':'JxPool avec keepalive et timeout. PostgreSQL, MySQL, SQL Server.',
+        'f3.t':'Pipeline en 14 étapes','f3.d':'Rate limit → Auth → CORS → Filtres → DI → Async/Retry → Render.',
+        'f4.t':'JxRepository','f4.d':'CRUD générique, pagination, soft delete, @JxQuery personnalisé.',
+        'f5.t':'Zéro dépendance','f5.d':'JAR ~177 Ko. JSON, validation et scheduler intégrés.',
+        'f6.t':'Métriques + OpenAPI','f6.d':'/jx/health, /jx/metrics, /jx/openapi sans configuration.',
+        'ep.label':'Endpoints système','ep.try':'tester →',
+        'dl.title':'Télécharger JxMVC','dl.subtitle':'Générez un projet starter personnalisé prêt à déployer.',
+        'footer.by':'Fait avec','footer.stack':'Jakarta EE 11 · Java 17+','footer.year':'© 2026'
+      }
+    };
+
+    /* ── Core i18n ──────────────────────────────────────────────────────── */
+    function jxDetectLang() {
+        const s = localStorage.getItem('jxLang');
+        if (s && JX_T[s]) return s;
+        const nav = (navigator.language || 'es').split('-')[0].toLowerCase();
+        return JX_T[nav] ? nav : 'es';
+    }
+
+    function jxApply(lang) {
+        const t = JX_T[lang] || JX_T['es'];
+        document.querySelectorAll('[data-i18n]').forEach(el => {
+            const k = el.dataset.i18n;
+            if (t[k] !== undefined) el.textContent = t[k];
+        });
+        document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+            const k = el.dataset.i18nPh;
+            if (t[k] !== undefined) el.placeholder = t[k];
+        });
+        /* sync all lang buttons across desktop + mobile */
+        document.querySelectorAll('.jx-lang-btn').forEach(b => {
+            b.classList.toggle('jx-active', b.dataset.lang === lang);
+        });
+        document.documentElement.lang = lang;
+    }
+
+    function jxSetLang(lang) {
+        localStorage.setItem('jxLang', lang);
+        jxApply(lang);
+    }
+
+    /* Theme — runs before paint to avoid flash */
+    (function(){
+        var s = localStorage.getItem('jxTheme');
+        var mq = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (s === 'dark' || (s === null && mq)) document.documentElement.classList.add('dark');
+    })();
+    </script>
+</head>
+
+<body class="bg-surface dark:bg-[#161617] text-ink dark:text-[#f5f5f7] min-h-screen font-sans antialiased">
+
+<%-- ══ Nav ════════════════════════════════════════════════════════════ --%>
+<header class="sticky top-0 z-50 bg-[rgba(245,245,247,0.88)] dark:bg-[rgba(22,22,23,0.88)] backdrop-blur-2xl border-b border-black/[0.07] dark:border-white/[0.07]">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 h-12 flex items-center justify-between gap-4">
+
+        <%-- Logo — inline SVG (colorful, same as hero) --%>
+        <a href="${pageContext.request.contextPath}/" class="flex items-center gap-2 shrink-0 group">
+            <svg width="26" height="26" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg" class="shrink-0">
+                <defs>
+                    <linearGradient x1="37%" y1="51%" x2="178%" y2="42%" id="jna">
+                        <stop stop-color="#FC801D" offset="9%"/>
+                        <stop stop-color="#577DB3" offset="41%"/>
+                        <stop stop-color="#087CFA" offset="59%"/>
+                    </linearGradient>
+                    <linearGradient x1="74%" y1="115%" x2="36%" y2="1%" id="jnb">
+                        <stop stop-color="#FE2857" offset="0%"/>
+                        <stop stop-color="#386CDA" offset="44%"/>
+                        <stop stop-color="#087CFA" offset="100%"/>
+                    </linearGradient>
+                    <linearGradient x1="29%" y1="24%" x2="82%" y2="130%" id="jnc">
+                        <stop stop-color="#FE2857" offset="0%"/>
+                        <stop stop-color="#5A63D6" offset="79%"/>
+                        <stop stop-color="#087CFA" offset="100%"/>
+                    </linearGradient>
+                </defs>
+                <path fill="url(#jna)" d="M40.5 180.6 2.9 150.8l22.1-41 33.3 11.1z"/>
+                <path fill="#087CFA" d="m256 68.2-4.6 148.3-98.6 39.5-53.7-34.7z"/>
+                <path fill="url(#jnb)" d="m256 68.2-48.8 47.6L144.5 39l31-34.8z"/>
+                <path fill="url(#jnc)" d="m99.1 221.3-78.5 28.4 16.5-57.5 21.2-71.3L0 101.4 37.1 0l83.8 9.9 86.3 105.9z"/>
+                <text x="128" y="125" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif"
+                      font-size="75" font-weight="900" fill="white">Jx</text>
+                <text x="128" y="165" text-anchor="middle" font-family="Segoe UI,Arial,sans-serif"
+                      font-size="22" font-weight="bold" fill="white" letter-spacing="2">MVC</text>
+            </svg>
+            <span class="font-semibold text-sm text-ink dark:text-[#f5f5f7] group-hover:text-apple transition-colors">JxMVC</span>
+        </a>
+
+        <%-- Nav desktop --%>
+        <nav class="hidden md:flex items-center gap-0.5 flex-1 justify-center">
+            <a href="${pageContext.request.contextPath}/"
+               class="nav-link px-3 py-1.5 rounded-lg text-sm text-muted dark:text-[#86868b] hover:text-ink dark:hover:text-[#f5f5f7] transition-colors"
+               data-i18n="nav.home">Inicio</a>
+            <a href="${pageContext.request.contextPath}/home/about"
+               class="nav-link px-3 py-1.5 rounded-lg text-sm text-muted dark:text-[#86868b] hover:text-ink dark:hover:text-[#f5f5f7] transition-colors"
+               data-i18n="nav.about">About</a>
+            <a href="${pageContext.request.contextPath}/home/docs"
+               class="nav-link px-3 py-1.5 rounded-lg text-sm text-muted dark:text-[#86868b] hover:text-ink dark:hover:text-[#f5f5f7] transition-colors"
+               data-i18n="nav.docs">Docs</a>
+            <a href="${pageContext.request.contextPath}/home/downloads"
+               class="nav-link px-3 py-1.5 rounded-lg text-sm text-muted dark:text-[#86868b] hover:text-ink dark:hover:text-[#f5f5f7] transition-colors"
+               data-i18n="nav.downloads">Descargas</a>
+            <a href="${pageContext.request.contextPath}/home/errors"
+               class="nav-link px-3 py-1.5 rounded-lg text-sm text-muted dark:text-[#86868b] hover:text-ink dark:hover:text-[#f5f5f7] transition-colors"
+               data-i18n="nav.errors">Errores</a>
+        </nav>
+
+        <%-- Right controls --%>
+        <div class="flex items-center gap-2 shrink-0">
+
+            <%-- Language segmented control (desktop) --%>
+            <div class="hidden sm:block">
+                <div class="jx-lang-seg">
+                    <% for (String[] lg : new String[][]{{"es","ES"},{"en","EN"},{"pt","PT"},{"ru","RU"},{"fr","FR"}}) { %>
+                    <button onclick="jxSetLang('<%= lg[0] %>')"
+                            data-lang="<%= lg[0] %>"
+                            class="jx-lang-btn"><%= lg[1] %></button>
+                    <% } %>
+                </div>
+            </div>
+
+            <%-- Theme toggle --%>
+            <button onclick="jxToggleTheme()"
+                    class="w-8 h-8 flex items-center justify-center rounded-lg text-muted dark:text-[#86868b] hover:bg-black/[0.06] dark:hover:bg-white/[0.06] transition-colors"
+                    aria-label="Toggle theme">
+                <svg class="hidden dark:block w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="5"/>
+                    <path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+                </svg>
+                <svg class="dark:hidden w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+                </svg>
+            </button>
+
+            <%-- Hamburger (mobile) --%>
+            <button onclick="jxMenuToggle()" id="jxBurger"
+                    class="md:hidden w-8 h-8 flex items-center justify-center rounded-lg hover:bg-black/[0.06] dark:hover:bg-white/[0.06] transition-colors">
+                <svg class="w-4 h-4 text-muted dark:text-[#86868b]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <%-- Mobile menu --%>
+    <div id="jxMobileNav"
+         class="hidden md:hidden bg-[rgba(245,245,247,0.97)] dark:bg-[rgba(22,22,23,0.97)] backdrop-blur-2xl border-t border-black/[0.06] dark:border-white/[0.06]">
+        <div class="max-w-6xl mx-auto px-4 py-3 space-y-0.5">
+            <a href="${pageContext.request.contextPath}/"
+               class="flex px-3 py-2.5 rounded-xl text-sm text-muted dark:text-[#86868b] hover:text-ink dark:hover:text-[#f5f5f7] hover:bg-black/[0.05] dark:hover:bg-white/[0.05] transition-colors"
+               data-i18n="nav.home">Inicio</a>
+            <a href="${pageContext.request.contextPath}/home/about"
+               class="flex px-3 py-2.5 rounded-xl text-sm text-muted dark:text-[#86868b] hover:text-ink dark:hover:text-[#f5f5f7] hover:bg-black/[0.05] dark:hover:bg-white/[0.05] transition-colors"
+               data-i18n="nav.about">About</a>
+            <a href="${pageContext.request.contextPath}/home/docs"
+               class="flex px-3 py-2.5 rounded-xl text-sm text-muted dark:text-[#86868b] hover:text-ink dark:hover:text-[#f5f5f7] hover:bg-black/[0.05] dark:hover:bg-white/[0.05] transition-colors"
+               data-i18n="nav.docs">Docs</a>
+            <a href="${pageContext.request.contextPath}/home/downloads"
+               class="flex px-3 py-2.5 rounded-xl text-sm text-muted dark:text-[#86868b] hover:text-ink dark:hover:text-[#f5f5f7] hover:bg-black/[0.05] dark:hover:bg-white/[0.05] transition-colors"
+               data-i18n="nav.downloads">Descargas</a>
+            <a href="${pageContext.request.contextPath}/home/errors"
+               class="flex px-3 py-2.5 rounded-xl text-sm text-muted dark:text-[#86868b] hover:text-ink dark:hover:text-[#f5f5f7] hover:bg-black/[0.05] dark:hover:bg-white/[0.05] transition-colors"
+               data-i18n="nav.errors">Errores</a>
+
+            <%-- Language buttons (mobile menu) --%>
+            <div class="pt-3 mt-1 border-t border-black/[0.06] dark:border-white/[0.06]">
+                <div class="jx-lang-seg" style="display:inline-flex;">
+                    <% for (String[] lg : new String[][]{{"es","ES"},{"en","EN"},{"pt","PT"},{"ru","RU"},{"fr","FR"}}) { %>
+                    <button onclick="jxSetLang('<%= lg[0] %>');jxMenuToggle()"
+                            data-lang="<%= lg[0] %>"
+                            class="jx-lang-btn"><%= lg[1] %></button>
+                    <% } %>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>
+
+<%-- ══ Bottom tab bar (mobile only) ═════════════════════════════════ --%>
+<nav id="jxBottomNav"
+     class="md:hidden fixed bottom-0 left-0 right-0 z-50
+            bg-[rgba(245,245,247,0.92)] dark:bg-[rgba(22,22,23,0.92)]
+            backdrop-blur-2xl border-t border-black/[0.07] dark:border-white/[0.07]
+            flex items-stretch"
+     style="padding-bottom: env(safe-area-inset-bottom, 0px)">
+
+    <%-- Home --%>
+    <a href="${pageContext.request.contextPath}/"
+       class="jx-tab flex-1 flex flex-col items-center justify-center gap-0.5 py-2 transition-colors"
+       data-tab="home">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955a1.126 1.126 0 011.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25"/>
+        </svg>
+        <span class="text-[9px] font-medium leading-none" data-i18n="nav.home">Inicio</span>
+    </a>
+
+    <%-- About --%>
+    <a href="${pageContext.request.contextPath}/home/about"
+       class="jx-tab flex-1 flex flex-col items-center justify-center gap-0.5 py-2 transition-colors"
+       data-tab="about">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z"/>
+        </svg>
+        <span class="text-[9px] font-medium leading-none" data-i18n="nav.about">About</span>
+    </a>
+
+    <%-- Docs --%>
+    <a href="${pageContext.request.contextPath}/home/docs"
+       class="jx-tab flex-1 flex flex-col items-center justify-center gap-0.5 py-2 transition-colors"
+       data-tab="docs">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"/>
+        </svg>
+        <span class="text-[9px] font-medium leading-none" data-i18n="nav.docs">Docs</span>
+    </a>
+
+    <%-- Downloads --%>
+    <a href="${pageContext.request.contextPath}/home/downloads"
+       class="jx-tab flex-1 flex flex-col items-center justify-center gap-0.5 py-2 transition-colors"
+       data-tab="downloads">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/>
+        </svg>
+        <span class="text-[9px] font-medium leading-none" data-i18n="nav.downloads">Descargas</span>
+    </a>
+
+    <%-- Errors --%>
+    <a href="${pageContext.request.contextPath}/home/errors"
+       class="jx-tab flex-1 flex flex-col items-center justify-center gap-0.5 py-2 transition-colors"
+       data-tab="errors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z"/>
+        </svg>
+        <span class="text-[9px] font-medium leading-none" data-i18n="nav.errors">Errores</span>
+    </a>
+
+</nav>
+
+<script>
+function jxToggleTheme() {
+    var d = document.documentElement.classList.toggle('dark');
+    localStorage.setItem('jxTheme', d ? 'dark' : 'light');
+}
+function jxMenuToggle() {
+    document.getElementById('jxMobileNav').classList.toggle('hidden');
+}
+
+/* Apply i18n — two-pass:
+   Pass 1 (immediate): updates nav elements already in DOM at this point.
+   Pass 2 (DOMContentLoaded): updates full page content once all JSPs are parsed. */
+var _jxLang = jxDetectLang();
+jxApply(_jxLang);   /* pass 1 — nav */
+document.addEventListener('DOMContentLoaded', function() {
+    jxApply(_jxLang); /* pass 2 — full page */
+});
+
+/* Highlight active nav link + bottom tab */
+document.addEventListener('DOMContentLoaded', function() {
+    var path = window.location.pathname;
+
+    /* Desktop nav underline */
+    document.querySelectorAll('.nav-link').forEach(function(a) {
+        var href = a.getAttribute('href');
+        if (href && (path === href || (href !== '/' && path.startsWith(href)))) {
+            a.classList.add('active');
+        }
+    });
+
+    /* Bottom tab active state */
+    var tabs = document.querySelectorAll('.jx-tab');
+    var best = null, bestLen = 0;
+    tabs.forEach(function(tab) {
+        var href = tab.getAttribute('href');
+        if (!href) return;
+        /* strip context path prefix for comparison */
+        var hPath = href.replace(/^https?:\/\/[^/]+/, '');
+        if (path === hPath || (hPath.length > 1 && path.startsWith(hPath))) {
+            if (hPath.length > bestLen) { best = tab; bestLen = hPath.length; }
+        } else if (hPath === '/' && bestLen === 0) {
+            best = tab; bestLen = 1;
+        }
+    });
+    if (best) best.classList.add('jx-tab-active');
+});
+</script>
+
+<%-- ══ Page content starts here ══════════════════════════════════════ --%>
+<%-- pb-24 on mobile leaves room above the bottom tab bar --%>
+<main class="max-w-6xl mx-auto px-4 sm:px-6 py-10 pb-24 md:pb-10">
