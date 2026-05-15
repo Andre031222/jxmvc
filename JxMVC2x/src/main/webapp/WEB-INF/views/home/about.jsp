@@ -9,15 +9,15 @@
     </h1>
     <p class="text-base text-slate-500 dark:text-slate-400 max-w-2xl leading-relaxed">
         Framework MVC para Jakarta EE construido desde cero — sin Spring, sin Hibernate,
-        sin dependencias en runtime. Un JAR de ~177 KB que incluye routing, pool de conexiones,
-        validación, DI, métricas y OpenAPI.
+        sin dependencias en runtime. Un JAR de 205 KB que incluye routing, pool de conexiones,
+        validacion, JSON, WebSocket, metricas y OpenAPI. Virtual Threads detectados automaticamente en Java 21+.
     </p>
 </div>
 
 <%-- ── Métricas clave ──────────────────────────────────────────────── --%>
 <div class="grid grid-cols-2 sm:grid-cols-4 gap-px bg-slate-200 dark:bg-slate-800 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden mb-12 jx-reveal jx-delay-2">
     <div class="bg-white dark:bg-slate-950 px-6 py-5">
-        <p class="text-2xl font-bold font-mono">177<span class="text-sm font-normal text-slate-400"> KB</span></p>
+        <p class="text-2xl font-bold font-mono">205<span class="text-sm font-normal text-slate-400"> KB</span></p>
         <p class="text-xs text-slate-400 mt-1">Tamaño del JAR</p>
     </div>
     <div class="bg-white dark:bg-slate-950 px-6 py-5">
@@ -29,7 +29,7 @@
         <p class="text-xs text-slate-400 mt-1">Etapas del pipeline</p>
     </div>
     <div class="bg-white dark:bg-slate-950 px-6 py-5">
-        <p class="text-2xl font-bold font-mono">36</p>
+        <p class="text-2xl font-bold font-mono">48</p>
         <p class="text-xs text-slate-400 mt-1">Clases en el core</p>
     </div>
 </div>
@@ -84,16 +84,17 @@
             <tbody class="divide-y divide-slate-100 dark:divide-slate-800">
                 <%
                 String[][] rows = {
-                    {"WAR / JAR mínimo",   "~185 KB",  "~18 MB",   "~50 KB"},
+                    {"WAR / JAR mínimo",   "205 KB",   "~18 MB",   "~50 KB"},
                     {"Dependencias runtime","0",        "~150+",    "0"},
                     {"Routing",            "Conv+Ann",  "Ann",      "Manual"},
                     {"Pool de conexiones", "propio",   "HikariCP", "ninguno"},
                     {"DI",                 "propio",   "Spring DI","CDI"},
                     {"Validación",         "propia",   "Bean Val", "Bean Val"},
                     {"JSON",               "propio",   "Jackson",  "manual"},
+                    {"WebSocket",          "built-in", "ext",      "manual"},
                     {"Métricas",           "built-in", "Micrometer","manual"},
                     {"OpenAPI",            "built-in", "SpringDoc","manual"},
-                    {"Arranque (aprox.)",  "< 500 ms", "~3-8 s",   "< 300 ms"},
+                    {"Arranque (aprox.)",  "1.2 s",    "~3-8 s",   "< 300 ms"},
                 };
                 for (String[] row : rows) {
                 %>
@@ -115,7 +116,7 @@
     <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-px bg-slate-200 dark:bg-slate-800 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden">
         <%
         String[][] stack = {
-            {"Lenguaje",   "Java 17+",              "Sealed classes, records, text blocks"},
+            {"Lenguaje",   "Java 17+ / 21+",         "Virtual Threads detectados automaticamente en Java 21+"},
             {"Servidor",   "Apache Tomcat 10+",     "Jakarta EE 11, Servlet 6.0"},
             {"Build",      "Maven 3.8+",            "WAR packaging, cargo-maven3-plugin"},
             {"DB",         "PostgreSQL / MySQL / SQL Server", "Driver JDBC estándar"},
