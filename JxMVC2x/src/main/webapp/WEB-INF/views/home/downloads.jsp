@@ -137,7 +137,7 @@
                 <p class="text-xs uppercase tracking-[0.35em] text-slate-400">JAR del framework</p>
                 <h3 class="text-lg font-semibold mt-2">jxmvc-core-3.0.0.jar</h3>
                 <p class="text-sm text-slate-500 dark:text-slate-400 mt-2">
-                    177 KB &mdash; cero dependencias en runtime
+                    205 KB &mdash; cero dependencias en runtime
                 </p>
                 <p class="text-xs text-slate-400 mt-4 font-mono bg-slate-50 dark:bg-slate-800 rounded-xl px-3 py-2">
                     mvn install -f JxMVC.Core/pom.xml

@@ -10,14 +10,14 @@
                data-i18n="hero.tag">Lightning-X Web Framework</p>
 
             <h1 class="text-5xl sm:text-6xl lg:text-[80px] font-extrabold tracking-tight leading-[1.02] mb-6 jx-reveal jx-delay-2">
-                JxMVC<span class="text-apple"/span>
+                JxMVC<span class="text-apple"> 3.0</span>
             </h1>
 
             <p class="text-base sm:text-lg text-muted dark:text-[#86868b] leading-relaxed mb-8 max-w-lg jx-reveal jx-delay-3"
                data-i18n="hero.desc">
                 Framework MVC para Jakarta EE. Cero dependencias en runtime,
-                pipeline de 14 etapas, routing por convención y anotaciones,
-                pool de conexiones, métricas y OpenAPI integrados.
+                205 KB, arranque en 1.2 s. Pool, JSON, validacion, WebSocket,
+                metricas y OpenAPI — todo incluido sin librerias externas.
             </p>
 
             <div class="flex flex-wrap gap-3 jx-reveal jx-delay-4">
@@ -72,7 +72,7 @@
 <section class="py-10 border-b border-black/[0.06] dark:border-white/[0.06]">
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-6">
         <div class="jx-reveal jx-delay-1">
-            <p class="text-3xl font-bold tracking-tight text-ink dark:text-[#f5f5f7]">177<span class="text-apple">KB</span></p>
+            <p class="text-3xl font-bold tracking-tight text-ink dark:text-[#f5f5f7]">205<span class="text-apple">KB</span></p>
             <p class="text-xs text-muted dark:text-[#86868b] mt-1">Tamaño JAR</p>
         </div>
         <div class="jx-reveal jx-delay-2">
@@ -80,11 +80,11 @@
             <p class="text-xs text-muted dark:text-[#86868b] mt-1">Runtime</p>
         </div>
         <div class="jx-reveal jx-delay-3">
-            <p class="text-3xl font-bold tracking-tight text-ink dark:text-[#f5f5f7]">14<span class="text-apple">×</span></p>
-            <p class="text-xs text-muted dark:text-[#86868b] mt-1">Pipeline</p>
+            <p class="text-3xl font-bold tracking-tight text-ink dark:text-[#f5f5f7]">48<span class="text-apple">cls</span></p>
+            <p class="text-xs text-muted dark:text-[#86868b] mt-1">Clases core</p>
         </div>
         <div class="jx-reveal jx-delay-4">
-            <p class="text-3xl font-bold tracking-tight text-ink dark:text-[#f5f5f7]">&lt;500<span class="text-apple">ms</span></p>
+            <p class="text-3xl font-bold tracking-tight text-ink dark:text-[#f5f5f7]">1.2<span class="text-apple">s</span></p>
             <p class="text-xs text-muted dark:text-[#86868b] mt-1">Arranque</p>
         </div>
     </div>
@@ -139,9 +139,9 @@
                     <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
                 </svg>
             </div>
-            <h3 class="text-sm font-semibold mb-1.5" data-i18n="f4.t">JxRepository</h3>
+            <h3 class="text-sm font-semibold mb-1.5" data-i18n="f4.t">GenApi + Acceso directo</h3>
             <p class="text-xs text-muted dark:text-[#86868b] leading-relaxed" data-i18n="f4.d">
-                CRUD genérico, paginación, soft delete, @JxQuery personalizado.
+                DBRow.Get() sin POJOs. GenApi.JsonStr(), JsonArray(), JsonPaged().
             </p>
         </div>
 
@@ -153,7 +153,7 @@
             </div>
             <h3 class="text-sm font-semibold mb-1.5" data-i18n="f5.t">Zero dependencias</h3>
             <p class="text-xs text-muted dark:text-[#86868b] leading-relaxed" data-i18n="f5.d">
-                JAR ~177 KB. JSON, validación y scheduler propios.
+                205 KB. JSON, validacion, pool, scheduler y WebSocket propios.
             </p>
         </div>
 
