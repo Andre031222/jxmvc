@@ -35,8 +35,8 @@
         <cookie-config>
             <!-- HttpOnly: la cookie no es accesible desde JavaScript (proteccion XSS) -->
             <http-only>true</http-only>
-            <!-- Secure: solo enviar la cookie sobre HTTPS. Cambiar a true en produccion. -->
-            <secure>false</secure>
+            <!-- Secure: cookie solo se envía sobre HTTPS -->
+            <secure>true</secure>
         </cookie-config>
         <tracking-mode>COOKIE</tracking-mode>
     </session-config>

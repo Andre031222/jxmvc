@@ -15,8 +15,8 @@ public class HomeController extends BaseController {
 
     @JxGetMapping("/about")
     public ActionResult about() {
-        model.setVar("title",     "About · JxMVC 3.0.0");
-        model.setVar("framework", "Lightning-X MVC 3.0.0 (JxMVC)");
+        model.setVar("title",     "About · JxMVC 3.1.0");
+        model.setVar("framework", "Lightning-X MVC 3.1.0 (JxMVC)");
         return view("home/about");
     }
 
@@ -27,25 +27,25 @@ public class HomeController extends BaseController {
 
     @JxGetMapping("docs")
     public ActionResult docs() {
-        model.setVar("title", "Docs · JxMVC 3.0.0");
+        model.setVar("title", "Docs · JxMVC 3.1.0");
         return view("home/docs");
     }
 
     @JxGetMapping("errors")
     public ActionResult errors() {
-        model.setVar("title", "Pruebas de errores · JxMVC 3.0.0");
+        model.setVar("title", "Pruebas de errores · JxMVC 3.1.0");
         return view("home/errors");
     }
 
     @JxGetMapping("downloads")
     public ActionResult downloads() {
-        model.setVar("title", "Descargas · JxMVC 3.0.0");
+        model.setVar("title", "Descargas · JxMVC 3.1.0");
         return view("home/downloads");
     }
 
     @JxGetMapping("bd")
     public ActionResult bd() {
-        model.setVar("title", "BD · JxMVC 3.0.0");
+        model.setVar("title", "BD · JxMVC 3.1.0");
 
         try (JxDB db = db()) {
             String connState = db.isConnected() ? "Conectado" : "Sin conexión";
