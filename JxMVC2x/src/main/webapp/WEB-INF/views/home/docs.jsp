@@ -92,7 +92,7 @@
     transition: background 0.13s ease, color 0.13s ease;
   }
   .dark .jx-slink { color: #636366; }
-  .jx-slink:hover { background: rgba(0,0,0,0.04); color: #1d1d1f; }
+  .jx-slink:hover { background: rgba(0,0,0,0.04); color: #0C1929; }
   .dark .jx-slink:hover { background: rgba(255,255,255,0.06); color: #e5e5ea; }
   .jx-dot {
     width: 3px; height: 14px; border-radius: 2px; flex-shrink: 0;
@@ -119,13 +119,13 @@
 <div class="flex items-start justify-between mb-10 jx-reveal jx-delay-1">
   <div>
     <p class="text-xs font-mono uppercase tracking-[0.25em] text-muted dark:text-[#86868b] mb-2">Reference</p>
-    <h1 class="text-4xl font-bold tracking-tight text-ink dark:text-[#f5f5f7]">JxMVC <span class="text-apple">3.1</span> Docs</h1>
+    <h1 class="text-4xl font-bold tracking-tight text-ink dark:text-[#f5f5f7]">JxMVC <span class="text-apple">3.0</span> Docs</h1>
     <p class="text-sm text-muted dark:text-[#86868b] mt-2 max-w-xl">
       Jakarta EE 11 · Java 17+ · Cero dependencias en runtime · WAR ~205 KB
     </p>
   </div>
-  <a href="${pageContext.request.contextPath}/home/downloads"
-     class="hidden sm:inline-flex px-4 py-2 bg-apple text-white text-xs font-medium rounded-full hover:bg-[#0077ed] transition-colors shrink-0">
+  <a href="${pageContext.request.contextPath}/downloads"
+     class="hidden sm:inline-flex px-4 py-2 bg-apple text-white text-xs font-medium rounded-full hover:bg-[#0040CC] transition-colors shrink-0">
     Descargar →
   </a>
 </div>
@@ -162,7 +162,7 @@
       <% } %>
       </nav>
       <div class="mt-5 px-2.5 pt-4 border-t border-black/[0.06] dark:border-white/[0.06]">
-        <a href="${pageContext.request.contextPath}/home/downloads"
+        <a href="${pageContext.request.contextPath}/downloads"
            class="flex items-center gap-1.5 text-xs text-apple hover:underline font-mono">
           <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
             <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
@@ -432,7 +432,7 @@ public class AdminController extends JxController {
     // Inyecta variables en el modelo antes de renderizar
     @JxModelAttr
     public void commonAttrs() {
-        model.setVar("appVersion", "3.1.0");
+        model.setVar("appVersion", "3.0.0");
         model.setVar("usuario", model.session().getAttribute("user"));
     }
 
@@ -488,36 +488,43 @@ public class GlobalAdvice {
   <div class="grid md:grid-cols-2 gap-4">
 
     <div>
-      <p class="text-xs font-semibold text-muted dark:text-[#86868b] uppercase tracking-wider mb-2">JxRepository — CRUD genérico</p>
+      <p class="text-xs font-semibold text-muted dark:text-[#86868b] uppercase tracking-wider mb-2">JxModel — Active Record (v3.0)</p>
       <div class="code-block">
-        <div class="code-label">ProductRepository.java</div>
-        <pre><code class="language-java">@JxTable("productos")
-public class Producto {
-    @JxId public long id;
-    @JxRequired @JxMinLength(2) public String nombre;
-    public double precio;
-    public boolean activo;          // soft delete column
+        <div class="code-label">Producto.java</div>
+        <pre><code class="language-java">// Un solo archivo — sin re-declarar campos (la BD es la fuente de verdad)
+public class Producto extends JxModel {
+    private static final String T = "productos";
+
+    public static DBRowSet todos() {
+        try (JxDB db = db()) {
+            return db.query("SELECT * FROM " + T);
+        } catch (Exception e) { return new DBRowSet(); }
+    }
+
+    public static DBRow porId(Object id) {
+        try (JxDB db = db()) {
+            return db.queryRow(
+                "SELECT * FROM " + T + " WHERE id = ?", id);
+        } catch (Exception e) { return null; }
+    }
+
+    public static long guardar(DBRow datos) {
+        try (JxDB db = db()) { return db.insert(T, datos); }
+        catch (Exception e) { return -1; }
+    }
+
+    public static int eliminar(Object id) {
+        try (JxDB db = db()) {
+            return db.exec(
+                "DELETE FROM " + T + " WHERE id = ?", id);
+        } catch (Exception e) { return 0; }
+    }
 }
 
-@JxService
-public class ProductoRepo extends JxRepository&lt;Producto, Long&gt; {
-
-    public ProductoRepo() {
-        super("productos", Producto.class);
-        enableSoftDelete("activo", "true");  // soft delete
-    }
-
-    // Query personalizado — ? = parámetros posicionales
-    @JxQuery("SELECT * FROM productos WHERE precio &lt; ?")
-    public List&lt;Producto&gt; baratos(double max) {
-        return executeQuery(max);
-    }
-
-    // Paginación
-    public DBRowSet pagina(int page) {
-        return findAllPaged(page, 20);  // 20 por página
-    }
-}</code></pre>
+// En el controlador — sin @JxInject, sin Repository separado
+DBRow p      = Producto.porId(42);
+String nombre = p.GetString("nombre");
+double precio  = p.GetDouble("precio");</code></pre>
       </div>
     </div>
 
@@ -638,7 +645,7 @@ if (!result.isValid()) {
     </div>
 
     <div>
-      <p class="text-xs font-semibold text-muted dark:text-[#86868b] uppercase tracking-wider mb-2">Fechas, URLs y validadores custom <span class="text-apple font-mono normal-case">v3.1</span></p>
+      <p class="text-xs font-semibold text-muted dark:text-[#86868b] uppercase tracking-wider mb-2">Fechas, URLs y validadores custom <span class="text-apple font-mono normal-case">v3.0</span></p>
       <div class="code-block">
         <div class="code-label">nuevas anotaciones</div>
         <pre><code class="language-java">import java.time.LocalDate;
@@ -896,7 +903,7 @@ public ActionResult sync() { ... }</code></pre>
     </div>
 
     <div>
-      <p class="text-xs font-semibold text-muted dark:text-[#86868b] uppercase tracking-wider mb-2">@JxScheduled — cron y fixed rate <span class="text-apple font-mono normal-case">v3.1</span></p>
+      <p class="text-xs font-semibold text-muted dark:text-[#86868b] uppercase tracking-wider mb-2">@JxScheduled — cron y fixed rate <span class="text-apple font-mono normal-case">v3.0</span></p>
       <div class="code-block">
         <div class="code-label">tareas programadas con cron</div>
         <pre><code class="language-java">@JxService

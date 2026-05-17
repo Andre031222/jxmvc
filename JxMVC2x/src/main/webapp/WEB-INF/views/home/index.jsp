@@ -3,7 +3,7 @@
 
 <%-- ── Hero ─────────────────────────────────────────────────────────── --%>
 <section class="relative overflow-hidden
-    bg-white dark:bg-[#08090d]
+    bg-white dark:bg-[#060D1A]
     border-b border-black/[0.06] dark:border-white/[0.04]">
 
     <%-- Glow background (solo dark) --%>
@@ -28,7 +28,7 @@
 
         <%-- Title --%>
         <h1 class="text-[clamp(3rem,10vw,5.5rem)] font-extrabold tracking-tight leading-[1.02] mb-5">
-            <span class="jx-grad">JxMVC</span><span class="text-ink dark:text-white"> 3.1</span>
+            <span class="jx-grad">JxMVC</span><span class="text-ink dark:text-white"> 3.0</span>
         </h1>
 
         <%-- Subtitle --%>
@@ -72,18 +72,18 @@
 
         <%-- CTAs --%>
         <div class="flex justify-center flex-wrap gap-3 mb-10">
-            <a href="${pageContext.request.contextPath}/home/downloads"
+            <a href="${pageContext.request.contextPath}/downloads"
                class="px-5 py-2.5 bg-apple text-white text-sm font-medium rounded-full
-                      hover:bg-[#0077ed] transition-colors shadow-sm"
+                      hover:bg-[#0040CC] transition-colors shadow-sm"
                data-i18n="hero.dl">Descargar</a>
-            <a href="${pageContext.request.contextPath}/home/docs"
+            <a href="${pageContext.request.contextPath}/docs"
                class="px-5 py-2.5 bg-black/[0.05] dark:bg-white/10
                       text-ink dark:text-[#f5f5f7]
                       border border-black/10 dark:border-white/10
                       text-sm font-medium rounded-full
                       hover:bg-black/10 dark:hover:bg-white/15 transition-colors"
                data-i18n="hero.docs">Documentación</a>
-            <a href="${pageContext.request.contextPath}/home/errors"
+            <a href="${pageContext.request.contextPath}/errors"
                class="px-5 py-2.5 bg-black/[0.05] dark:bg-white/10
                       text-ink dark:text-[#f5f5f7]
                       border border-black/10 dark:border-white/10
@@ -141,7 +141,7 @@
                     <pre class="px-4 pb-3 font-mono text-xs text-ink dark:text-[#c8c8d0] leading-relaxed"><code id="jxDepCode">&lt;dependency&gt;
   &lt;groupId&gt;jxmvc&lt;/groupId&gt;
   &lt;artifactId&gt;jxmvc-core&lt;/artifactId&gt;
-  &lt;version&gt;3.1.0&lt;/version&gt;
+  &lt;version&gt;3.0.0&lt;/version&gt;
 &lt;/dependency&gt;</code></pre>
                 </div>
             </div>

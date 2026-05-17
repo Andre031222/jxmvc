@@ -13,10 +13,10 @@ public class HomeController extends BaseController {
         return view("home/index");
     }
 
-    @JxGetMapping("/about")
+    @JxGetMapping({"/about", "about"})
     public ActionResult about() {
-        model.setVar("title",     "About · JxMVC 3.1.0");
-        model.setVar("framework", "Lightning-X MVC 3.1.0 (JxMVC)");
+        model.setVar("title",     "About · JxMVC 3.0.0");
+        model.setVar("framework", "Lightning-X MVC 3.0.0 (JxMVC)");
         return view("home/about");
     }
 
@@ -25,27 +25,27 @@ public class HomeController extends BaseController {
         return text("pong!");
     }
 
-    @JxGetMapping("docs")
+    @JxGetMapping({"docs", "/docs"})
     public ActionResult docs() {
-        model.setVar("title", "Docs · JxMVC 3.1.0");
+        model.setVar("title", "Docs · JxMVC 3.0.0");
         return view("home/docs");
     }
 
-    @JxGetMapping("errors")
+    @JxGetMapping({"errors", "/errors"})
     public ActionResult errors() {
-        model.setVar("title", "Pruebas de errores · JxMVC 3.1.0");
+        model.setVar("title", "Pruebas de errores · JxMVC 3.0.0");
         return view("home/errors");
     }
 
-    @JxGetMapping("downloads")
+    @JxGetMapping({"downloads", "/downloads"})
     public ActionResult downloads() {
-        model.setVar("title", "Descargas · JxMVC 3.1.0");
+        model.setVar("title", "Descargas · JxMVC 3.0.0");
         return view("home/downloads");
     }
 
-    @JxGetMapping("bd")
+    @JxGetMapping({"bd", "/bd"})
     public ActionResult bd() {
-        model.setVar("title", "BD · JxMVC 3.1.0");
+        model.setVar("title", "BD · JxMVC 3.0.0");
 
         try (JxDB db = db()) {
             String connState = db.isConnected() ? "Conectado" : "Sin conexión";

@@ -206,7 +206,8 @@ class BaseDispatcher {
                 registerAnnotation("PATCH",  m.getAnnotation(JxMapping.JxPatchMapping.class),  base, m, cls, isMain);
                 JxMapping.JxAnyMapping any = m.getAnnotation(JxMapping.JxAnyMapping.class);
                 if (any != null) {
-                    for (String v : ALL_VERBS) registerRoute(v, any.value(), base, m, cls, isMain);
+                    for (String val : any.value())
+                        for (String v : ALL_VERBS) registerRoute(v, val, base, m, cls, isMain);
                 }
             }
         }
@@ -233,12 +234,12 @@ class BaseDispatcher {
     private void registerAnnotation(String verb, Object ann, String base,
                                     Method m, Class<? extends JxController> cls, boolean isMain) {
         if (ann == null) return;
-        String value = ann instanceof JxMapping.JxGetMapping    g ? g.value()
-                     : ann instanceof JxMapping.JxPostMapping   p ? p.value()
-                     : ann instanceof JxMapping.JxPutMapping    u ? u.value()
-                     : ann instanceof JxMapping.JxDeleteMapping d ? d.value()
-                     :                                            ((JxMapping.JxPatchMapping) ann).value();
-        registerRoute(verb, value, base, m, cls, isMain);
+        String[] values = ann instanceof JxMapping.JxGetMapping    g ? g.value()
+                        : ann instanceof JxMapping.JxPostMapping   p ? p.value()
+                        : ann instanceof JxMapping.JxPutMapping    u ? u.value()
+                        : ann instanceof JxMapping.JxDeleteMapping d ? d.value()
+                        :                                            ((JxMapping.JxPatchMapping) ann).value();
+        for (String value : values) registerRoute(verb, value, base, m, cls, isMain);
     }
 
     private void registerRoute(String verb, String value, String base,

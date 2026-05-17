@@ -23,7 +23,7 @@
         <div class="bg-white dark:bg-white/[0.05] border border-black/[0.06] dark:border-white/[0.06] rounded-2xl p-5">
             <h2 class="text-sm font-semibold text-ink dark:text-[#f5f5f7] mb-3">Read</h2>
             <div class="flex flex-wrap gap-2">
-                <a class="inline-flex px-4 py-2 rounded-full bg-apple text-white text-xs font-mono font-semibold hover:bg-[#0077ed] transition-colors"
+                <a class="inline-flex px-4 py-2 rounded-full bg-apple text-white text-xs font-mono font-semibold hover:bg-[#0040CC] transition-colors"
                    href="${pageContext.request.contextPath}/demo/test-list">Ver todos</a>
                 <a class="inline-flex px-4 py-2 rounded-full border border-black/[0.1] dark:border-white/[0.1] text-xs font-mono text-ink dark:text-[#f5f5f7] hover:border-apple/30 transition-colors"
                    href="${pageContext.request.contextPath}/demo/test-get/1">Ver id=1</a>
@@ -35,7 +35,7 @@
         <div class="bg-white dark:bg-white/[0.05] border border-black/[0.06] dark:border-white/[0.06] rounded-2xl p-5">
             <h2 class="text-sm font-semibold text-ink dark:text-[#f5f5f7] mb-1">Create</h2>
             <p class="text-xs text-muted dark:text-[#86868b] mb-3">Inserta un registro con los campos <code class="font-mono">DNI</code> y <code class="font-mono">Nombres</code>.</p>
-            <a class="inline-flex px-4 py-2 rounded-full bg-apple text-white text-xs font-mono font-semibold hover:bg-[#0077ed] transition-colors"
+            <a class="inline-flex px-4 py-2 rounded-full bg-apple text-white text-xs font-mono font-semibold hover:bg-[#0040CC] transition-colors"
                href="${pageContext.request.contextPath}/demo/test-add/12345678/Juan%20Perez">
                 Insertar ejemplo
             </a>

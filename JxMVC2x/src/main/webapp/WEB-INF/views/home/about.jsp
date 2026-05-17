@@ -7,7 +7,7 @@
 <div class="mb-12 jx-reveal jx-delay-1">
     <p class="text-xs font-mono uppercase tracking-[0.25em] text-muted dark:text-[#86868b] mb-3" data-i18n="about.tag">About</p>
     <h1 class="text-4xl font-bold tracking-tight mb-4 text-ink dark:text-[#f5f5f7]">
-        Lightning-X MVC <span class="text-apple">3.1</span>
+        Lightning-X MVC <span class="text-apple">3.0</span>
     </h1>
     <p class="text-base text-muted dark:text-[#86868b] max-w-2xl leading-relaxed" data-i18n="about.desc">
         Framework MVC para Jakarta EE construido desde cero — sin Spring, sin Hibernate,
@@ -139,10 +139,10 @@
 
 <%-- ── CTA ──────────────────────────────────────────────────────────── --%>
 <div class="flex flex-wrap gap-3 mb-4 jx-reveal jx-delay-4">
-    <a href="${pageContext.request.contextPath}/home/docs"
-       class="px-5 py-2.5 bg-apple text-white text-sm font-medium rounded-full hover:bg-[#0077ed] transition-colors shadow-sm"
+    <a href="${pageContext.request.contextPath}/docs"
+       class="px-5 py-2.5 bg-apple text-white text-sm font-medium rounded-full hover:bg-[#0040CC] transition-colors shadow-sm"
        data-i18n="about.docs.btn">Ver documentación</a>
-    <a href="${pageContext.request.contextPath}/home/downloads"
+    <a href="${pageContext.request.contextPath}/downloads"
        class="px-5 py-2.5 bg-white dark:bg-white/10 text-ink dark:text-[#f5f5f7] border border-black/10 dark:border-white/10 text-sm font-medium rounded-full hover:bg-black/5 dark:hover:bg-white/15 transition-colors"
        data-i18n="about.dl.btn">Descargar</a>
     <a href="${pageContext.request.contextPath}/jx/info" target="_blank"

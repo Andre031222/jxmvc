@@ -42,10 +42,8 @@ public final class ProjectZipBuilder {
                      homeController(pkg, appName));
 
             if (!"none".equals(db)) {
-                add(zip, "src/main/java/" + pkgPath + "/models/SampleEntity.java",
-                         sampleEntity(pkg));
-                add(zip, "src/main/java/" + pkgPath + "/repository/SampleRepository.java",
-                         sampleRepo(pkg));
+                add(zip, "src/main/java/" + pkgPath + "/models/Sample.java",
+                         sampleModel(pkg));
             }
 
             add(zip, "README.md", readme(appName, artifactId, db));
@@ -111,7 +109,7 @@ public final class ProjectZipBuilder {
                         <dependency>
                             <groupId>jxmvc</groupId>
                             <artifactId>jxmvc-core</artifactId>
-                            <version>3.1.0</version>
+                            <version>3.0.0</version>
                         </dependency>
                 %s
                     </dependencies>
@@ -163,7 +161,7 @@ public final class ProjectZipBuilder {
             default -> "# Sin base de datos configurada\n";
         };
 
-        return "# Lux / JxMVC 3.1.0\n"
+        return "# Lux / JxMVC 3.0.0\n"
              + "jxmvc.controllers.package = " + pkg + "\n\n"
              + "# Base de datos\n" + dbSection + "\n"
              + "jxmvc.log.level           = INFO\n"
@@ -259,7 +257,7 @@ public final class ProjectZipBuilder {
                     @JxGetMapping("index")
                     public ActionResult index() {
                         model.setVar("appName", "%s");
-                        model.setVar("version", "3.1.0");
+                        model.setVar("version", "3.0.0");
                         return view("home/index");
                     }
 
@@ -271,49 +269,42 @@ public final class ProjectZipBuilder {
                 """.formatted(pkg, appName);
     }
 
-    private static String sampleEntity(String pkg) {
+    private static String sampleModel(String pkg) {
         return """
                 package %s.models;
 
-                import jxmvc.core.JxMapping.*;
+                import jxmvc.core.JxModel;
+                import jxmvc.core.JxDB;
+                import jxmvc.core.DBRow;
+                import jxmvc.core.DBRowSet;
 
-                @JxTable("sample")
-                public class SampleEntity {
+                public class Sample extends JxModel {
+                    private static final String T = "sample";
 
-                    @JxId
-                    public long id;
+                    public static DBRowSet todos() {
+                        try (JxDB db = db()) {
+                            return db.query("SELECT * FROM " + T);
+                        } catch (Exception e) { return new DBRowSet(); }
+                    }
 
-                    @JxRequired
-                    @JxMinLength(2)
-                    public String nombre;
+                    public static DBRow porId(Object id) {
+                        try (JxDB db = db()) {
+                            return db.queryRow("SELECT * FROM " + T + " WHERE id = ?", id);
+                        } catch (Exception e) { return null; }
+                    }
 
-                    public String descripcion;
+                    public static long guardar(DBRow datos) {
+                        try (JxDB db = db()) { return db.insert(T, datos); }
+                        catch (Exception e) { return -1; }
+                    }
+
+                    public static int eliminar(Object id) {
+                        try (JxDB db = db()) {
+                            return db.exec("DELETE FROM " + T + " WHERE id = ?", id);
+                        } catch (Exception e) { return 0; }
+                    }
                 }
                 """.formatted(pkg);
-    }
-
-    private static String sampleRepo(String pkg) {
-        return """
-                package %s.repository;
-
-                import jxmvc.core.JxMapping.*;
-                import jxmvc.core.JxRepository;
-                import %s.models.SampleEntity;
-                import java.util.List;
-
-                @JxService
-                public class SampleRepository extends JxRepository<SampleEntity, Long> {
-
-                    public SampleRepository() {
-                        super("sample", SampleEntity.class);
-                    }
-
-                    @JxQuery("SELECT * FROM sample WHERE nombre LIKE ?")
-                    public List<SampleEntity> buscarPorNombre(String nombre) {
-                        return executeQuery("%%" + nombre + "%%");
-                    }
-                }
-                """.formatted(pkg, pkg);
     }
 
     private static String headerJspf(String appName) {
@@ -342,7 +333,7 @@ public final class ProjectZipBuilder {
         return """
                     </main>
                     <footer class="text-center text-xs text-slate-400 py-8">
-                        Powered by <strong>Lux / JxMVC 3.1.0</strong>
+                        Powered by <strong>Lux / JxMVC 3.0.0</strong>
                     </footer>
                 </body>
                 </html>
@@ -403,7 +394,7 @@ public final class ProjectZipBuilder {
         );
 
         return "# " + appName + "\n\n"
-             + "Generated with **[JxMVC](https://github.com/your-org/jxmvc) 3.1.0** — "
+             + "Generated with **[JxMVC](https://github.com/your-org/jxmvc) 3.0.0** — "
              + "a zero-dependency MVC framework for Jakarta EE.\n\n"
              + "---\n\n"
              + "## Prerequisites\n\n"
@@ -436,9 +427,7 @@ public final class ProjectZipBuilder {
              + "        HomeController.java     # Example controller — routes: /home/index, /home/ping\n"
              + (db.equals("none") ? "" :
                "      models/\n"
-             + "        SampleEntity.java       # JPA-style entity mapped with @JxTable\n"
-             + "      repository/\n"
-             + "        SampleRepository.java   # Generic CRUD via JxRepository<T, ID>\n")
+             + "        Sample.java             # Active record — CRUD methods, no field re-declarations\n")
              + "    resources/\n"
              + "      application.properties   # Framework configuration\n"
              + "    webapp/\n"
@@ -453,28 +442,39 @@ public final class ProjectZipBuilder {
              + "            index.jsp          # View for HomeController.index()\n"
              + "      assets/                  # Static files (CSS, JS, images)\n"
              + "```\n\n"
-             + "## Creating a Controller\n\n"
+             + "## Creating a Model + Controller\n\n"
+             + "### Model (Active Record — no field re-declarations)\n\n"
              + "```java\n"
-             + "@JxControllerMapping(\"products\")\n"
-             + "public class ProductController extends BaseController {\n\n"
-             + "    // GET /products/list\n"
+             + "public class Producto extends JxModel {\n"
+             + "    private static final String T = \"productos\";\n\n"
+             + "    public static DBRowSet todos() {\n"
+             + "        try (JxDB db = db()) { return db.query(\"SELECT * FROM \" + T); }\n"
+             + "        catch (Exception e) { return new DBRowSet(); }\n"
+             + "    }\n\n"
+             + "    public static DBRow porId(Object id) {\n"
+             + "        try (JxDB db = db()) {\n"
+             + "            return db.queryRow(\"SELECT * FROM \" + T + \" WHERE id = ?\", id);\n"
+             + "        } catch (Exception e) { return null; }\n"
+             + "    }\n"
+             + "}\n"
+             + "```\n\n"
+             + "### Controller\n\n"
+             + "```java\n"
+             + "@JxControllerMapping(\"productos\")\n"
+             + "public class ProductoController extends BaseController {\n\n"
+             + "    // GET /productos/list\n"
              + "    @JxGetMapping(\"list\")\n"
              + "    public ActionResult list() {\n"
-             + "        model.setVar(\"items\", productService.findAll());\n"
-             + "        return view(\"products/list\");\n"
+             + "        model.setVar(\"items\", Producto.todos().asList());\n"
+             + "        return view(\"productos/list\");\n"
              + "    }\n\n"
-             + "    // GET /products/detail/{id}\n"
+             + "    // GET /productos/detail/{id}\n"
              + "    @JxGetMapping(\"detail/{id}\")\n"
              + "    public ActionResult detail(long id) {\n"
-             + "        model.setVar(\"item\", productService.findById(id));\n"
-             + "        return view(\"products/detail\");\n"
-             + "    }\n\n"
-             + "    // POST /products/save\n"
-             + "    @JxPostMapping(\"save\")\n"
-             + "    public ActionResult save() {\n"
-             + "        String name = requireParam(\"name\");\n"
-             + "        // persist ...\n"
-             + "        return redirect(\"/products/list\");\n"
+             + "        DBRow item = Producto.porId(id);\n"
+             + "        model.setVar(\"nombre\", item.GetString(\"nombre\"));\n"
+             + "        model.setVar(\"precio\", item.GetDouble(\"precio\"));\n"
+             + "        return view(\"productos/detail\");\n"
              + "    }\n"
              + "}\n"
              + "```\n\n"

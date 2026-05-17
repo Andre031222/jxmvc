@@ -158,12 +158,12 @@ public final class JxOpenApi {
             JxMapping.JxPatchMapping  patch  = m.getAnnotation(JxMapping.JxPatchMapping.class);
             JxMapping.JxAnyMapping    any    = m.getAnnotation(JxMapping.JxAnyMapping.class);
 
-            if      (get    != null) { verb = "GET";    mPath = get.value(); }
-            else if (post   != null) { verb = "POST";   mPath = post.value(); }
-            else if (put    != null) { verb = "PUT";    mPath = put.value(); }
-            else if (delete != null) { verb = "DELETE"; mPath = delete.value(); }
-            else if (patch  != null) { verb = "PATCH";  mPath = patch.value(); }
-            else if (any    != null) { verb = "GET";    mPath = any.value(); }
+            if      (get    != null) { verb = "GET";    mPath = get.value()[0]; }
+            else if (post   != null) { verb = "POST";   mPath = post.value()[0]; }
+            else if (put    != null) { verb = "PUT";    mPath = put.value()[0]; }
+            else if (delete != null) { verb = "DELETE"; mPath = delete.value()[0]; }
+            else if (patch  != null) { verb = "PATCH";  mPath = patch.value()[0]; }
+            else if (any    != null) { verb = "GET";    mPath = any.value()[0]; }
             else continue;
 
             String fullPath = buildPath(base, m.getName(), mPath);

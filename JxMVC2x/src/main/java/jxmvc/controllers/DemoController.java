@@ -13,7 +13,7 @@ public class DemoController extends BaseController {
     @JxGetMapping("index")
     public String index() {
         view.contentType("text/html;charset=UTF-8");
-        return "Demo JxMVC 3.1.0 — <b>funcionando</b>";
+        return "Demo JxMVC 3.0.0 — <b>funcionando</b>";
     }
 
     @JxGetMapping("salud")
@@ -23,7 +23,7 @@ public class DemoController extends BaseController {
 
     @JxGetMapping("ping")
     public ActionResult ping() {
-        return json(GenApi.JsonStr("pong", true, "version", "3.1.0"));
+        return json(GenApi.JsonStr("pong", true, "version", "3.0.0"));
     }
 
     // ── CORS ──────────────────────────────────────────────────────────────

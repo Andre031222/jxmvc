@@ -46,24 +46,28 @@ public final class JxMapping {
 
     // ── Mapeo de métodos HTTP ────────────────────────────────────────────
 
+    /**
+     * GET — acepta una o varias rutas: {@code @JxGetMapping({"/about","about"})}
+     * registra el metodo en ambas rutas simultaneamente.
+     */
     @Retention(RetentionPolicy.RUNTIME) @Target(ElementType.METHOD)
-    public @interface JxGetMapping    { String value() default ""; }
+    public @interface JxGetMapping    { String[] value() default {""}; }
 
     @Retention(RetentionPolicy.RUNTIME) @Target(ElementType.METHOD)
-    public @interface JxPostMapping   { String value() default ""; }
+    public @interface JxPostMapping   { String[] value() default {""}; }
 
     @Retention(RetentionPolicy.RUNTIME) @Target(ElementType.METHOD)
-    public @interface JxPutMapping    { String value() default ""; }
+    public @interface JxPutMapping    { String[] value() default {""}; }
 
     @Retention(RetentionPolicy.RUNTIME) @Target(ElementType.METHOD)
-    public @interface JxDeleteMapping { String value() default ""; }
+    public @interface JxDeleteMapping { String[] value() default {""}; }
 
     @Retention(RetentionPolicy.RUNTIME) @Target(ElementType.METHOD)
-    public @interface JxPatchMapping  { String value() default ""; }
+    public @interface JxPatchMapping  { String[] value() default {""}; }
 
-    /** Acepta cualquier verbo HTTP en la ruta indicada. */
+    /** Acepta cualquier verbo HTTP — tambien soporta multiples rutas. */
     @Retention(RetentionPolicy.RUNTIME) @Target(ElementType.METHOD)
-    public @interface JxAnyMapping    { String value() default ""; }
+    public @interface JxAnyMapping    { String[] value() default {""}; }
 
     // ── CORS ─────────────────────────────────────────────────────────────
 
