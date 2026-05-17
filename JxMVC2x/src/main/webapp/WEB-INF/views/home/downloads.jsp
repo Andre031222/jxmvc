@@ -4,7 +4,7 @@
 <style>
   :root { --dc-bg:#f6f8fa; --dc-border:rgba(0,0,0,0.08); --dc-label:rgba(0,0,0,0.45); --dc-text:#1d1d1f; }
   .dark { --dc-bg:#1e2432; --dc-border:#2d3448; --dc-label:#8892aa; --dc-text:#e8eaf0; }
-  .jx-code { background:var(--dc-bg); border:1px solid var(--dc-border); border-radius:.625rem; overflow:hidden; }
+  .jx-code { background:var(--dc-bg); border:1px solid var(--dc-border); border-radius:.625rem; overflow:clip; }
   .jx-code-label { font-size:.6rem; font-family:monospace; letter-spacing:.12em; padding:.3rem .75rem;
                    border-bottom:1px solid var(--dc-border); color:var(--dc-label); text-transform:uppercase;
                    background:var(--dc-bg); }

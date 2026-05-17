@@ -23,11 +23,14 @@
   }
 
   .hljs { background: transparent !important; font-size: 0.72rem; line-height: 1.65; }
+
+  /* overflow:clip = recorta visualmente (border-radius OK) pero NO suprime
+     el contexto de scroll de los hijos — pre puede hacer scroll horizontal */
   .code-block {
     background: var(--cb-bg);
     border: 1px solid var(--cb-border);
     border-radius: .625rem;
-    overflow: hidden;
+    overflow: clip;
     max-width: 100%;
   }
   .code-label {
@@ -45,6 +48,9 @@
     -webkit-overflow-scrolling: touch;
   }
   .code-block pre code { white-space: pre; display: block; min-width: 0; }
+
+  /* Grid items: min-width:0 evita que min-width:auto expanda el track */
+  .grid > div, .grid > [class*="col-span"] { min-width: 0; }
 
   /* ── Sidebar (escritorio) ───────────────────────────────────────── */
   .jx-slink {
