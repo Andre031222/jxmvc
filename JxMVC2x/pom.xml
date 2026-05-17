@@ -56,6 +56,8 @@
     </dependencies>
 
     <build>
+        <!-- jxmvc.war -> jxmvc.andre.net.pe + andre.net.pe/jxmvc -->
+        <finalName>jxmvc</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
