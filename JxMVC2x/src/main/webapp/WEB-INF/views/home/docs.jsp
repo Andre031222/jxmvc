@@ -94,11 +94,12 @@
 </div>
 
 <%-- ── Layout: sidebar (escritorio) + contenido ─────────────────── --%>
-<div class="flex gap-10 items-start jx-reveal jx-delay-2">
+<%-- Sin items-start: el aside se estira al alto del contenido, sticky funciona en todo el scroll --%>
+<div class="flex gap-10 jx-reveal jx-delay-2">
 
   <%-- Sidebar — escritorio y laptop --%>
-  <aside class="hidden md:block w-[200px] shrink-0">
-    <div class="sticky top-20 pt-1 pb-8">
+  <aside class="hidden md:block w-[200px] shrink-0 self-start sticky top-20">
+    <div class="pt-1 pb-8">
       <p class="text-[10px] font-mono uppercase tracking-[0.22em] text-muted dark:text-[#4a4a52] px-2.5 mb-3">Referencia</p>
       <nav id="jxDocNav" class="space-y-0.5">
       <%
