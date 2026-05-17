@@ -70,7 +70,7 @@
     <script>
     const JX_T = {
       es:{
-        'nav.home':'Inicio','nav.about':'About','nav.docs':'Docs',
+        'nav.home':'Inicio','nav.about':'Acerca de','nav.docs':'Documentación',
         'nav.downloads':'Descargas','nav.errors':'Errores',
         'hero.tag':'Lightning-X Web Framework',
         'hero.desc':'Framework MVC para Jakarta EE. Cero dependencias en runtime, pipeline de 14 etapas, routing por convención y anotaciones, pool de conexiones, métricas y OpenAPI integrados.',
@@ -118,7 +118,7 @@
         'dl.detect':'Detected platform','dl.os.win':'Windows','dl.os.mac':'macOS','dl.os.lin':'Linux'
       },
       pt:{
-        'nav.home':'Início','nav.about':'Sobre','nav.docs':'Docs',
+        'nav.home':'Início','nav.about':'Sobre','nav.docs':'Documentação',
         'nav.downloads':'Downloads','nav.errors':'Erros',
         'hero.tag':'Lightning-X Web Framework',
         'hero.desc':'Framework MVC para Jakarta EE. Zero dependências em runtime, pipeline de 14 estágios, roteamento por convenção e anotações, pool de conexões, métricas e OpenAPI integrados.',
@@ -281,36 +281,70 @@
                data-i18n="nav.errors">Errores</a>
         </nav>
 
-        <div class="flex items-center gap-1.5 shrink-0">
+        <div class="flex items-center gap-1 shrink-0">
 
-            <%-- Language — compact select --%>
-            <div class="hidden sm:flex items-center relative">
-                <select id="jxLangSel" onchange="jxSetLang(this.value)"
-                    class="appearance-none bg-transparent text-[10px] font-mono font-medium tracking-widest text-muted dark:text-[#636366] border border-black/[0.08] dark:border-white/[0.08] rounded-lg pl-2.5 pr-6 py-1.5 cursor-pointer focus:outline-none hover:border-black/[0.15] dark:hover:border-white/[0.15] transition-colors">
-                    <option value="es">ES</option>
-                    <option value="en">EN</option>
-                    <option value="pt">PT</option>
-                    <option value="ru">RU</option>
-                    <option value="fr">FR</option>
-                </select>
-                <svg class="absolute right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 text-muted dark:text-[#636366] pointer-events-none" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+            <%-- Language — globe dropdown --%>
+            <div id="jxLangDropdown" class="hidden sm:block relative">
+                <button onclick="jxLangOpen()" id="jxLangBtn"
+                        class="flex items-center gap-1.5 h-8 px-2.5 rounded-lg
+                               border border-black/[0.07] dark:border-white/[0.07]
+                               text-muted dark:text-[#636366]
+                               hover:border-black/[0.18] dark:hover:border-white/[0.18]
+                               hover:text-ink dark:hover:text-[#f5f5f7] transition-all">
+                    <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="9"/>
+                        <path d="M3.6 9h16.8M3.6 15h16.8"/>
+                        <path d="M12 3c-2.5 4-2.5 14 0 18M12 3c2.5 4 2.5 14 0 18" stroke-linecap="round"/>
+                    </svg>
+                    <span id="jxLangLabel" class="text-[11px] font-mono font-semibold tracking-widest">ES</span>
+                    <svg id="jxLangChevron" class="w-3 h-3 shrink-0 transition-transform duration-150"
+                         fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                        <path d="M6 9l6 6 6-6"/>
+                    </svg>
+                </button>
+                <div id="jxLangPanel"
+                     class="hidden absolute right-0 top-full mt-1.5
+                            bg-white dark:bg-[#18181f]
+                            border border-black/[0.08] dark:border-white/[0.08]
+                            rounded-2xl shadow-xl shadow-black/10 py-1.5 min-w-[152px] z-[60]">
+                    <% for (String[] lng : new String[][]{
+                        {"es","ES","Español"},{"en","EN","English"},
+                        {"pt","PT","Português"},{"ru","RU","Русский"},{"fr","FR","Français"}
+                    }) { %>
+                    <button onclick="jxSetLangFull('<%= lng[0] %>')"
+                            class="w-full flex items-center gap-2.5 px-3.5 py-1.5
+                                   text-muted dark:text-[#86868b]
+                                   hover:text-ink dark:hover:text-[#f5f5f7]
+                                   hover:bg-black/[0.04] dark:hover:bg-white/[0.05]
+                                   transition-colors text-left">
+                        <span class="text-[11px] font-mono font-bold w-5 shrink-0 text-ink dark:text-[#f5f5f7]"><%= lng[1] %></span>
+                        <span class="text-[11px]"><%= lng[2] %></span>
+                    </button>
+                    <% } %>
+                </div>
             </div>
 
-            <%-- Theme --%>
+            <%-- Theme — sol naranja / luna violeta --%>
             <button onclick="jxToggleTheme()"
-                    class="w-8 h-8 flex items-center justify-center rounded-lg text-muted dark:text-[#86868b] hover:bg-black/[0.06] dark:hover:bg-white/[0.06] transition-colors"
+                    class="w-8 h-8 flex items-center justify-center rounded-lg
+                           hover:bg-black/[0.06] dark:hover:bg-white/[0.06]
+                           transition-all group"
                     aria-label="Cambiar tema">
-                <svg class="hidden dark:block w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="5"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/>
+                <svg class="dark:hidden w-[18px] h-[18px] text-[#FC801D] transition-transform group-hover:rotate-12"
+                     fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="4" fill="currentColor" stroke="none"/>
+                    <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" stroke-linecap="round"/>
                 </svg>
-                <svg class="dark:hidden w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <svg class="hidden dark:block w-[18px] h-[18px] text-[#5A63D6] transition-transform group-hover:-rotate-12"
+                     fill="currentColor" viewBox="0 0 24 24">
                     <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
                 </svg>
             </button>
 
             <%-- Hamburger --%>
             <button onclick="jxMenuToggle()" id="jxBurger"
-                    class="md:hidden w-8 h-8 flex items-center justify-center rounded-lg hover:bg-black/[0.06] dark:hover:bg-white/[0.06] transition-colors">
+                    class="md:hidden w-8 h-8 flex items-center justify-center rounded-lg
+                           hover:bg-black/[0.06] dark:hover:bg-white/[0.06] transition-colors">
                 <svg class="w-4 h-4 text-muted dark:text-[#86868b]" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/>
                 </svg>
@@ -327,18 +361,17 @@
             <a href="${pageContext.request.contextPath}/home/docs"    class="flex px-3 py-2.5 rounded-xl text-sm text-muted dark:text-[#86868b] hover:text-ink dark:hover:text-[#f5f5f7] hover:bg-black/[0.05] dark:hover:bg-white/[0.05] transition-colors" data-i18n="nav.docs">Docs</a>
             <a href="${pageContext.request.contextPath}/home/downloads" class="flex px-3 py-2.5 rounded-xl text-sm text-muted dark:text-[#86868b] hover:text-ink dark:hover:text-[#f5f5f7] hover:bg-black/[0.05] dark:hover:bg-white/[0.05] transition-colors" data-i18n="nav.downloads">Descargas</a>
             <a href="${pageContext.request.contextPath}/home/errors"  class="flex px-3 py-2.5 rounded-xl text-sm text-muted dark:text-[#86868b] hover:text-ink dark:hover:text-[#f5f5f7] hover:bg-black/[0.05] dark:hover:bg-white/[0.05] transition-colors" data-i18n="nav.errors">Errores</a>
-            <div class="pt-3 mt-1 border-t border-black/[0.06] dark:border-white/[0.06] flex items-center gap-2">
-                <span class="text-[10px] font-mono text-muted dark:text-[#636366]">Idioma</span>
-                <div class="relative">
-                    <select id="jxLangSelM" onchange="jxSetLang(this.value);jxMenuToggle()"
-                        class="appearance-none bg-transparent text-[10px] font-mono font-medium tracking-widest text-muted dark:text-[#636366] border border-black/[0.08] dark:border-white/[0.08] rounded-lg pl-2.5 pr-6 py-1.5 cursor-pointer focus:outline-none">
-                        <option value="es">ES</option>
-                        <option value="en">EN</option>
-                        <option value="pt">PT</option>
-                        <option value="ru">RU</option>
-                        <option value="fr">FR</option>
-                    </select>
-                    <svg class="absolute right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 text-muted dark:text-[#636366] pointer-events-none" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+            <div class="pt-3 mt-1 border-t border-black/[0.06] dark:border-white/[0.06]">
+                <p class="text-[10px] font-mono uppercase tracking-[0.2em] text-muted dark:text-[#4a4a52] mb-2 px-1">Idioma</p>
+                <div class="grid grid-cols-5 gap-1">
+                    <% for (String[] lng : new String[][]{
+                        {"es","ES"},{"en","EN"},{"pt","PT"},{"ru","RU"},{"fr","FR"}
+                    }) { %>
+                    <button onclick="jxSetLangFull('<%= lng[0] %>');jxMenuToggle()"
+                            class="py-1.5 text-[11px] font-mono font-semibold rounded-lg border border-black/[0.08] dark:border-white/[0.08] text-muted dark:text-[#636366] hover:text-ink dark:hover:text-[#f5f5f7] hover:border-apple/40 hover:text-apple transition-all">
+                        <%= lng[1] %>
+                    </button>
+                    <% } %>
                 </div>
             </div>
         </div>
@@ -397,6 +430,32 @@ function jxToggleTheme() {
 function jxMenuToggle() {
     document.getElementById('jxMobileNav').classList.toggle('hidden');
 }
+function jxLangOpen() {
+    var p = document.getElementById('jxLangPanel');
+    var c = document.getElementById('jxLangChevron');
+    if (!p) return;
+    var opening = p.classList.toggle('hidden');
+    if (c) c.style.transform = p.classList.contains('hidden') ? '' : 'rotate(180deg)';
+}
+function jxSetLangFull(lang) {
+    jxSetLang(lang);
+    var label = lang.toUpperCase();
+    document.querySelectorAll('#jxLangLabel').forEach(function(el) { el.textContent = label; });
+    var p = document.getElementById('jxLangPanel');
+    var c = document.getElementById('jxLangChevron');
+    if (p) { p.classList.add('hidden'); }
+    if (c) { c.style.transform = ''; }
+}
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('#jxLangDropdown')) {
+        var p = document.getElementById('jxLangPanel');
+        var c = document.getElementById('jxLangChevron');
+        if (p && !p.classList.contains('hidden')) {
+            p.classList.add('hidden');
+            if (c) c.style.transform = '';
+        }
+    }
+});
 
 var _jxLang = jxDetectLang();
 jxApply(_jxLang);

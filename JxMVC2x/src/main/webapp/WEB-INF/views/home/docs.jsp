@@ -96,8 +96,8 @@
 <%-- ── Layout: sidebar (escritorio) + contenido ─────────────────── --%>
 <div class="flex gap-10 items-start jx-reveal jx-delay-2">
 
-  <%-- Sidebar — solo escritorio --%>
-  <aside class="hidden lg:block w-[200px] shrink-0">
+  <%-- Sidebar — escritorio y laptop --%>
+  <aside class="hidden md:block w-[200px] shrink-0">
     <div class="sticky top-20 pt-1 pb-8">
       <p class="text-[10px] font-mono uppercase tracking-[0.22em] text-muted dark:text-[#4a4a52] px-2.5 mb-3">Referencia</p>
       <nav id="jxDocNav" class="space-y-0.5">
@@ -138,27 +138,54 @@
   <%-- Área de contenido --%>
   <div class="flex-1 min-w-0">
 
-    <%-- Nav móvil --%>
-    <div class="jx-section-nav lg:hidden">
-      <% for (String[] item : new String[][]{
-          {"routing",       "Routing"},
-          {"controladores", "Controladores"},
-          {"base-de-datos", "BD"},
-          {"validacion",    "Validación"},
-          {"seguridad",     "Seguridad"},
-          {"filtros",       "Filtros"},
-          {"cron-async",    "Cron & Async"},
-          {"di",            "DI"},
-          {"config",        "Config"},
-          {"sistema",       "Endpoints"},
-      }) { %>
-        <a href="#<%= item[0] %>"
-           class="px-3 py-1 text-xs font-mono border border-black/[0.08] dark:border-white/[0.08] rounded-lg
-                  text-muted dark:text-[#86868b] hover:bg-apple hover:text-white hover:border-apple
-                  transition-all whitespace-nowrap">
-          <%= item[1] %>
-        </a>
-      <% } %>
+    <%-- Nav móvil — drawer deslizable (solo < md) --%>
+    <div class="md:hidden mb-6">
+        <button id="jxDocsMobileBtn" onclick="jxDocsDrawerToggle()"
+                class="flex items-center gap-2 w-full px-4 py-2.5 rounded-2xl
+                       bg-white dark:bg-white/[0.05]
+                       border border-black/[0.06] dark:border-white/[0.06]
+                       text-muted dark:text-[#86868b] hover:text-ink dark:hover:text-[#f5f5f7]
+                       hover:border-apple/30 transition-all text-sm">
+            <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M4 6h16M4 12h10M4 18h7" stroke-linecap="round"/>
+            </svg>
+            <span class="text-xs font-mono">Secciones</span>
+            <svg id="jxDocsMobileChevron" class="w-3.5 h-3.5 ml-auto transition-transform duration-200"
+                 fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+                <path d="M6 9l6 6 6-6"/>
+            </svg>
+        </button>
+        <div id="jxDocsDrawer"
+             class="hidden mt-2 bg-white dark:bg-white/[0.05]
+                    border border-black/[0.06] dark:border-white/[0.06]
+                    rounded-2xl overflow-hidden">
+            <%
+            String[][] mobNav = {
+                {"routing",       "Routing",          "#087CFA", "01"},
+                {"controladores", "Controladores",    "#087CFA", "02"},
+                {"base-de-datos", "Base de datos",    "#5A63D6", "03"},
+                {"validacion",    "Validación · 21",  "#FC801D", "04"},
+                {"seguridad",     "Seguridad",        "#FE2857", "05"},
+                {"filtros",       "Filtros",          "#5A63D6", "06"},
+                {"cron-async",    "Cron & Async",     "#FC801D", "07"},
+                {"di",            "Inyección DI",     "#087CFA", "08"},
+                {"config",        "Configuración",    "#5A63D6", "09"},
+                {"sistema",       "Endpoints",        "#087CFA", "10"},
+            };
+            for (String[] mn : mobNav) {
+            %>
+            <a href="#<%= mn[0] %>" onclick="jxDocsDrawerClose()"
+               class="flex items-center gap-3 px-4 py-2.5
+                      border-b border-black/[0.04] dark:border-white/[0.04] last:border-0
+                      text-sm text-muted dark:text-[#86868b]
+                      hover:text-ink dark:hover:text-[#f5f5f7]
+                      hover:bg-black/[0.02] dark:hover:bg-white/[0.03] transition-colors">
+                <span class="w-1.5 h-1.5 rounded-full shrink-0" style="background:<%= mn[2] %>"></span>
+                <span class="text-[10px] font-mono opacity-50 w-5 shrink-0"><%= mn[3] %></span>
+                <span><%= mn[1] %></span>
+            </a>
+            <% } %>
+        </div>
     </div>
 
     <div class="space-y-16">
@@ -1042,6 +1069,21 @@ jxmvc.security.hsts.maxage   = 31536000   # 1 año en segundos</code></pre>
 </div><%-- /docs-layout --%>
 
 <script>
+// Drawer de secciones (móvil)
+function jxDocsDrawerToggle() {
+    var d = document.getElementById('jxDocsDrawer');
+    var c = document.getElementById('jxDocsMobileChevron');
+    if (!d) return;
+    var opening = d.classList.toggle('hidden');
+    if (c) c.style.transform = d.classList.contains('hidden') ? '' : 'rotate(180deg)';
+}
+function jxDocsDrawerClose() {
+    var d = document.getElementById('jxDocsDrawer');
+    var c = document.getElementById('jxDocsMobileChevron');
+    if (d) d.classList.add('hidden');
+    if (c) c.style.transform = '';
+}
+
 hljs.highlightAll();
 
 // Sidebar — resalta sección activa
