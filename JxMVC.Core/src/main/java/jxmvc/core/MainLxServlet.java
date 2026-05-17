@@ -72,7 +72,7 @@ public class MainLxServlet extends HttpServlet {
         }, 180_000, 180_000);
 
         JxDevMode.init();
-        log.info("Lux framework v3.0.0 iniciado — perfil activo: {}",
+        log.info("Lux framework v3.1.0 iniciado — perfil activo: {}",
                 JxProfile.active());
     }
 
@@ -669,7 +669,7 @@ public class MainLxServlet extends HttpServlet {
         JxPool  pool    = JxPool.global();
         String body = GenApi.JsonStr(
             "status",    "UP",
-            "version",   "3.0.0",
+            "version",   "3.1.0",
             "profile",   JxProfile.active(),
             "devMode",   JxDevMode.isActive(),
             "pool",      pool != null
@@ -687,7 +687,7 @@ public class MainLxServlet extends HttpServlet {
         String body = GenApi.JsonStr(
             "framework", "JxMVC",
             "brand",     "Lux",
-            "version",   "3.0.0",
+            "version",   "3.1.0",
             "profile",   JxProfile.active(),
             "devMode",   JxDevMode.isActive(),
             "java",      System.getProperty("java.version"),

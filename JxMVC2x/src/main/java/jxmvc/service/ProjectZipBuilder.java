@@ -111,7 +111,7 @@ public final class ProjectZipBuilder {
                         <dependency>
                             <groupId>jxmvc</groupId>
                             <artifactId>jxmvc-core</artifactId>
-                            <version>3.0.0</version>
+                            <version>3.1.0</version>
                         </dependency>
                 %s
                     </dependencies>
@@ -163,7 +163,7 @@ public final class ProjectZipBuilder {
             default -> "# Sin base de datos configurada\n";
         };
 
-        return "# Lux / JxMVC 3.0.0\n"
+        return "# Lux / JxMVC 3.1.0\n"
              + "jxmvc.controllers.package = " + pkg + "\n\n"
              + "# Base de datos\n" + dbSection + "\n"
              + "jxmvc.log.level           = INFO\n"
@@ -259,7 +259,7 @@ public final class ProjectZipBuilder {
                     @JxGetMapping("index")
                     public ActionResult index() {
                         model.setVar("appName", "%s");
-                        model.setVar("version", "3.0.0");
+                        model.setVar("version", "3.1.0");
                         return view("home/index");
                     }
 
@@ -342,7 +342,7 @@ public final class ProjectZipBuilder {
         return """
                     </main>
                     <footer class="text-center text-xs text-slate-400 py-8">
-                        Powered by <strong>Lux / JxMVC 3.0.0</strong>
+                        Powered by <strong>Lux / JxMVC 3.1.0</strong>
                     </footer>
                 </body>
                 </html>
@@ -403,7 +403,7 @@ public final class ProjectZipBuilder {
         );
 
         return "# " + appName + "\n\n"
-             + "Generated with **[JxMVC](https://github.com/your-org/jxmvc) 3.0.0** — "
+             + "Generated with **[JxMVC](https://github.com/your-org/jxmvc) 3.1.0** — "
              + "a zero-dependency MVC framework for Jakarta EE.\n\n"
              + "---\n\n"
              + "## Prerequisites\n\n"

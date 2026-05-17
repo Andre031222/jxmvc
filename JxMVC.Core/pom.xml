@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>jxmvc</groupId>
     <artifactId>jxmvc-core</artifactId>
-    <version>3.0.0</version>
+    <version>3.1.0</version>
     <packaging>jar</packaging>
     <name>JxMVC.Core</name>
     <description>Lux — Lightweight Java MVC framework — Jakarta EE 11, zero heavy dependencies.</description>

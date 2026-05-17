@@ -215,6 +215,13 @@ public final class JxMapping {
         long fixedRate()    default -1;
         /** Milisegundos de espera antes de la primera ejecución. */
         long initialDelay() default 0;
+        /**
+         * Expresión cron de 5 campos: {@code "min hora dom mes dow"} (dow 0=domingo).
+         * Ejemplos: {@code "0 3 * * *"} = cada día a las 3 AM,
+         *           {@code "0 9 * * 1"} = cada lunes a las 9 AM,
+         *           {@code "&#42;/15 * * * *"} = cada 15 minutos.
+         */
+        String cron() default "";
     }
 
     // ── Transacciones ────────────────────────────────────────────────────

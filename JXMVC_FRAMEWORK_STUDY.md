@@ -1694,4 +1694,67 @@ Nuevo método `checkMap()` retorna `Map<String,String>` de campo → primer erro
 
 ---
 
-*Documento actualizado 2026-05-14. Referencia tecnica interna del proyecto JxMVC / Lux.*
+---
+
+## 32. Novedades v3.1.0 (2026-05-17)
+
+### JxScheduler — Cron expressions
+
+Se agrego soporte de expresiones cron de 5 campos al `@JxScheduled` y al metodo estatico `JxScheduler.scheduleCron()`.
+
+Campos: `minuto hora dia-del-mes mes dia-de-semana` (dow 0=domingo).
+Operadores: `*` cualquiera, valor exacto, `*/N` cada N, `A-B` rango, `A,B,C` lista.
+
+```java
+@JxScheduled(cron = "0 3 * * *")   // cada dia a las 3 AM
+public void backupDiario() { ... }
+
+@JxScheduled(cron = "0 9 * * 1")   // cada lunes a las 9 AM
+public void reporteSemanal() { ... }
+```
+
+Implementacion: clase interna `CronTrigger` en `JxScheduler.java`. El trigger calcula el proximo disparo con `nextDelayMs()` iterando minuto a minuto hasta encontrar la proxima coincidencia (maximo 4 anos). Se reprograma automaticamente via `fireCron()` recursivo en el mismo `ScheduledExecutorService`.
+
+### JxJson — Soporte de java.time
+
+`JxJson.toJson()` y `JxJson.fromJson()` ahora reconocen tipos `java.time` automaticamente, sin configuracion extra:
+
+| Tipo | Formato serializado |
+|------|-------------------|
+| `LocalDate` | `"2026-05-17"` (ISO-8601) |
+| `LocalDateTime` | `"2026-05-17T10:30:00"` |
+| `LocalTime` | `"10:30"` |
+| `java.sql.Date` | ISO via `toLocalDate()` |
+| `java.sql.Timestamp` | ISO via `toLocalDateTime()` |
+| `java.util.Date` | ISO via `Timestamp.getTime()` |
+
+Deserializacion: `fromJson()` parsea strings ISO a los tipos `java.time` via `LocalDate.parse()`, `LocalDateTime.parse()`, `LocalTime.parse()`.
+
+### JxValidation — 9 nuevas anotaciones (total: 21)
+
+| Anotacion | Descripcion |
+|-----------|-------------|
+| `@JxFuture` | La fecha/hora debe ser estrictamente futura |
+| `@JxPast` | La fecha/hora debe ser estrictamente pasada |
+| `@JxUrl` | Formato URL valido (http:// o https://) |
+| `@JxCheck(clase)` | Validador personalizado via `JxConstraint<T>` |
+
+Interface `JxConstraint<T>` — contrato para validadores custom:
+```java
+public class RucPeruano implements JxValidation.JxConstraint<String> {
+    public boolean isValid(String v) { return v != null && v.matches("\\d{11}"); }
+    public String message()          { return "RUC debe tener 11 digitos"; }
+}
+```
+
+Las instancias de `JxConstraint` se cachean en `CONSTRAINT_CACHE` (ConcurrentHashMap) — se instancian una sola vez por clase.
+
+### Tamanio del JAR
+- v2.7.0: 177 KB
+- v3.0.0: 205 KB
+- v3.1.0: ~210 KB (estimado, incluye CronTrigger)
+- Dependencias externas de runtime: **0**
+
+---
+
+*Documento actualizado 2026-05-17. Referencia tecnica interna del proyecto JxMVC / Lux.*

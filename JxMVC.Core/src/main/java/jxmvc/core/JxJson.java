@@ -6,6 +6,9 @@ package jxmvc.core;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -86,12 +89,16 @@ public final class JxJson {
         if ((type == float.class   || type == Float.class)   && value instanceof Number n) return n.floatValue();
         if ((type == boolean.class || type == Boolean.class) && value instanceof Boolean b) return b;
         if (value instanceof String s) {
+            String t = s.trim();
             try {
-                if (type == int.class     || type == Integer.class) return Integer.parseInt(s.trim());
-                if (type == long.class    || type == Long.class)    return Long.parseLong(s.trim());
-                if (type == double.class  || type == Double.class)  return Double.parseDouble(s.trim());
-                if (type == boolean.class || type == Boolean.class) return Boolean.parseBoolean(s.trim());
-            } catch (NumberFormatException ignored) {}
+                if (type == int.class       || type == Integer.class)   return Integer.parseInt(t);
+                if (type == long.class      || type == Long.class)      return Long.parseLong(t);
+                if (type == double.class    || type == Double.class)    return Double.parseDouble(t);
+                if (type == boolean.class   || type == Boolean.class)   return Boolean.parseBoolean(t);
+                if (type == LocalDate.class)                            return LocalDate.parse(t);
+                if (type == LocalDateTime.class)                        return LocalDateTime.parse(t);
+                if (type == LocalTime.class)                            return LocalTime.parse(t);
+            } catch (Exception ignored) {}
         }
         return value;
     }
@@ -226,14 +233,20 @@ public final class JxJson {
     // ── Serialización ─────────────────────────────────────────────────────
 
     public static String toJson(Object value) {
-        if (value == null)                   return "null";
-        if (value instanceof String s)       return quote(s);
-        if (value instanceof Number)         return value.toString();
-        if (value instanceof Boolean)        return value.toString();
-        if (value instanceof DBRow row)      return rowToJson(row);
-        if (value instanceof DBRowSet rs)    return rowSetToJson(rs);
-        if (value instanceof List<?> list)   return listToJson(list);
-        if (value instanceof Map<?, ?> map)  return mapToJson(map);
+        if (value == null)                          return "null";
+        if (value instanceof String s)              return quote(s);
+        if (value instanceof Number)                return value.toString();
+        if (value instanceof Boolean)               return value.toString();
+        if (value instanceof LocalDate d)           return quote(d.toString());
+        if (value instanceof LocalDateTime dt)      return quote(dt.toString());
+        if (value instanceof LocalTime t)           return quote(t.toString());
+        if (value instanceof java.sql.Date d)       return quote(d.toLocalDate().toString());
+        if (value instanceof java.sql.Timestamp ts) return quote(ts.toLocalDateTime().toString());
+        if (value instanceof java.util.Date d)      return quote(new java.sql.Timestamp(d.getTime()).toLocalDateTime().toString());
+        if (value instanceof DBRow row)             return rowToJson(row);
+        if (value instanceof DBRowSet rs)           return rowSetToJson(rs);
+        if (value instanceof List<?> list)          return listToJson(list);
+        if (value instanceof Map<?, ?> map)         return mapToJson(map);
         return reflectToJson(value);
     }
 

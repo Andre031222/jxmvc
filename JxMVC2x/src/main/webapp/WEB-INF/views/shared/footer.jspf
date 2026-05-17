@@ -1,18 +1,18 @@
 
     </main>
 
-    <footer class="border-t border-slate-200 dark:border-slate-800 mt-16">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 py-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs text-slate-400 dark:text-slate-500">
+    <footer class="border-t border-black/[0.06] dark:border-white/[0.06] mt-16">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 py-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 text-xs text-muted dark:text-[#86868b]">
             <div class="flex items-center gap-3">
-                <span class="font-mono font-medium text-slate-500 dark:text-slate-400">JxMVC 3.0.0</span>
-                <span class="text-slate-300 dark:text-slate-700">|</span>
+                <span class="font-mono font-medium text-ink dark:text-[#f5f5f7]">JxMVC 3.1.0</span>
+                <span class="text-black/[0.15] dark:text-white/[0.15]">|</span>
                 <span>Jakarta EE 11 · Java 17+</span>
             </div>
             <div class="flex items-center gap-4">
                 <a href="${pageContext.request.contextPath}/jx/health"
-                   class="hover:text-slate-600 dark:hover:text-slate-300 transition-colors font-mono">/jx/health</a>
+                   class="hover:text-ink dark:hover:text-[#f5f5f7] transition-colors font-mono">/jx/health</a>
                 <a href="${pageContext.request.contextPath}/jx/info"
-                   class="hover:text-slate-600 dark:hover:text-slate-300 transition-colors font-mono">/jx/info</a>
+                   class="hover:text-ink dark:hover:text-[#f5f5f7] transition-colors font-mono">/jx/info</a>
                 <span>© 2026</span>
             </div>
         </div>

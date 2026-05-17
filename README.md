@@ -22,7 +22,7 @@ Demo en vivo: [jxmvc.andre.net.pe](https://jxmvc.andre.net.pe)
 <dependency>
     <groupId>jxmvc</groupId>
     <artifactId>jxmvc-core</artifactId>
-    <version>3.0.0</version>
+    <version>3.1.0</version>
 </dependency>
 ```
 
@@ -66,10 +66,10 @@ public class PersonaModel extends JxDB {
 | **JxDB** | JDBC directo — PostgreSQL, MySQL, SQL Server — named params `:name` |
 | **JxPool** | Pool de conexiones propio — sin HikariCP, sin DBCP |
 | **GenApi** | Builder JSON variádico — `JsonStr`, `JsonArray`, `JsonPaged`, `nested` |
-| **JxValidation** | 12 anotaciones — `@JxRequired`, `@JxEmail`, `@JxRange`, `@JxIn`, `@JxPhone`... |
+| **JxValidation** | 21 anotaciones — `@JxRequired`, `@JxEmail`, `@JxRange`, `@JxFuture`, `@JxPast`, `@JxUrl`, `@JxCheck`... |
 | **JxJson** | Parser/serializer JSON desde cero |
 | **JxCache** | Caché en memoria con TTL y backend pluggable |
-| **JxScheduler** | Tareas programadas con `@JxScheduled`, `runOnce`, `runAsync` |
+| **JxScheduler** | Tareas programadas — `@JxScheduled(cron=...)`, `fixedRate`, `fixedDelay`, `runOnce` |
 | **JxEventBus** | Bus de eventos síncrono con `@JxEventListener` |
 | **JxMetrics** | Métricas por ruta — totales, avg, min, max |
 | **JxOpenApi** | Generación automática de spec OpenAPI 3.0 |
@@ -83,7 +83,7 @@ public class PersonaModel extends JxDB {
 ## Filosofía de diseño
 
 ```java
-// ✗ No hacemos esto (Spring/Hibernate/Lombok)
+// No hacemos esto (Spring/Hibernate/Lombok)
 @Entity
 @Table(name = "tbl_personas")
 public class Persona {
@@ -93,7 +93,7 @@ public class Persona {
     // ...
 }
 
-// ✓ Hacemos esto — directo, sin magia
+// Hacemos esto — directo, sin magia
 DBRow per = db.GetRow("tblPersonas", "id = ?", id);
 String nombre = per.GetString("Nombres");
 int edad = per.GetInt("Edad");
@@ -145,9 +145,9 @@ JxMVC2x/       Sitio demo y generador de proyectos (jxmvc.andre.net.pe)
 | JAR runtime | **205 KB** | ~20 MB | ~25 MB | ~15 MB | ~1.5 MB |
 | Deps externas | **0** | 200+ | 50+ | 80+ | 10+ |
 | Arranque | **1.2 s** | 4–8 s | 0.3 s | 0.3 s | 0.5 s |
-| JSON propio | ✓ | ✗ | ✗ | ✗ | ✗ |
-| Pool propio | ✓ | ✗ | ✗ | ✗ | ✗ |
-| Scheduler propio | ✓ | ✗ | ✗ | ✗ | ✗ |
+| JSON propio | si | no | no | no | no |
+| Pool propio | si | no | no | no | no |
+| Scheduler propio | si | no | no | no | no |
 
 ---
 

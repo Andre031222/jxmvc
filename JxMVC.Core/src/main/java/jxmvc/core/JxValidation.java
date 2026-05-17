@@ -7,6 +7,8 @@ package jxmvc.core;
 
 import java.lang.annotation.*;
 import java.lang.reflect.Field;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
@@ -120,6 +122,49 @@ public final class JxValidation {
     @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.FIELD, ElementType.PARAMETER})
     public @interface JxSafe { String message() default "contiene caracteres no permitidos"; }
 
+    /** La fecha/hora debe ser estrictamente futura (después del momento de la validación). */
+    @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.FIELD, ElementType.PARAMETER})
+    public @interface JxFuture { String message() default "debe ser una fecha futura"; }
+
+    /** La fecha/hora debe ser estrictamente pasada (antes del momento de la validación). */
+    @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.FIELD, ElementType.PARAMETER})
+    public @interface JxPast { String message() default "debe ser una fecha pasada"; }
+
+    /** Formato de URL válido — debe comenzar con http:// o https://. */
+    @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.FIELD, ElementType.PARAMETER})
+    public @interface JxUrl { String message() default "formato de URL inválido"; }
+
+    /**
+     * Validador personalizado — la clase referenciada debe implementar {@link JxConstraint}.
+     *
+     * <pre>
+     *   public class RucPeruano implements JxConstraint&lt;String&gt; {
+     *       public boolean isValid(String v) { return v != null &amp;&amp; v.matches("\\d{11}"); }
+     *       public String message() { return "RUC debe tener 11 dígitos"; }
+     *   }
+     *
+     *   public class PedidoDto {
+     *       &#64;JxCheck(RucPeruano.class)
+     *       public String ruc;
+     *   }
+     * </pre>
+     */
+    @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.FIELD, ElementType.PARAMETER})
+    public @interface JxCheck {
+        Class<? extends JxConstraint<?>> value();
+        String message() default "";
+    }
+
+    /**
+     * Interfaz para validadores personalizados usados con {@link JxCheck}.
+     *
+     * @param <T> tipo del valor a validar
+     */
+    public interface JxConstraint<T> {
+        boolean isValid(T value);
+        default String message() { return "valor inválido"; }
+    }
+
     // ── Patrones ──────────────────────────────────────────────────────────
 
     private static final Pattern EMAIL_PATTERN =
@@ -134,10 +179,32 @@ public final class JxValidation {
     private static final Pattern DIGITS_ONLY =
             Pattern.compile("^\\d+$");
 
-    private static final ConcurrentHashMap<String, Pattern> PATTERN_CACHE = new ConcurrentHashMap<>();
+    private static final Pattern URL_PATTERN =
+            Pattern.compile("^https?://[a-zA-Z0-9\\-._~:/?#\\[\\]@!$&'()*+,;=%]+$");
+
+    private static final ConcurrentHashMap<String, Pattern>    PATTERN_CACHE    = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Class<?>, JxConstraint<?>> CONSTRAINT_CACHE = new ConcurrentHashMap<>();
 
     private static Pattern cachedPattern(String regex) {
         return PATTERN_CACHE.computeIfAbsent(regex, Pattern::compile);
+    }
+
+    @SuppressWarnings("unchecked")
+    private static String runCustomConstraint(JxCheck check, Object value) {
+        try {
+            JxConstraint<Object> c = (JxConstraint<Object>)
+                    CONSTRAINT_CACHE.computeIfAbsent(
+                            check.value(),
+                            cls -> {
+                                try { return (JxConstraint<?>) cls.getDeclaredConstructor().newInstance(); }
+                                catch (Exception e) { throw new RuntimeException(e); }
+                            }
+                    );
+            if (!c.isValid(value)) {
+                return check.message().isBlank() ? c.message() : check.message();
+            }
+        } catch (Exception ignored) {}
+        return null;
     }
 
     // ── API principal ─────────────────────────────────────────────────────
@@ -254,6 +321,10 @@ public final class JxValidation {
         JxSafe safe = field.getAnnotation(JxSafe.class);
         if (safe != null && SAFE_PATTERN.matcher(str).find()) return safe.message();
 
+        // @JxUrl
+        JxUrl url = field.getAnnotation(JxUrl.class);
+        if (url != null && !URL_PATTERN.matcher(str).matches()) return url.message();
+
         // @JxDigits
         JxDigits digits = field.getAnnotation(JxDigits.class);
         if (digits != null) {
@@ -262,6 +333,27 @@ public final class JxValidation {
             if (str.length() != digits.value())
                 return "debe tener exactamente " + digits.value() + " dígitos"
                      + (digits.message().isBlank() ? "" : " — " + digits.message());
+        }
+
+        // @JxFuture — soporta LocalDate y LocalDateTime
+        JxFuture future = field.getAnnotation(JxFuture.class);
+        if (future != null) {
+            if (value instanceof LocalDate d      && !d.isAfter(LocalDate.now()))       return future.message();
+            if (value instanceof LocalDateTime dt && !dt.isAfter(LocalDateTime.now()))  return future.message();
+        }
+
+        // @JxPast — soporta LocalDate y LocalDateTime
+        JxPast past = field.getAnnotation(JxPast.class);
+        if (past != null) {
+            if (value instanceof LocalDate d      && !d.isBefore(LocalDate.now()))      return past.message();
+            if (value instanceof LocalDateTime dt && !dt.isBefore(LocalDateTime.now())) return past.message();
+        }
+
+        // @JxCheck — validador personalizado
+        JxCheck check = field.getAnnotation(JxCheck.class);
+        if (check != null) {
+            String err = runCustomConstraint(check, value);
+            if (err != null) return err;
         }
 
         // Numéricos
