@@ -2,7 +2,7 @@
 
 Autor principal: Dr. Ramiro Pedro Laura Murillo  
 Contribuciones: R. Andre Vilca Solorzano  
-Version: 3.0.0  
+Version: 3.1.0  
 Periodo de desarrollo: 2024 – 2026  
 Licencia: MIT  
 Repositorio demo: https://jxmvc.andre.net.pe
