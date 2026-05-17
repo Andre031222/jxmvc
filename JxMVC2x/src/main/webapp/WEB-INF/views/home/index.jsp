@@ -92,21 +92,59 @@
                data-i18n="hero.errors">Probar errores</a>
         </div>
 
-        <%-- Install command pill --%>
-        <div class="inline-flex items-center gap-3 px-4 py-2.5
-                    bg-black/[0.04] dark:bg-white/[0.06]
-                    border border-black/[0.07] dark:border-white/[0.08]
-                    rounded-full font-mono text-sm
-                    text-ink dark:text-[#c8c8d0]">
-            <span class="text-apple font-semibold select-none">$</span>
-            <code id="jxInstallCmd">mvn install -f JxMVC.Core/pom.xml</code>
-            <button onclick="jxCopyInstall()" title="Copiar"
-                    class="text-muted dark:text-[#86868b] hover:text-apple transition-colors shrink-0">
-                <svg id="jxCopyIcon" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                    <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path>
-                </svg>
-            </button>
+        <%-- Quick start --%>
+        <div class="w-full max-w-lg mx-auto">
+            <%-- Tabs --%>
+            <div class="flex items-center gap-1 mb-0 justify-center">
+                <button id="jxTab-install" onclick="jxSwitchTab('install')"
+                        class="px-3 py-1.5 text-[10px] font-mono rounded-t-lg transition-colors
+                               bg-black/[0.05] dark:bg-white/[0.08]
+                               text-ink dark:text-[#f5f5f7] border border-b-0
+                               border-black/[0.07] dark:border-white/[0.08]">
+                    install
+                </button>
+                <button id="jxTab-dep" onclick="jxSwitchTab('dep')"
+                        class="px-3 py-1.5 text-[10px] font-mono rounded-t-lg transition-colors
+                               text-muted dark:text-[#636366]
+                               hover:text-ink dark:hover:text-[#f5f5f7]">
+                    pom.xml
+                </button>
+            </div>
+            <%-- Code block --%>
+            <div class="bg-black/[0.04] dark:bg-white/[0.06]
+                        border border-black/[0.07] dark:border-white/[0.08]
+                        rounded-b-2xl rounded-tr-2xl overflow-hidden">
+                <%-- Install panel --%>
+                <div id="jxPanel-install" class="flex items-center gap-3 px-4 py-3">
+                    <span class="text-apple font-semibold font-mono text-sm select-none shrink-0">$</span>
+                    <code id="jxInstallCmd" class="font-mono text-sm text-ink dark:text-[#c8c8d0] flex-1 text-left">mvn install -f JxMVC.Core/pom.xml</code>
+                    <button onclick="jxCopyCode('jxInstallCmd')" title="Copiar"
+                            class="text-muted dark:text-[#86868b] hover:text-apple transition-colors shrink-0">
+                        <svg id="jxCopyIcon-install" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                            <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path>
+                        </svg>
+                    </button>
+                </div>
+                <%-- Dependency panel --%>
+                <div id="jxPanel-dep" class="hidden">
+                    <div class="flex items-center justify-between px-4 pt-3 pb-1">
+                        <span class="text-[10px] font-mono text-muted dark:text-[#636366] uppercase tracking-wider">pom.xml</span>
+                        <button onclick="jxCopyCode('jxDepCode')" title="Copiar"
+                                class="text-muted dark:text-[#86868b] hover:text-apple transition-colors">
+                            <svg id="jxCopyIcon-dep" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                                <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <pre class="px-4 pb-3 font-mono text-xs text-ink dark:text-[#c8c8d0] leading-relaxed"><code id="jxDepCode">&lt;dependency&gt;
+  &lt;groupId&gt;jxmvc&lt;/groupId&gt;
+  &lt;artifactId&gt;jxmvc-core&lt;/artifactId&gt;
+  &lt;version&gt;3.1.0&lt;/version&gt;
+&lt;/dependency&gt;</code></pre>
+                </div>
+            </div>
         </div>
 
     </div>
@@ -237,15 +275,48 @@
 </section>
 
 <script>
-function jxCopyInstall() {
-    const cmd = document.getElementById('jxInstallCmd').textContent.trim();
-    navigator.clipboard.writeText(cmd).then(function() {
-        const icon = document.getElementById('jxCopyIcon');
+var jxActiveTab = 'install';
+
+function jxSwitchTab(tab) {
+    jxActiveTab = tab;
+    var tabs = ['install', 'dep'];
+    tabs.forEach(function(t) {
+        var btn = document.getElementById('jxTab-' + t);
+        var panel = document.getElementById('jxPanel-' + t);
+        var isActive = t === tab;
+        panel.classList.toggle('hidden', !isActive);
+        if (isActive) {
+            btn.classList.add('bg-black/[0.05]', 'dark:bg-white/[0.08]',
+                              'text-ink', 'dark:text-[#f5f5f7]',
+                              'border', 'border-b-0',
+                              'border-black/[0.07]', 'dark:border-white/[0.08]');
+            btn.classList.remove('text-muted', 'dark:text-[#636366]',
+                                 'hover:text-ink', 'dark:hover:text-[#f5f5f7]');
+        } else {
+            btn.classList.remove('bg-black/[0.05]', 'dark:bg-white/[0.08]',
+                                 'text-ink', 'dark:text-[#f5f5f7]',
+                                 'border', 'border-b-0',
+                                 'border-black/[0.07]', 'dark:border-white/[0.08]');
+            btn.classList.add('text-muted', 'dark:text-[#636366]',
+                              'hover:text-ink', 'dark:hover:text-[#f5f5f7]');
+        }
+    });
+}
+
+function jxCopyCode(id) {
+    var el = document.getElementById(id);
+    if (!el) return;
+    var text = el.innerText || el.textContent;
+    text = text.replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&amp;/g,'&').trim();
+    navigator.clipboard.writeText(text).then(function() {
+        var suffix = id === 'jxInstallCmd' ? 'install' : 'dep';
+        var icon = document.getElementById('jxCopyIcon-' + suffix);
+        if (!icon) return;
         icon.innerHTML = '<polyline points="20 6 9 17 4 12"></polyline>';
-        icon.setAttribute('stroke', '#087CFA');
+        icon.style.stroke = '#087CFA';
         setTimeout(function() {
             icon.innerHTML = '<rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path>';
-            icon.removeAttribute('stroke');
+            icon.style.stroke = '';
         }, 2000);
     });
 }

@@ -54,9 +54,9 @@
 
         code { font-family:'Menlo','Consolas','Monaco',monospace; }
 
-        /* Gradient text utility */
+        /* Gradient text utility — todos los colores del logo */
         .jx-grad {
-            background: linear-gradient(100deg, #FC801D 0%, #087CFA 55%, #5A63D6 100%);
+            background: linear-gradient(100deg, #FC801D 0%, #FE2857 28%, #087CFA 62%, #5A63D6 100%);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
