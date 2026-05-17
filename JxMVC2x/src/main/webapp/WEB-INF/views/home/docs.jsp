@@ -52,6 +52,37 @@
   /* Grid items: min-width:0 evita que min-width:auto expanda el track */
   .grid > div, .grid > [class*="col-span"] { min-width: 0; }
 
+  /* ── Scroll-reveal por sección ──────────────────────────────────── */
+  .jx-section {
+    opacity: 0;
+    transform: translateY(22px);
+    transition: opacity 0.55s cubic-bezier(.22,1,.36,1),
+                transform 0.55s cubic-bezier(.22,1,.36,1);
+  }
+  .jx-section.jx-in {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* Stagger en grid items dentro de sección */
+  .jx-section .grid > div:nth-child(1) { transition-delay: 0s; }
+  .jx-section .grid > div:nth-child(2) { transition-delay: .06s; }
+  .jx-section .grid > div:nth-child(3) { transition-delay: .12s; }
+  .jx-section .grid > div:nth-child(4) { transition-delay: .18s; }
+  .jx-section .grid > div { opacity:0; transform:translateY(14px); transition: opacity .45s cubic-bezier(.22,1,.36,1) var(--sd,0s), transform .45s cubic-bezier(.22,1,.36,1) var(--sd,0s); }
+  .jx-section.jx-in .grid > div { opacity:1; transform:none; }
+  .jx-section .grid > div:nth-child(1) { --sd:0s; }
+  .jx-section .grid > div:nth-child(2) { --sd:.07s; }
+  .jx-section .grid > div:nth-child(3) { --sd:.14s; }
+  .jx-section .grid > div:nth-child(4) { --sd:.21s; }
+
+  /* Línea divisoria coloreada en encabezado de sección */
+  .jx-sec-line { height:1px; flex:1; border:none; margin:0; opacity:.2; }
+
+  /* Hover suave en code-block */
+  .code-block { transition: border-color 0.2s ease; }
+  .code-block:hover { border-color: rgba(8,124,250,0.25); }
+
   /* ── Sidebar (escritorio) ───────────────────────────────────────── */
   .jx-slink {
     display: flex; align-items: center; gap: 8px;
@@ -200,10 +231,12 @@
 <%-- ══════════════════════════════════════════════════════════════════
      1. ROUTING
 ════════════════════════════════════════════════════════════════════ --%>
-<section id="routing">
-  <h2 class="text-lg font-semibold mb-6 flex items-center gap-3">
-    <span class="text-xs font-mono text-muted dark:text-[#86868b]">01</span> Routing
-  </h2>
+<section id="routing" class="jx-section">
+  <div class="flex items-center gap-3 mb-6">
+    <span class="w-7 h-7 rounded-xl flex items-center justify-center text-[10px] font-mono font-bold text-white shrink-0" style="background:#087CFA">01</span>
+    <h2 class="text-lg font-semibold text-ink dark:text-[#f5f5f7]">Routing</h2>
+    <div class="jx-sec-line" style="background:#087CFA"></div>
+  </div>
   <div class="grid md:grid-cols-2 gap-4">
 
     <div>
@@ -313,10 +346,12 @@ public ActionResult status() {
 <%-- ══════════════════════════════════════════════════════════════════
      2. CONTROLADORES
 ════════════════════════════════════════════════════════════════════ --%>
-<section id="controladores">
-  <h2 class="text-lg font-semibold mb-6 flex items-center gap-3">
-    <span class="text-xs font-mono text-muted dark:text-[#86868b]">02</span> Controladores
-  </h2>
+<section id="controladores" class="jx-section">
+  <div class="flex items-center gap-3 mb-6">
+    <span class="w-7 h-7 rounded-xl flex items-center justify-center text-[10px] font-mono font-bold text-white shrink-0" style="background:#087CFA">02</span>
+    <h2 class="text-lg font-semibold text-ink dark:text-[#f5f5f7]">Controladores</h2>
+    <div class="jx-sec-line" style="background:#087CFA"></div>
+  </div>
   <div class="grid md:grid-cols-2 gap-4">
 
     <div>
@@ -444,10 +479,12 @@ public class GlobalAdvice {
 <%-- ══════════════════════════════════════════════════════════════════
      3. BASE DE DATOS
 ════════════════════════════════════════════════════════════════════ --%>
-<section id="base-de-datos">
-  <h2 class="text-lg font-semibold mb-6 flex items-center gap-3">
-    <span class="text-xs font-mono text-muted dark:text-[#86868b]">03</span> Base de datos
-  </h2>
+<section id="base-de-datos" class="jx-section">
+  <div class="flex items-center gap-3 mb-6">
+    <span class="w-7 h-7 rounded-xl flex items-center justify-center text-[10px] font-mono font-bold text-white shrink-0" style="background:#5A63D6">03</span>
+    <h2 class="text-lg font-semibold text-ink dark:text-[#f5f5f7]">Base de datos</h2>
+    <div class="jx-sec-line" style="background:#5A63D6"></div>
+  </div>
   <div class="grid md:grid-cols-2 gap-4">
 
     <div>
@@ -540,10 +577,12 @@ jxmvc.pool.timeout  = 5       # segundos para obtener conexión del pool</code><
 <%-- ══════════════════════════════════════════════════════════════════
      4. VALIDACIÓN
 ════════════════════════════════════════════════════════════════════ --%>
-<section id="validacion">
-  <h2 class="text-lg font-semibold mb-6 flex items-center gap-3">
-    <span class="text-xs font-mono text-muted dark:text-[#86868b]">04</span> Validación
-  </h2>
+<section id="validacion" class="jx-section">
+  <div class="flex items-center gap-3 mb-6">
+    <span class="w-7 h-7 rounded-xl flex items-center justify-center text-[10px] font-mono font-bold text-white shrink-0" style="background:#FC801D">04</span>
+    <h2 class="text-lg font-semibold text-ink dark:text-[#f5f5f7]">Validación</h2>
+    <div class="jx-sec-line" style="background:#FC801D"></div>
+  </div>
   <div class="grid md:grid-cols-2 gap-4">
 
     <div>
@@ -657,10 +696,12 @@ public class RucPeruano implements JxValidation.JxConstraint&lt;String&gt; {
 <%-- ══════════════════════════════════════════════════════════════════
      5. SEGURIDAD
 ════════════════════════════════════════════════════════════════════ --%>
-<section id="seguridad">
-  <h2 class="text-lg font-semibold mb-6 flex items-center gap-3">
-    <span class="text-xs font-mono text-muted dark:text-[#86868b]">05</span> Seguridad
-  </h2>
+<section id="seguridad" class="jx-section">
+  <div class="flex items-center gap-3 mb-6">
+    <span class="w-7 h-7 rounded-xl flex items-center justify-center text-[10px] font-mono font-bold text-white shrink-0" style="background:#FE2857">05</span>
+    <h2 class="text-lg font-semibold text-ink dark:text-[#f5f5f7]">Seguridad</h2>
+    <div class="jx-sec-line" style="background:#FE2857"></div>
+  </div>
   <div class="grid md:grid-cols-2 gap-4">
 
     <div>
@@ -742,10 +783,12 @@ jxmvc.security.hsts.maxage   = 31536000</code></pre>
 <%-- ══════════════════════════════════════════════════════════════════
      6. FILTROS
 ════════════════════════════════════════════════════════════════════ --%>
-<section id="filtros">
-  <h2 class="text-lg font-semibold mb-6 flex items-center gap-3">
-    <span class="text-xs font-mono text-muted dark:text-[#86868b]">06</span> Filtros globales
-  </h2>
+<section id="filtros" class="jx-section">
+  <div class="flex items-center gap-3 mb-6">
+    <span class="w-7 h-7 rounded-xl flex items-center justify-center text-[10px] font-mono font-bold text-white shrink-0" style="background:#5A63D6">06</span>
+    <h2 class="text-lg font-semibold text-ink dark:text-[#f5f5f7]">Filtros globales</h2>
+    <div class="jx-sec-line" style="background:#5A63D6"></div>
+  </div>
   <div class="grid md:grid-cols-2 gap-4">
 
     <div>
@@ -802,10 +845,12 @@ JxFilters.after(ctx -> {
 <%-- ══════════════════════════════════════════════════════════════════
      7. ASYNC & RETRY
 ════════════════════════════════════════════════════════════════════ --%>
-<section id="cron-async">
-  <h2 class="text-lg font-semibold mb-6 flex items-center gap-3">
-    <span class="text-xs font-mono text-muted dark:text-[#86868b]">07</span> Cron &amp; Async
-  </h2>
+<section id="cron-async" class="jx-section">
+  <div class="flex items-center gap-3 mb-6">
+    <span class="w-7 h-7 rounded-xl flex items-center justify-center text-[10px] font-mono font-bold text-white shrink-0" style="background:#FC801D">07</span>
+    <h2 class="text-lg font-semibold text-ink dark:text-[#f5f5f7]">Cron &amp; Async</h2>
+    <div class="jx-sec-line" style="background:#FC801D"></div>
+  </div>
   <div class="grid md:grid-cols-2 gap-4">
 
     <div>
@@ -915,10 +960,12 @@ PedidoDto dto = JxJson.fromJson(body, PedidoDto.class);
 <%-- ══════════════════════════════════════════════════════════════════
      8. INYECCIÓN DE DEPENDENCIAS
 ════════════════════════════════════════════════════════════════════ --%>
-<section id="di">
-  <h2 class="text-lg font-semibold mb-6 flex items-center gap-3">
-    <span class="text-xs font-mono text-muted dark:text-[#86868b]">08</span> Inyección de dependencias
-  </h2>
+<section id="di" class="jx-section">
+  <div class="flex items-center gap-3 mb-6">
+    <span class="w-7 h-7 rounded-xl flex items-center justify-center text-[10px] font-mono font-bold text-white shrink-0" style="background:#087CFA">08</span>
+    <h2 class="text-lg font-semibold text-ink dark:text-[#f5f5f7]">Inyección de dependencias</h2>
+    <div class="jx-sec-line" style="background:#087CFA"></div>
+  </div>
   <div class="grid md:grid-cols-2 gap-4">
 
     <div>
@@ -980,10 +1027,12 @@ JxServiceRegistry.register(new MockEmailService());
 <%-- ══════════════════════════════════════════════════════════════════
      9. CONFIGURACIÓN
 ════════════════════════════════════════════════════════════════════ --%>
-<section id="config">
-  <h2 class="text-lg font-semibold mb-6 flex items-center gap-3">
-    <span class="text-xs font-mono text-muted dark:text-[#86868b]">09</span> Configuración completa
-  </h2>
+<section id="config" class="jx-section">
+  <div class="flex items-center gap-3 mb-6">
+    <span class="w-7 h-7 rounded-xl flex items-center justify-center text-[10px] font-mono font-bold text-white shrink-0" style="background:#5A63D6">09</span>
+    <h2 class="text-lg font-semibold text-ink dark:text-[#f5f5f7]">Configuración completa</h2>
+    <div class="jx-sec-line" style="background:#5A63D6"></div>
+  </div>
   <div class="code-block">
     <div class="code-label">src/main/resources/application.properties</div>
     <pre><code class="language-properties"># ── Núcleo ─────────────────────────────────────────────────────────
@@ -1014,10 +1063,12 @@ jxmvc.security.hsts.maxage   = 31536000   # 1 año en segundos</code></pre>
 <%-- ══════════════════════════════════════════════════════════════════
      10. ENDPOINTS DEL SISTEMA
 ════════════════════════════════════════════════════════════════════ --%>
-<section id="sistema">
-  <h2 class="text-lg font-semibold mb-6 flex items-center gap-3">
-    <span class="text-xs font-mono text-muted dark:text-[#86868b]">10</span> Endpoints del sistema
-  </h2>
+<section id="sistema" class="jx-section">
+  <div class="flex items-center gap-3 mb-6">
+    <span class="w-7 h-7 rounded-xl flex items-center justify-center text-[10px] font-mono font-bold text-white shrink-0" style="background:#087CFA">10</span>
+    <h2 class="text-lg font-semibold text-ink dark:text-[#f5f5f7]">Endpoints del sistema</h2>
+    <div class="jx-sec-line" style="background:#087CFA"></div>
+  </div>
   <div class="divide-y divide-black/[0.05] dark:divide-white/[0.05] border border-black/[0.06] dark:border-white/[0.06] rounded-2xl overflow-hidden">
 
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between px-5 py-4 gap-2 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors">
@@ -1076,6 +1127,19 @@ jxmvc.security.hsts.maxage   = 31536000   # 1 año en segundos</code></pre>
 </div><%-- /docs-layout --%>
 
 <script>
+// Scroll-reveal para secciones
+(function() {
+    var obs = new IntersectionObserver(function(entries) {
+        entries.forEach(function(e) {
+            if (e.isIntersecting) {
+                e.target.classList.add('jx-in');
+                obs.unobserve(e.target);
+            }
+        });
+    }, { threshold: 0.04, rootMargin: '0px 0px -4% 0px' });
+    document.querySelectorAll('section.jx-section').forEach(function(s) { obs.observe(s); });
+})();
+
 // Drawer de secciones (móvil)
 function jxDocsDrawerToggle() {
     var d = document.getElementById('jxDocsDrawer');
