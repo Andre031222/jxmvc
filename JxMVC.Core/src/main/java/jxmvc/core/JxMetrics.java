@@ -92,11 +92,14 @@ public final class JxMetrics {
         for (Map.Entry<String, long[]> e : s.routes().entrySet()) {
             if (!first) sb.append(',');
             long[] c = e.getValue();
-            long routeAvg = c[0] > 0 ? c[2] / c[0] : 0;
+            long req, err, avg;
+            synchronized (c) {
+                req = c[0]; err = c[1]; avg = req > 0 ? c[2] / req : 0;
+            }
             sb.append('"').append(e.getKey()).append("\":{")
-              .append("\"requests\":").append(c[0])
-              .append(",\"errors\":").append(c[1])
-              .append(",\"avgMs\":").append(routeAvg)
+              .append("\"requests\":").append(req)
+              .append(",\"errors\":").append(err)
+              .append(",\"avgMs\":").append(avg)
               .append('}');
             first = false;
         }

@@ -8,6 +8,7 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -83,6 +84,8 @@ public final class JxHttp {
         private String                    body    = "";
         private int                       timeoutSecs = 30;
 
+        private static final int MAX_RESPONSE_BYTES = 10 * 1024 * 1024; // 10 MB
+
         private Builder(String method, String url) {
             this.method = method.toUpperCase();
             this.url    = url;
@@ -112,10 +115,19 @@ public final class JxHttp {
                 }
                 headers.forEach(req::header);
 
-                HttpResponse<String> resp = CLIENT.send(req.build(),
-                        HttpResponse.BodyHandlers.ofString(java.nio.charset.StandardCharsets.UTF_8));
-
-                return new Response(resp.statusCode(), resp.body(), resp.headers().map());
+                HttpResponse<java.io.InputStream> resp = CLIENT.send(req.build(),
+                        HttpResponse.BodyHandlers.ofInputStream());
+                String bodyStr;
+                try (java.io.InputStream is = resp.body()) {
+                    long contentLength = resp.headers().firstValueAsLong("content-length").orElse(-1);
+                    if (contentLength > MAX_RESPONSE_BYTES)
+                        return new Response(413, "Response demasiado grande", Map.of());
+                    byte[] bytes = is.readNBytes(MAX_RESPONSE_BYTES + 1);
+                    if (bytes.length > MAX_RESPONSE_BYTES)
+                        return new Response(413, "Response demasiado grande", Map.of());
+                    bodyStr = new String(bytes, StandardCharsets.UTF_8);
+                }
+                return new Response(resp.statusCode(), bodyStr, resp.headers().map());
 
             } catch (Exception e) {
                 return new Response(-1, e.getMessage(), Map.of());

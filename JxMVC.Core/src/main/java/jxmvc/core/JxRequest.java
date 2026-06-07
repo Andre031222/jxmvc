@@ -179,7 +179,10 @@ public class JxRequest {
                 String name = Paths.get(part.getSubmittedFileName()).getFileName().toString();
                 if (name.isBlank()) continue;
                 if (!allowedExt(name, allowedExts)) { lastError = "Extensión no permitida"; return saved; }
-                Path out = dir.resolve(name);
+                Path out = dir.resolve(name).normalize();
+                if (!out.startsWith(dir.toAbsolutePath().normalize())) {
+                    lastError = "Ruta de archivo no permitida"; return saved;
+                }
                 Files.copy(part.getInputStream(), out, StandardCopyOption.REPLACE_EXISTING);
                 saved.add(out);
             }

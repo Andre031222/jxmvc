@@ -164,9 +164,17 @@ public final class JxPool {
             }
         }
         // Reponer conexiones si la BD volvió tras una caída
-        while (total.get() < Math.min(2, maxSize) && idle.size() < Math.min(2, maxSize)) {
-            try { int cur; do { cur = total.get(); if (cur >= maxSize) break; } while (!total.compareAndSet(cur, cur + 1)); if (total.get() <= maxSize) idle.offer(open()); }
-            catch (SQLException e) { log.warn("keepAlive: no se pudo reponer conexión: {}", e.getMessage()); break; }
+        int target = Math.min(2, maxSize);
+        while (total.get() < target && idle.size() < target) {
+            int cur = total.get();
+            if (cur >= maxSize) break;
+            if (!total.compareAndSet(cur, cur + 1)) continue;
+            try { idle.offer(open()); }
+            catch (SQLException e) {
+                total.decrementAndGet();
+                log.warn("keepAlive: no se pudo reponer conexión: {}", e.getMessage());
+                break;
+            }
         }
     }
 
