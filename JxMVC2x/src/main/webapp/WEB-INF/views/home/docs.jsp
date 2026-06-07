@@ -119,7 +119,7 @@
 <div class="flex items-start justify-between mb-10 jx-reveal jx-delay-1">
   <div>
     <p class="text-xs font-mono uppercase tracking-[0.25em] text-muted dark:text-[#86868b] mb-2">Reference</p>
-    <h1 class="text-4xl font-bold tracking-tight text-ink dark:text-[#f5f5f7]">JxMVC <span class="text-apple">3.0</span> Docs</h1>
+    <h1 class="text-4xl font-bold tracking-tight text-ink dark:text-[#f5f5f7]">JxMVC <span class="text-apple">3.1</span> Docs</h1>
     <p class="text-sm text-muted dark:text-[#86868b] mt-2 max-w-xl">
       Jakarta EE 11 · Java 17+ · Cero dependencias en runtime · WAR ~205 KB
     </p>
@@ -299,20 +299,19 @@ public class ApiController extends JxController {
         <pre><code class="language-java">@JxRestController("/products")
 public class ProductApi extends JxController {
 
-    @JxGetMapping("")          // GET /products
+    @JxGetMapping("")            // GET /products
     public ActionResult list() {
         return json(repo.findAll());
     }
 
-    @JxGetMapping("{id}")      // GET /products/5
-    public ActionResult get() {
-        long id = Long.parseLong(model.pathVar("id"));
+    @JxGetMapping("{id}")        // GET /products/5
+    public ActionResult get(@JxPathVar long id) {
         return json(repo.findById(id));
     }
 
-    @JxDeleteMapping("{id}")   // DELETE /products/5
-    public ActionResult delete() {
-        repo.deleteById(Long.parseLong(model.pathVar("id")));
+    @JxDeleteMapping("{id}")     // DELETE /products/5
+    public ActionResult delete(@JxPathVar long id) {
+        repo.deleteById(id);
         return json("{\"ok\":true}");
     }
 }</code></pre>
@@ -326,15 +325,15 @@ public class ProductApi extends JxController {
       </p>
       <div class="code-block">
         <div class="code-label">AdminController.java</div>
-        <pre><code class="language-java">@JxProfile("dev")              // solo perfil dev
-@JxGetMapping("debug")
+        <pre><code class="language-java">@JxGetMapping("debug")
 public ActionResult debug() {
-    return json(JxMetrics.snapshot());
+    if (!JxProfile.is("dev")) throw JxException.forbidden("solo dev");
+    return json(JxMetrics.summary());
 }
 
-@JxProfile({"prod","staging"}) // varios perfiles
 @JxGetMapping("status")
 public ActionResult status() {
+    if (!JxProfile.isAny("prod", "staging")) throw JxException.forbidden("acceso restringido");
     return json("{\"env\":\"" + JxProfile.active() + "\"}");
 }</code></pre>
       </div>
@@ -391,14 +390,16 @@ return null;</code></pre>
 String nombre = model.param("nombre");
 
 // Argumentos posicionales en la URL
-String id   = model.arg(0);    // /ctrl/action/42  → "42"
-String slug = model.argRaw(1); // sin sanitizar
+String id   = model.arg(0);           // /ctrl/action/42  → "42"
+String slug = model.argRaw(1);        // sin sanitizar
 
-// Variables de plantilla
-String uid = model.pathVar("id");  // /users/{id}
+// Variables de plantilla (2 formas equivalentes)
+String uid  = model.pathVar("id");    // /users/{id}  → dinámico
+long   uid2 = model.pathVarLong("id"); // como long directo
 
-// Session
-model.session().setAttribute("user", dto);
+// Session — métodos en JxController
+sessionSet("user", dto);
+Object user = sessionGet("user");
 
 // Cabeceras y cookies
 String token = model.header("Authorization");
@@ -421,19 +422,19 @@ view.contentType("application/json");</code></pre>
         <pre><code class="language-java">@JxControllerMapping("admin")
 public class AdminController extends JxController {
 
-    // Se ejecuta antes de cada acción (o solo las indicadas)
+    private static final JxLogger log = JxLogger.getLogger(AdminController.class);
+
     @JxBeforeAction(only = {"create","update"})
     public void requireAdmin() {
-        String role = (String) model.session().getAttribute("role");
+        String role = (String) sessionGet("role");
         if (!"ADMIN".equals(role))
             throw JxException.forbidden("Solo administradores");
     }
 
-    // Inyecta variables en el modelo antes de renderizar
     @JxModelAttr
     public void commonAttrs() {
-        model.setVar("appVersion", "3.0.0");
-        model.setVar("usuario", model.session().getAttribute("user"));
+        model.setVar("appVersion", "3.1.1");
+        model.setVar("usuario", sessionGet("user"));
     }
 
     @JxAfterAction
@@ -448,10 +449,10 @@ public class AdminController extends JxController {
     </div>
 
     <div>
-      <p class="text-xs font-semibold text-muted dark:text-[#86868b] uppercase tracking-wider mb-2">@JxAdvice — manejador global de excepciones</p>
+      <p class="text-xs font-semibold text-muted dark:text-[#86868b] uppercase tracking-wider mb-2">@JxControllerAdvice — manejador global de excepciones</p>
       <div class="code-block">
         <div class="code-label">GlobalAdvice.java</div>
-        <pre><code class="language-java">@JxAdvice
+        <pre><code class="language-java">@JxControllerAdvice
 public class GlobalAdvice {
 
     // Captura cualquier JxException no manejada en el controlador
@@ -488,7 +489,7 @@ public class GlobalAdvice {
   <div class="grid md:grid-cols-2 gap-4">
 
     <div>
-      <p class="text-xs font-semibold text-muted dark:text-[#86868b] uppercase tracking-wider mb-2">JxModel — Active Record (v3.0)</p>
+      <p class="text-xs font-semibold text-muted dark:text-[#86868b] uppercase tracking-wider mb-2">JxModel — Active Record (v3.1)</p>
       <div class="code-block">
         <div class="code-label">Producto.java</div>
         <pre><code class="language-java">// Un solo archivo — sin re-declarar campos (la BD es la fuente de verdad)
@@ -532,28 +533,26 @@ double precio  = p.GetDouble("precio");</code></pre>
       <p class="text-xs font-semibold text-muted dark:text-[#86868b] uppercase tracking-wider mb-2">JxDB — acceso JDBC directo</p>
       <div class="code-block">
         <div class="code-label">uso en controlador</div>
-        <pre><code class="language-java">public ActionResult reportes() {
-    try (JxDB db = db()) {           // AutoCloseable — devuelve al pool
+        <pre><code class="language-java">// db() disponible directo en JxController — sin extender JxModel
+public ActionResult reportes() {
+    try (JxDB db = db()) {
 
-        // Query → DBRowSet (iterable)
         DBRowSet rows = db.query(
             "SELECT id, nombre, total FROM pedidos WHERE fecha = ?",
             LocalDate.now()
         );
 
-        // Fila individual
-        DBRow row = db.queryOne(
+        DBRow cfg = db.queryRow(
             "SELECT * FROM config WHERE clave = ?", "max_items"
         );
 
-        // Mutación
-        int affected = db.execute(
+        db.exec(
             "UPDATE productos SET stock = stock - ? WHERE id = ?",
             1, productId
         );
 
         model.setVar("pedidos", rows.asList());
-        model.setVar("config",  row);
+        model.setVar("config",  cfg);
     }
     return view("home/reportes");
 }</code></pre>
@@ -645,7 +644,7 @@ if (!result.isValid()) {
     </div>
 
     <div>
-      <p class="text-xs font-semibold text-muted dark:text-[#86868b] uppercase tracking-wider mb-2">Fechas, URLs y validadores custom <span class="text-apple font-mono normal-case">v3.0</span></p>
+      <p class="text-xs font-semibold text-muted dark:text-[#86868b] uppercase tracking-wider mb-2">Fechas, URLs y validadores custom <span class="text-apple font-mono normal-case">v3.1</span></p>
       <div class="code-block">
         <div class="code-label">nuevas anotaciones</div>
         <pre><code class="language-java">import java.time.LocalDate;
@@ -715,7 +714,7 @@ public class RucPeruano implements JxValidation.JxConstraint&lt;String&gt; {
       <p class="text-xs font-semibold text-muted dark:text-[#86868b] uppercase tracking-wider mb-2">Autenticación y roles</p>
       <div class="code-block">
         <div class="code-label">control de acceso</div>
-        <pre><code class="language-java">// Requiere sesión activa (atributo "user" en sesión)
+        <pre><code class="language-java">// Requiere sesión activa
 @JxRequireAuth
 @JxGetMapping("perfil")
 public ActionResult perfil() { ... }
@@ -725,8 +724,8 @@ public ActionResult perfil() { ... }
 @JxGetMapping("panel")
 public ActionResult panel() { ... }
 
-// Por controlador completo
-@JxRequireAuth
+// Por controlador completo + roles múltiples
+@JxRequireRole({"ADMIN", "SUPERUSER"})
 @JxControllerMapping("admin")
 public class AdminController extends JxController { ... }</code></pre>
       </div>
@@ -834,14 +833,16 @@ public class AuthFilter implements JxFilterChain {
       <div class="code-block">
         <div class="code-label">alternativa sin anotación</div>
         <pre><code class="language-java">// En el servlet de inicio o AppConfig:
-JxFilters.before(ctx -> {
-    ctx.response().header("X-App", "JxMVC/3.0");
+JxFilters.add(ctx -> {
+    ctx.response().header("X-App", "JxMVC/3.1");
     return true;
 });
 
-JxFilters.after(ctx -> {
-    long ms = ctx.elapsed();
-    ctx.response().header("X-Response-Time", ms + "ms");
+JxFilters.add(new JxFilter() {
+    public boolean before(JxFilterContext ctx) { return true; }
+    public void after(JxFilterContext ctx) {
+        ctx.response().header("X-Frame-Options", "DENY");
+    }
 });</code></pre>
       </div>
     </div>
@@ -886,24 +887,23 @@ public ActionResult exportar() {
         <div class="code-label">resiliencia ante fallos transitorios</div>
         <pre><code class="language-java">// Hasta 3 intentos con 500ms entre ellos.
 // Si todos fallan, propaga la última excepción.
-@JxRetry(times = 3, delay = 500)
+@JxRetry(attempts = 3, backoff = 500)
 @JxGetMapping("externo")
 public ActionResult externo() {
-    // Llama a una API externa que puede fallar
     String data = httpClient.get("https://api.externa.com/data");
     return json(data);
 }
 
 // Combinable con @JxAsync
 @JxAsync
-@JxRetry(times = 2, delay = 1000)
+@JxRetry(attempts = 2, backoff = 1000)
 @JxPostMapping("sync")
 public ActionResult sync() { ... }</code></pre>
       </div>
     </div>
 
     <div>
-      <p class="text-xs font-semibold text-muted dark:text-[#86868b] uppercase tracking-wider mb-2">@JxScheduled — cron y fixed rate <span class="text-apple font-mono normal-case">v3.0</span></p>
+      <p class="text-xs font-semibold text-muted dark:text-[#86868b] uppercase tracking-wider mb-2">@JxScheduled — cron y fixed rate <span class="text-apple font-mono normal-case">v3.1</span></p>
       <div class="code-block">
         <div class="code-label">tareas programadas con cron</div>
         <pre><code class="language-java">@JxService
@@ -961,6 +961,102 @@ PedidoDto dto = JxJson.fromJson(body, PedidoDto.class);
       </div>
     </div>
 
+  </div>
+</section>
+
+<%-- ══════════════════════════════════════════════════════════════════
+     7b. CACHÉ DECLARATIVA
+════════════════════════════════════════════════════════════════════ --%>
+<section id="cache" class="jx-section">
+  <div class="flex items-center gap-3 mb-6">
+    <span class="w-7 h-7 rounded-xl flex items-center justify-center text-[10px] font-mono font-bold text-white shrink-0" style="background:#10B981">⚡</span>
+    <h2 class="text-lg font-semibold text-ink dark:text-[#f5f5f7]">Caché declarativa</h2>
+    <div class="jx-sec-line" style="background:#10B981"></div>
+  </div>
+  <div class="grid md:grid-cols-2 gap-4">
+    <div>
+      <p class="text-xs font-semibold text-muted dark:text-[#86868b] uppercase tracking-wider mb-2">@JxCacheable — cache de GET</p>
+      <div class="code-block">
+        <div class="code-label">pipeline automático — cero configuración</div>
+        <pre><code class="language-java">// TTL en segundos — solo para GET
+@JxGetMapping("catalog")
+@JxCacheable(value = "products", ttl = 300)
+public ActionResult catalog() {
+    // Solo llama a la BD la primera vez
+    return json(db.GetTable("tblProductos"));
+}
+
+// Clave personalizada — útil con path vars
+@JxGetMapping("{id}")
+@JxCacheable(value = "user", key = "u:{id}", ttl = 60)
+public ActionResult byId(@JxPathVar String id) {
+    return json(db.GetRow("tblUsers", "id = ?", id));
+}</code></pre>
+      </div>
+    </div>
+    <div>
+      <p class="text-xs font-semibold text-muted dark:text-[#86868b] uppercase tracking-wider mb-2">@JxCacheEvict + JxCache programático</p>
+      <div class="code-block">
+        <div class="code-label">invalidación explícita</div>
+        <pre><code class="language-java">// Invalida toda la región al mutar
+@JxPostMapping("catalog")
+@JxCacheEvict(value = "products")
+public ActionResult save() { ... }
+
+// Invalida clave concreta
+@JxDeleteMapping("{id}")
+@JxCacheEvict(value = "user", key = "u:{id}")
+public ActionResult delete(@JxPathVar String id) { ... }
+
+// Programático — computeIfAbsent con TTL
+String data = JxCache.get("myRegion")
+    .computeIfAbsent("key", 120, () -> fetchFromApi());</code></pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<%-- ══════════════════════════════════════════════════════════════════
+     7c. GZIP
+════════════════════════════════════════════════════════════════════ --%>
+<section id="gzip" class="jx-section">
+  <div class="flex items-center gap-3 mb-6">
+    <span class="w-7 h-7 rounded-xl flex items-center justify-center text-[10px] font-mono font-bold text-white shrink-0" style="background:#8B5CF6">GZ</span>
+    <h2 class="text-lg font-semibold text-ink dark:text-[#f5f5f7]">Compresión GZIP</h2>
+    <div class="jx-sec-line" style="background:#8B5CF6"></div>
+  </div>
+  <div class="grid md:grid-cols-2 gap-4">
+    <div>
+      <p class="text-xs font-semibold text-muted dark:text-[#86868b] uppercase tracking-wider mb-2">Activación — application.properties</p>
+      <div class="code-block">
+        <div class="code-label">opt-in, cero dependencias</div>
+        <pre><code class="language-properties"># Activa GZIP en todas las respuestas de texto
+jxmvc.gzip.enabled=true
+
+# Solo comprime si el body supera este umbral (bytes)
+# Evita overhead en respuestas pequeñas
+jxmvc.gzip.minBytes=860</code></pre>
+      </div>
+    </div>
+    <div>
+      <p class="text-xs font-semibold text-muted dark:text-[#86868b] uppercase tracking-wider mb-2">Comportamiento</p>
+      <div class="code-block">
+        <div class="code-label">transparente — ningún cambio en controladores</div>
+        <pre><code class="language-java">// El pipeline detecta Accept-Encoding: gzip y comprime
+// text/*, application/json, application/xml
+// Responde con Content-Encoding: gzip + Vary: Accept-Encoding
+
+// Implementado con java.util.zip — cero dependencias externas
+// Respuestas binarias o pequeñas se envían sin comprimir
+
+@JxGetMapping("report")
+public ActionResult report() {
+    // Si el cliente acepta gzip y la respuesta > 860 bytes,
+    // el framework comprime automáticamente
+    return json(largeReport());
+}</code></pre>
+      </div>
+    </div>
   </div>
 </section>
 

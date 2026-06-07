@@ -165,11 +165,17 @@ class BaseDispatcher {
         // 4. Coincidencia por plantilla ({variable})
         for (TemplateRoute tr : templateRoutes) {
             if (!tr.verb().equals(verb) && !"ANY".equals(tr.verb())) continue;
-            Matcher m = tr.pattern().matcher(path);
-            if (!m.matches()) continue;
+            if (!tr.pattern().matcher(path).matches()) continue;
+            Matcher rawM = tr.ciPattern().matcher(rawPath);
             Map<String, String> vars = new LinkedHashMap<>();
-            for (int i = 0; i < tr.varNames().size(); i++) {
-                vars.put(tr.varNames().get(i), m.group(i + 1));
+            if (rawM.matches()) {
+                for (int i = 0; i < tr.varNames().size(); i++)
+                    vars.put(tr.varNames().get(i).toLowerCase(), rawM.group(i + 1));
+            } else {
+                Matcher m = tr.pattern().matcher(path);
+                m.matches();
+                for (int i = 0; i < tr.varNames().size(); i++)
+                    vars.put(tr.varNames().get(i).toLowerCase(), m.group(i + 1));
             }
             return new AnnotatedMatch(tr.route(), new String[0], vars);
         }
@@ -213,22 +219,23 @@ class BaseDispatcher {
         }
     }
 
-    /** Detecta si el path tiene variables de plantilla como {@code {id}}. */
     private boolean hasTemplateVars(String path) {
         return path.contains("{") && path.contains("}");
     }
 
-    /** Registra una ruta de plantilla en {@link #templateRoutes}. */
     private void addTemplateRoute(String verb, String rp, Method m, Class<? extends JxController> cls) {
         List<String> varNames = new ArrayList<>();
-        // Usar Matcher.replaceAll(Function<MatchResult,String>) — disponible desde Java 9
         java.util.regex.Matcher matcher =
                 java.util.regex.Pattern.compile("\\{([^/}]+)}").matcher(rp);
         String regex = matcher.replaceAll(result -> {
             varNames.add(result.group(1).trim());
             return "([^/]+)";
         });
-        templateRoutes.add(new TemplateRoute(verb, Pattern.compile("^" + regex + "$"), varNames, new AnnotatedRoute(cls, m)));
+        String full = "^" + regex + "$";
+        templateRoutes.add(new TemplateRoute(verb,
+                Pattern.compile(full),
+                Pattern.compile(full, Pattern.CASE_INSENSITIVE),
+                varNames, new AnnotatedRoute(cls, m)));
     }
 
     private void registerAnnotation(String verb, Object ann, String base,
@@ -348,8 +355,9 @@ class BaseDispatcher {
     }
 
     private String methodPath(String base, String name, String value) {
-        if (value == null || value.isBlank()) return normalize(base + "/" + name);
+        if (value == null) return normalize(base + "/" + name);
         String v = value.trim();
+        if (v.isEmpty()) return normalize(base);
         return v.startsWith("/") ? normalize(v) : normalize(base + "/" + v);
     }
 
@@ -387,11 +395,11 @@ class BaseDispatcher {
     private String[] extraArgs(String rawPath, String matched) {
         String norm = normalize(rawPath);
         if (!norm.startsWith(matched + "/")) return new String[0];
-        return Arrays.stream(norm.substring(matched.length() + 1).split("/"))
+        return Arrays.stream(rawPath.substring(matched.length() + 1).split("/"))
                 .filter(s -> !s.isBlank()).toArray(String[]::new);
     }
 
     private record AnnotatedRoute(Class<? extends JxController> cls, Method method) {}
     private record AnnotatedMatch(AnnotatedRoute route, String[] args, Map<String, String> pathVars) {}
-    private record TemplateRoute(String verb, Pattern pattern, List<String> varNames, AnnotatedRoute route) {}
+    private record TemplateRoute(String verb, Pattern pattern, Pattern ciPattern, List<String> varNames, AnnotatedRoute route) {}
 }

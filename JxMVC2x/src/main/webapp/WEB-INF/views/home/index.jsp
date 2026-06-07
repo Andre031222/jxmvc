@@ -28,7 +28,7 @@
 
         <%-- Title --%>
         <h1 class="text-[clamp(3rem,10vw,5.5rem)] font-extrabold tracking-tight leading-[1.02] mb-5">
-            <span class="jx-grad">JxMVC</span><span class="text-ink dark:text-white"> 3.0</span>
+            <span class="jx-grad">JxMVC</span><span class="text-ink dark:text-white"> 3.1</span>
         </h1>
 
         <%-- Subtitle --%>
@@ -57,7 +57,7 @@
             <div class="w-px bg-black/[0.08] dark:bg-white/[0.08] self-stretch"></div>
             <div>
                 <p class="text-2xl font-bold text-ink dark:text-white leading-none">
-                    48<span class="text-apple text-base font-semibold"> cls</span>
+                    49<span class="text-apple text-base font-semibold"> cls</span>
                 </p>
                 <p class="text-[10px] font-mono uppercase tracking-widest text-muted dark:text-[#86868b] mt-1">Core</p>
             </div>
@@ -141,7 +141,7 @@
                     <pre class="px-4 pb-3 font-mono text-xs text-ink dark:text-[#c8c8d0] leading-relaxed"><code id="jxDepCode">&lt;dependency&gt;
   &lt;groupId&gt;jxmvc&lt;/groupId&gt;
   &lt;artifactId&gt;jxmvc-core&lt;/artifactId&gt;
-  &lt;version&gt;3.0.0&lt;/version&gt;
+  &lt;version&gt;3.1.1&lt;/version&gt;
 &lt;/dependency&gt;</code></pre>
                 </div>
             </div>

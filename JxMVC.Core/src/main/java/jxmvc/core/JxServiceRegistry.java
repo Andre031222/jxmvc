@@ -121,7 +121,10 @@ public final class JxServiceRegistry {
                     Object dep = resolveField(field, target.getClass());
                     if (dep != null) {
                         try { field.set(target, dep); }
-                        catch (IllegalAccessException ignored) {}
+                        catch (IllegalAccessException e) {
+                            LOG.warn("@JxInject falló en {}.{}: {}",
+                                    cls.getSimpleName(), field.getName(), e.getMessage());
+                        }
                     }
                     continue;
                 }
@@ -131,7 +134,10 @@ public final class JxServiceRegistry {
                 if (jv != null) {
                     String resolved = resolveValueExpr(jv.value());
                     try { field.set(target, coerceValue(resolved, field.getType())); }
-                    catch (IllegalAccessException ignored) {}
+                    catch (IllegalAccessException e) {
+                        LOG.warn("@JxValue falló en {}.{}: {}",
+                                cls.getSimpleName(), field.getName(), e.getMessage());
+                    }
                 }
             }
             cls = cls.getSuperclass();

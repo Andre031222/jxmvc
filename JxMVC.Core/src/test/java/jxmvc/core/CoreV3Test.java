@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Tests completos v3.0.0 — sin framework externo.
+ * Tests completos v3.1.1 — sin framework externo.
  */
 public class CoreV3Test {
 

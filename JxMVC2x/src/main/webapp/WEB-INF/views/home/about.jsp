@@ -7,7 +7,7 @@
 <div class="mb-12 jx-reveal jx-delay-1">
     <p class="text-xs font-mono uppercase tracking-[0.25em] text-muted dark:text-[#86868b] mb-3" data-i18n="about.tag">About</p>
     <h1 class="text-4xl font-bold tracking-tight mb-4 text-ink dark:text-[#f5f5f7]">
-        Lightning-X MVC <span class="text-apple">3.0</span>
+        Lightning-X MVC <span class="text-apple">3.1.1</span>
     </h1>
     <p class="text-base text-muted dark:text-[#86868b] max-w-2xl leading-relaxed" data-i18n="about.desc">
         Framework MVC para Jakarta EE construido desde cero — sin Spring, sin Hibernate,
@@ -32,7 +32,7 @@
         <p class="text-xs text-muted dark:text-[#86868b] mt-1">Etapas del pipeline</p>
     </div>
     <div class="bg-white dark:bg-white/[0.05] border border-black/[0.06] dark:border-white/[0.06] rounded-2xl px-5 py-4">
-        <p class="text-2xl font-bold text-ink dark:text-[#f5f5f7]">48</p>
+        <p class="text-2xl font-bold text-ink dark:text-[#f5f5f7]">49</p>
         <p class="text-xs text-muted dark:text-[#86868b] mt-1">Clases en el core</p>
     </div>
 </div>
@@ -88,7 +88,7 @@
                 <%
                 String[][] rows = {
                     {"WAR / JAR mínimo",    "205 KB",   "~18 MB",     "~50 KB"},
-                    {"Dependencias runtime", "0",        "~150+",      "0"},
+                    {"Dependencias runtime", "0",        "~50-150+",   "0"},
                     {"Routing",             "Conv+Ann",  "Ann",        "Manual"},
                     {"Pool de conexiones",  "propio",    "HikariCP",   "ninguno"},
                     {"DI",                  "propio",    "Spring DI",  "CDI"},

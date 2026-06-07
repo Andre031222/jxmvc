@@ -82,15 +82,17 @@ public final class JxMapping {
 
     // ── Autenticación ────────────────────────────────────────────────────
 
-    /**
-     * Requiere autenticación (y roles opcionales) en el controlador o método.
-     * Implementar {@link JxAuthProvider} y registrarlo en {@link JxSecurity}.
-     */
     @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.TYPE, ElementType.METHOD})
     public @interface JxAuth {
         String[] roles()   default {};
         boolean required() default true;
     }
+
+    @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.TYPE, ElementType.METHOD})
+    public @interface JxRequireAuth {}
+
+    @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.TYPE, ElementType.METHOD})
+    public @interface JxRequireRole { String[] value(); }
 
     // ── Parámetros de método ─────────────────────────────────────────────
 
@@ -253,29 +255,34 @@ public final class JxMapping {
     // ── Caché ────────────────────────────────────────────────────────────
 
     /**
-     * Cachea el resultado del método en {@link JxCache} con el nombre y TTL dados.
-     * La clave es el nombre del método; usar {@code key} para personalizar.
+     * Cachea el resultado del método con TTL. Solo actúa en GET; se omite en POST/PUT/DELETE.
+     * Clave = {@code key} o, si vacío, {@code método:URI[?query]}.
      *
-     * <p>Nota: el cacheo se aplica manualmente (JxMVC no usa proxies).
-     * El cache-aside lo maneja el propio método si lo necesita automáticamente.
-     * Esta anotación sirve como documentación y para herramientas futuras.
+     * <pre>
+     *   &#64;JxCacheable(value = "products", ttl = 60)
+     *   &#64;JxGetMapping("list")
+     *   public ActionResult list() { ... }
+     * </pre>
      */
     @Retention(RetentionPolicy.RUNTIME) @Target(ElementType.METHOD)
     public @interface JxCacheable {
-        /** Nombre de la caché en {@link JxCache}. */
         String value();
-        /** Clave personalizada. Vacío = nombre del método. */
         String key() default "";
-        /** TTL en segundos (0 = sin expiración). */
         long ttl() default 300;
     }
 
-    /** Invalida entradas de {@link JxCache} al ejecutarse el método. */
+    /**
+     * Invalida entradas de {@link JxCache} tras ejecutar el método.
+     *
+     * <pre>
+     *   &#64;JxCacheEvict(value = "products")
+     *   &#64;JxPostMapping("save")
+     *   public ActionResult save(&#64;JxBody ProductDto dto) { ... }
+     * </pre>
+     */
     @Retention(RetentionPolicy.RUNTIME) @Target(ElementType.METHOD)
     public @interface JxCacheEvict {
-        /** Nombre de la caché. */
         String value();
-        /** Clave específica. Vacío = limpiar toda la caché. */
         String key() default "";
     }
 
@@ -648,7 +655,7 @@ public final class JxMapping {
     @Retention(RetentionPolicy.RUNTIME) @Target(ElementType.TYPE)
     public @interface JxCacheManager {}
 
-    // ── WebSocket (v3.0.0) ───────────────────────────────────────────────
+    // ── WebSocket ───────────────────────────────────────────────
 
     /**
      * Declara un endpoint WebSocket. La clase debe extender {@link JxWebSocket}.

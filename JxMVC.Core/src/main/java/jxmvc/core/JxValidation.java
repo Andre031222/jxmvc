@@ -1,7 +1,7 @@
 /// JxMVC Open-source project 2024 - 2026
 /// -------------------------------------------
 ///  coded by : Dr. Ramiro Pedro Laura Murillo
-///  v3.0.0   : R. Andre Vilca Solorzano
+///  v3.1.1   : R. Andre Vilca Solorzano
 
 package jxmvc.core;
 
@@ -270,14 +270,15 @@ public final class JxValidation {
         JxRequired req = field.getAnnotation(JxRequired.class);
         if (req != null && isEmpty(value)) return req.message();
 
-        // Si es null/vacío y no es required, saltar el resto
+        // @JxNotEmpty — debe verificarse antes del early-return por vacío
+        JxNotEmpty notEmpty = field.getAnnotation(JxNotEmpty.class);
+        if (notEmpty != null && (value == null || String.valueOf(value).isBlank()))
+            return notEmpty.message();
+
+        // Si es null/vacío y no es required/notEmpty, saltar el resto
         if (isEmpty(value)) return null;
 
         String str = String.valueOf(value).trim();
-
-        // @JxNotEmpty
-        JxNotEmpty notEmpty = field.getAnnotation(JxNotEmpty.class);
-        if (notEmpty != null && str.isBlank()) return notEmpty.message();
 
         // @JxLength
         JxLength length = field.getAnnotation(JxLength.class);

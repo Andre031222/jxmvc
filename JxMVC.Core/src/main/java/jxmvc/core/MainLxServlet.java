@@ -54,6 +54,31 @@ public class MainLxServlet extends HttpServlet {
 
     @Override
     public void init() throws ServletException {
+        // Crear el directorio tmp que Tomcat exige para @MultipartConfig
+        // Ruta: {catalina.base}/work/Catalina/localhost/{context}/tmp
+        // Fallback: derivar de java.io.tmpdir (que Tomcat apunta a {base}/temp)
+        java.io.File multipartTmp = null;
+        String catalinaBase = System.getProperty("catalina.base");
+        String contextName  = getServletContext().getContextPath().replaceAll("^/+", "");
+        if (contextName.isEmpty()) contextName = "ROOT";
+        if (catalinaBase != null) {
+            multipartTmp = new java.io.File(catalinaBase,
+                    "work/Catalina/localhost/" + contextName + "/tmp");
+        } else {
+            // Cargo: java.io.tmpdir = {tomcatHome}/temp  →  parent = {tomcatHome}
+            java.io.File tomcatHome = new java.io.File(System.getProperty("java.io.tmpdir")).getParentFile();
+            multipartTmp = new java.io.File(tomcatHome,
+                    "work/Catalina/localhost/" + contextName + "/tmp");
+        }
+        multipartTmp.mkdirs();
+
+        // Asegurar también el javax.servlet.context.tempdir si no está seteado
+        if (getServletContext().getAttribute("javax.servlet.context.tempdir") == null) {
+            java.io.File up = multipartTmp.getParentFile();
+            up.mkdirs();
+            getServletContext().setAttribute("javax.servlet.context.tempdir", up);
+        }
+
         JxServiceRegistry.values();
         JxScheduler.start();
         JxAdviceRegistry.handle(new RuntimeException("__init__"));
@@ -72,7 +97,7 @@ public class MainLxServlet extends HttpServlet {
         }, 180_000, 180_000);
 
         JxDevMode.init();
-        log.info("Lux framework v3.0.0 iniciado — perfil activo: {}",
+        log.info("Lux framework v3.1.1 iniciado — perfil activo: {}",
                 JxProfile.active());
     }
 
@@ -97,6 +122,22 @@ public class MainLxServlet extends HttpServlet {
 
         // ── Security headers (todas las respuestas) ───────────────────────
         applySecurityHeaders(resp);
+
+        // ── GZIP — solo si el cliente acepta y GZIP está habilitado ──────────
+        if (JxGzip.ENABLED) {
+            String ae = req.getHeader("Accept-Encoding");
+            if (ae != null && ae.contains("gzip")) {
+                JxGzip.GzipWrapper gzipResp = new JxGzip.GzipWrapper(resp);
+                serviceInternal(req, gzipResp, local);
+                if (!resp.isCommitted()) gzipResp.finish(resp, JxGzip.MIN_BYTES);
+                return;
+            }
+        }
+        serviceInternal(req, resp, local);
+    }
+
+    private void serviceInternal(HttpServletRequest req, HttpServletResponse resp, String local)
+            throws ServletException, IOException {
 
         // ── Endpoints internos ────────────────────────────────────────────
         if ("/jx/health".equals(local))  { handleHealth(resp);  return; }
@@ -147,7 +188,7 @@ public class MainLxServlet extends HttpServlet {
             }
 
             // ── Contexto ──────────────────────────────────────────────────
-            model = new JxRequest(req, resp, plan.args());
+            model = new JxRequest(req, resp, plan.args(), plan.pathVars());
             view  = new JxResponse(req, resp, req.getContextPath());
 
             // ── Filtros before ────────────────────────────────────────────
@@ -346,12 +387,26 @@ public class MainLxServlet extends HttpServlet {
     // ── Auth ──────────────────────────────────────────────────────────────
 
     private boolean checkAuth(HttpServletRequest req, BaseDispatchPlan plan) {
-        JxMapping.JxAuth methodAuth = plan.actionMethod().getAnnotation(JxMapping.JxAuth.class);
-        JxMapping.JxAuth classAuth  = plan.controllerClass().getAnnotation(JxMapping.JxAuth.class);
-        JxMapping.JxAuth authAnn    = methodAuth != null ? methodAuth : classAuth;
-        if (authAnn == null || !authAnn.required()) return true;
+        Method m   = plan.actionMethod();
+        Class<?> c = plan.controllerClass();
+
+        boolean requireAuth = m.isAnnotationPresent(JxMapping.JxRequireAuth.class)
+                           || c.isAnnotationPresent(JxMapping.JxRequireAuth.class);
+
+        JxMapping.JxRequireRole roleAnn = m.getAnnotation(JxMapping.JxRequireRole.class);
+        if (roleAnn == null) roleAnn = c.getAnnotation(JxMapping.JxRequireRole.class);
+
+        JxMapping.JxAuth authAnn = m.getAnnotation(JxMapping.JxAuth.class);
+        if (authAnn == null) authAnn = c.getAnnotation(JxMapping.JxAuth.class);
+
+        boolean needed = requireAuth || roleAnn != null || (authAnn != null && authAnn.required());
+        if (!needed) return true;
         if (!JxSecurity.isConfigured()) return true;
-        return JxSecurity.getProvider().check(req, authAnn.roles());
+
+        String[] roles = roleAnn  != null ? roleAnn.value()
+                       : authAnn  != null ? authAnn.roles()
+                       : new String[0];
+        return JxSecurity.getProvider().check(req, roles);
     }
 
     // ── @JxResponseStatus ─────────────────────────────────────────────────
@@ -419,12 +474,46 @@ public class MainLxServlet extends HttpServlet {
         Method    method = plan.actionMethod();
         Parameter[] params = method.getParameters();
 
-        boolean tx = method.isAnnotationPresent(JxMapping.JxTransactional.class)
+        // ── @JxCacheable — solo en GET ────────────────────────────────────
+        JxMapping.JxCacheable cacheable = method.getAnnotation(JxMapping.JxCacheable.class);
+        if (cacheable != null && "GET".equalsIgnoreCase(raw.getMethod())) {
+            String ckey = cacheable.key().isBlank()
+                    ? method.getName() + ":" + raw.getRequestURI()
+                            + (raw.getQueryString() != null ? "?" + raw.getQueryString() : "")
+                    : cacheable.key();
+            Object hit = JxCache.get(cacheable.value()).fetch(ckey);
+            if (hit != null) {
+                log.debug("@JxCacheable HIT {}:{}", cacheable.value(), ckey);
+                return hit;
+            }
+            Object result = doInvoke(plan, ctrl, params, model, raw);
+            if (result != null) JxCache.get(cacheable.value()).put(ckey, result, cacheable.ttl());
+            return result;
+        }
+
+        Object result = doInvoke(plan, ctrl, params, model, raw);
+
+        // ── @JxCacheEvict — tras mutaciones ──────────────────────────────
+        JxMapping.JxCacheEvict evict = method.getAnnotation(JxMapping.JxCacheEvict.class);
+        if (evict != null) {
+            if (evict.key().isBlank()) JxCache.evictAll(evict.value());
+            else JxCache.get(evict.value()).evict(evict.key());
+            log.debug("@JxCacheEvict {}:{}", evict.value(), evict.key());
+        }
+
+        return result;
+    }
+
+    private Object doInvoke(BaseDispatchPlan plan, JxController ctrl,
+                             Parameter[] params, JxRequest model, HttpServletRequest raw)
+            throws ReflectiveOperationException {
+
+        boolean tx = plan.actionMethod().isAnnotationPresent(JxMapping.JxTransactional.class)
                   || plan.controllerClass().isAnnotationPresent(JxMapping.JxTransactional.class);
 
         if (!tx) {
-            return params.length == 0 ? method.invoke(ctrl)
-                    : method.invoke(ctrl, buildArgs(plan, params, model, raw));
+            return params.length == 0 ? plan.actionMethod().invoke(ctrl)
+                    : plan.actionMethod().invoke(ctrl, buildArgs(plan, params, model, raw));
         }
 
         final Object[]    result = {null};
@@ -432,8 +521,8 @@ public class MainLxServlet extends HttpServlet {
         JxTransaction.run(() -> {
             try {
                 result[0] = params.length == 0
-                        ? method.invoke(ctrl)
-                        : method.invoke(ctrl, buildArgs(plan, params, model, raw));
+                        ? plan.actionMethod().invoke(ctrl)
+                        : plan.actionMethod().invoke(ctrl, buildArgs(plan, params, model, raw));
             } catch (Exception e) { error[0] = e; }
         });
         if (error[0] != null) {
@@ -458,7 +547,7 @@ public class MainLxServlet extends HttpServlet {
             JxMapping.JxCookieValue cookie  = p.getAnnotation(JxMapping.JxCookieValue.class);
 
             if (pathVar != null) {
-                String name = pathVar.value().isBlank() ? p.getName() : pathVar.value();
+                String name = (pathVar.value().isBlank() ? p.getName() : pathVar.value()).toLowerCase();
                 String val  = plan.pathVars().get(name);
                 if (val == null && posIdx < plan.args().length) val = plan.args()[posIdx++];
                 args[i] = val != null ? convert(val, p.getType(), i) : defaultValue(p.getType());
@@ -669,7 +758,7 @@ public class MainLxServlet extends HttpServlet {
         JxPool  pool    = JxPool.global();
         String body = GenApi.JsonStr(
             "status",    "UP",
-            "version",   "3.0.0",
+            "version",   "3.1.1",
             "profile",   JxProfile.active(),
             "devMode",   JxDevMode.isActive(),
             "pool",      pool != null
@@ -687,7 +776,7 @@ public class MainLxServlet extends HttpServlet {
         String body = GenApi.JsonStr(
             "framework", "JxMVC",
             "brand",     "Lux",
-            "version",   "3.0.0",
+            "version",   "3.1.1",
             "profile",   JxProfile.active(),
             "devMode",   JxDevMode.isActive(),
             "java",      System.getProperty("java.version"),
@@ -769,23 +858,42 @@ public class MainLxServlet extends HttpServlet {
     private void sendError(HttpServletRequest req, HttpServletResponse resp, int code, String message)
             throws ServletException, IOException {
         if (resp.isCommitted()) return;
-        // Guard against recursive calls (e.g. the error JSP itself fails)
+        String msg = message == null ? "Error" : message;
         if (Boolean.TRUE.equals(req.getAttribute("jx_in_error"))) {
             resp.setStatus(code);
-            write(resp, "text/plain;charset=UTF-8", code + " " + (message == null ? "Error" : message));
+            writeError(req, resp, code, msg);
             return;
         }
         req.setAttribute("jx_in_error",      Boolean.TRUE);
-        resp.setStatus(code);
         req.setAttribute("jx_error_code",    code);
-        req.setAttribute("jx_error_message", message == null ? "Error" : message);
+        req.setAttribute("jx_error_message", msg);
+        resp.setStatus(code);
+        if (wantsJson(req)) {
+            write(resp, "application/json;charset=UTF-8",
+                    "{\"error\":" + code + ",\"message\":\"" + msg.replace("\"", "'") + "\"}");
+            return;
+        }
         try {
             req.getRequestDispatcher("/WEB-INF/views/shared/error.jsp").forward(req, resp);
         } catch (Exception ex) {
-            log.warn("Error JSP no disponible, enviando respuesta de texto: {}", ex.getMessage());
-            if (!resp.isCommitted()) {
-                write(resp, "text/plain;charset=UTF-8", code + " " + (message == null ? "Error" : message));
-            }
+            if (!resp.isCommitted()) writeError(req, resp, code, msg);
+        }
+    }
+
+    private boolean wantsJson(HttpServletRequest req) {
+        String accept = req.getHeader("Accept");
+        String ct     = req.getContentType();
+        return (accept != null && accept.contains("application/json"))
+            || (ct     != null && ct.contains("application/json"));
+    }
+
+    private void writeError(HttpServletRequest req, HttpServletResponse resp, int code, String msg)
+            throws IOException {
+        if (wantsJson(req)) {
+            write(resp, "application/json;charset=UTF-8",
+                    "{\"error\":" + code + ",\"message\":\"" + msg.replace("\"", "'") + "\"}");
+        } else {
+            write(resp, "text/plain;charset=UTF-8", code + " " + msg);
         }
     }
 }

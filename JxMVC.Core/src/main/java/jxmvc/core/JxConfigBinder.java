@@ -73,7 +73,10 @@ public final class JxConfigBinder {
 
             try {
                 f.set(instance, coerce(raw.trim(), f.getType()));
-            } catch (IllegalAccessException ignored) {}
+            } catch (IllegalAccessException e) {
+                JxLogger.getLogger(JxConfigBinder.class)
+                        .warn("@JxConfigProperties falló en {}.{}: {}", cls.getSimpleName(), f.getName(), e.getMessage());
+            }
         }
 
         return instance;

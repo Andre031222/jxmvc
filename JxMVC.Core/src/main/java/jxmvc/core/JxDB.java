@@ -581,16 +581,17 @@ public class JxDB implements AutoCloseable {
         catch (ClassNotFoundException e) { throw new SQLException("Driver no encontrado: " + cls, e); }
     }
 
-    /** Quoting de tabla según motor. */
-    private String qt(String name) {
-        String safe = safeId(name);
-        return "PSSQL".equals(engine) ? "\"" + safe + "\"" : safe;
-    }
+    private String qt(String name) { return q(name); }
+    private String qc(String name) { return q(name); }
 
-    /** Quoting de columna según motor. */
-    private String qc(String name) {
+    private String q(String name) {
         String safe = safeId(name);
-        return "PSSQL".equals(engine) ? "\"" + safe + "\"" : safe;
+        return switch (engine) {
+            case "PSSQL" -> "\"" + safe + "\"";
+            case "MySQL" -> "`"  + safe + "`";
+            case "MSSQL" -> "["  + safe + "]";
+            default      -> safe;
+        };
     }
 
     private String safeId(String id) {

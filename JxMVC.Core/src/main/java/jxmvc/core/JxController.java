@@ -74,6 +74,10 @@ public abstract class JxController {
     protected final ActionResult ok()                           { return ActionResult.text("OK"); }
     protected final ActionResult noContent()                    { view.status(204); return ActionResult.text(""); }
 
+    // ── Base de datos ─────────────────────────────────────────────────────
+
+    protected JxDB db() { return new JxDB(); }
+
     // ── Auth hook ─────────────────────────────────────────────────────────
 
     /**

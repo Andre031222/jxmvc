@@ -8,13 +8,18 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.Part;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.charset.CharsetDecoder;
+import java.nio.charset.CodingErrorAction;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
 
 /**
  * Contexto de la petición HTTP: parámetros, argumentos de ruta,
@@ -35,19 +40,26 @@ public class JxRequest {
     public final HttpServletResponse response;
 
     private final String[] args;
+    private final Map<String, String> pathVars;
     private String lastError;
 
-    public JxRequest(HttpServletRequest request, HttpServletResponse response, String[] args) {
+    public JxRequest(HttpServletRequest request, HttpServletResponse response,
+                     String[] args, Map<String, String> pathVars) {
         this.request  = request;
         this.response = response;
         this.args     = args;
+        this.pathVars = pathVars != null ? pathVars : Collections.emptyMap();
     }
 
-    /** Constructor protegido para subclases de testing ({@link JxTest}). */
+    public JxRequest(HttpServletRequest request, HttpServletResponse response, String[] args) {
+        this(request, response, args, Collections.emptyMap());
+    }
+
     protected JxRequest() {
         this.request  = null;
         this.response = null;
         this.args     = new String[0];
+        this.pathVars = Collections.emptyMap();
     }
 
     // ── Info de la petición ───────────────────────────────────────────────
@@ -82,6 +94,20 @@ public class JxRequest {
         return "true".equalsIgnoreCase(v) || "1".equals(v) || "on".equalsIgnoreCase(v);
     }
 
+    // ── Variables de plantilla /usuarios/{id} ─────────────────────────────
+
+    public String pathVar(String name) {
+        return name != null ? pathVars.get(name.toLowerCase()) : null;
+    }
+
+    public int    pathVarInt(String name) {
+        try { return Integer.parseInt(pathVar(name)); } catch (Exception e) { return 0; }
+    }
+
+    public long   pathVarLong(String name) {
+        try { return Long.parseLong(pathVar(name)); } catch (Exception e) { return 0L; }
+    }
+
     // ── Argumentos de ruta /ctrl/action/arg0/arg1 ─────────────────────────
 
     public String   arg(int i)     { return (i < 0 || i >= args.length) ? null : BaseSanitizer.clean(args[i]); }
@@ -97,8 +123,13 @@ public class JxRequest {
 
     public String body() {
         if (request == null) return "";
-        try { return request.getReader().lines().collect(Collectors.joining(System.lineSeparator())); }
-        catch (IOException e) { return null; }
+        try {
+            byte[] bytes = request.getInputStream().readAllBytes();
+            CharsetDecoder decoder = StandardCharsets.UTF_8.newDecoder()
+                .onMalformedInput(CodingErrorAction.REPLACE)
+                .onUnmappableCharacter(CodingErrorAction.REPLACE);
+            return decoder.decode(ByteBuffer.wrap(bytes)).toString();
+        } catch (Exception e) { return null; }
     }
 
     // ── Variables de atributo de request ─────────────────────────────────

@@ -1,7 +1,7 @@
 /// JxMVC Open-source project 2024 - 2026
 /// -------------------------------------------
 ///  coded by : Dr. Ramiro Pedro Laura Murillo
-///  v3.0.0   : R. Andre Vilca Solorzano
+///  v3.1.1   : R. Andre Vilca Solorzano
 
 package jxmvc.core;
 

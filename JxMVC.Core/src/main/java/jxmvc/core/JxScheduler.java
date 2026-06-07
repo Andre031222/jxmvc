@@ -1,7 +1,7 @@
 /// JxMVC Open-source project 2024 - 2026
 /// -------------------------------------------
 ///  coded by : Dr. Ramiro Pedro Laura Murillo
-///  v3.1.0   : R. Andre Vilca Solorzano — cron expressions
+///  v3.1.1   : R. Andre Vilca Solorzano — cron expressions
 
 package jxmvc.core;
 
