@@ -5,6 +5,8 @@
 package jxmvc.core;
 
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Limitador de tasa en memoria — motor para {@link JxMapping.JxRateLimit}.
@@ -25,6 +27,16 @@ public final class JxRateLimiter {
 
     /** Entrada: [count, windowStart] */
     private static final ConcurrentHashMap<String, long[]> buckets = new ConcurrentHashMap<>();
+
+    static {
+        // Daemon de limpieza: elimina buckets inactivos >10 min para evitar memory leak
+        var cleaner = Executors.newSingleThreadScheduledExecutor(r -> {
+            Thread t = new Thread(r, "jx-ratelimiter-cleaner");
+            t.setDaemon(true);
+            return t;
+        });
+        cleaner.scheduleWithFixedDelay(() -> cleanup(600), 10, 10, TimeUnit.MINUTES);
+    }
 
     /**
      * Verifica y registra una petición.

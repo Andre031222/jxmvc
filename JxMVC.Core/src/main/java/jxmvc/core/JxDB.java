@@ -222,8 +222,7 @@ public class JxDB implements AutoCloseable {
         }
         String sql = "INSERT INTO " + qt(table) + " (" + cols + ") VALUES (" + ph + ")";
 
-        try {
-            PreparedStatement stmt = openOrReuse().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+        try (PreparedStatement stmt = openOrReuse().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             int i = 1;
             for (String k : fields.keySet()) stmt.setObject(i++, fields.get(k));
             if (stmt.executeUpdate() > 0) {
@@ -256,8 +255,7 @@ public class JxDB implements AutoCloseable {
         String sql = "UPDATE " + qt(table) + " SET " + set;
         if (condition != null && !condition.isBlank()) sql += " WHERE " + condition;
 
-        try {
-            PreparedStatement stmt = openOrReuse().prepareStatement(sql);
+        try (PreparedStatement stmt = openOrReuse().prepareStatement(sql)) {
             int i = 1;
             for (String k : fields.keySet()) stmt.setObject(i++, fields.get(k));
             for (Object p : condParams)       stmt.setObject(i++, p);
@@ -286,8 +284,7 @@ public class JxDB implements AutoCloseable {
         lastError = "";
         String sql = "DELETE FROM " + qt(table);
         if (condition != null && !condition.isBlank()) sql += " WHERE " + condition;
-        try {
-            PreparedStatement stmt = openOrReuse().prepareStatement(sql);
+        try (PreparedStatement stmt = openOrReuse().prepareStatement(sql)) {
             for (int i = 0; i < params.length; i++) stmt.setObject(i + 1, params[i]);
             stmt.executeUpdate();
         } catch (SQLException e) { lastError = e.getMessage(); }
@@ -368,8 +365,7 @@ public class JxDB implements AutoCloseable {
         }
         String sql = "INSERT INTO " + qt(table) + " (" + cols + ") VALUES (" + ph + ")";
 
-        try {
-            PreparedStatement stmt = openOrReuse().prepareStatement(sql);
+        try (PreparedStatement stmt = openOrReuse().prepareStatement(sql)) {
             for (DBRow row : rows) {
                 int i = 1;
                 for (String k : first.KeySet()) stmt.setObject(i++, row.Get(k));
@@ -503,8 +499,7 @@ public class JxDB implements AutoCloseable {
      */
     public int exec(String sql, Object... params) {
         lastError = "";
-        try {
-            PreparedStatement stmt = openOrReuse().prepareStatement(sql);
+        try (PreparedStatement stmt = openOrReuse().prepareStatement(sql)) {
             for (int i = 0; i < params.length; i++) stmt.setObject(i + 1, params[i]);
             return stmt.executeUpdate();
         } catch (SQLException e) { lastError = e.getMessage(); return -1; }
@@ -515,19 +510,17 @@ public class JxDB implements AutoCloseable {
     private DBRowSet exec_(String sql, Object... params) {
         lastError = "";
         DBRowSet result = new DBRowSet();
-        try {
-            PreparedStatement stmt = openOrReuse().prepareStatement(sql);
+        try (PreparedStatement stmt = openOrReuse().prepareStatement(sql)) {
             for (int i = 0; i < params.length; i++) stmt.setObject(i + 1, params[i]);
-            ResultSet rs   = stmt.executeQuery();
-            ResultSetMetaData meta = rs.getMetaData();
-            int colCount   = meta.getColumnCount();
-            while (rs.next()) {
-                DBRow row = new DBRow();
-                for (int i = 1; i <= colCount; i++) row.add(meta.getColumnName(i), rs.getObject(i));
-                result.add(row);
+            try (ResultSet rs = stmt.executeQuery()) {
+                ResultSetMetaData meta = rs.getMetaData();
+                int colCount = meta.getColumnCount();
+                while (rs.next()) {
+                    DBRow row = new DBRow();
+                    for (int i = 1; i <= colCount; i++) row.add(meta.getColumnName(i), rs.getObject(i));
+                    result.add(row);
+                }
             }
-            rs.close();
-            stmt.close();
         } catch (SQLException e) { lastError = e.getMessage(); }
         return result;
     }

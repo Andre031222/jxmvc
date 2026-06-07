@@ -88,10 +88,13 @@ public final class JxPool {
         Connection conn = idle.poll();
         if (conn != null && isValid(conn)) return conn;
 
-        if (total.get() < maxSize) {
-            total.incrementAndGet();
-            return open();
-        }
+        // CAS garantiza que no se supere maxSize aunque varios hilos lleguen aquí simultáneamente
+        int current;
+        do {
+            current = total.get();
+            if (current >= maxSize) break;
+        } while (!total.compareAndSet(current, current + 1));
+        if (current < maxSize) return open();
 
         // Esperar a que se libere una conexión
         try {

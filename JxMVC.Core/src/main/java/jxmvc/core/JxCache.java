@@ -7,6 +7,7 @@ package jxmvc.core;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Caché en memoria con TTL — cero dependencias externas.
@@ -89,6 +90,7 @@ public final class JxCache {
 
     private final String name;
     private final ConcurrentHashMap<String, Entry> store = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, ReentrantLock> locks = new ConcurrentHashMap<>();
 
     private JxCache(String name) { this.name = name; }
 
@@ -152,12 +154,20 @@ public final class JxCache {
     public <T> T computeIfAbsent(String key, long ttlSeconds, java.util.concurrent.Callable<T> loader) {
         Object cached = fetch(key);
         if (cached != null) return (T) cached;
+        ReentrantLock lock = locks.computeIfAbsent(key, k -> new ReentrantLock());
+        lock.lock();
         try {
+            // Double-check bajo lock para evitar stampede
+            cached = fetch(key);
+            if (cached != null) return (T) cached;
             T value = loader.call();
             if (value != null) put(key, value, ttlSeconds);
             return value;
         } catch (Exception e) {
             throw e instanceof RuntimeException r ? r : new JxException(500, e.getMessage());
+        } finally {
+            lock.unlock();
+            locks.remove(key);
         }
     }
 

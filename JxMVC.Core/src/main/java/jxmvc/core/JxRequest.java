@@ -155,7 +155,11 @@ public class JxRequest {
                 : nameOverride.trim();
             if (name.isBlank()) { lastError = "Nombre de archivo vacío"; return null; }
             if (!allowedExt(name, allowedExts)) { lastError = "Extensión no permitida"; return null; }
-            Path out = dir.resolve(name);
+            Path out = dir.resolve(name).normalize();
+            if (!out.startsWith(dir.toAbsolutePath().normalize())) {
+                lastError = "Ruta de archivo no permitida";
+                return null;
+            }
             Files.copy(part.getInputStream(), out, StandardCopyOption.REPLACE_EXISTING);
             return out;
         } catch (Exception e) { lastError = e.getMessage(); return null; }

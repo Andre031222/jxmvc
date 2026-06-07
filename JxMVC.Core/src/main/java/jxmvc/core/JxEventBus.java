@@ -42,6 +42,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
  */
 public final class JxEventBus {
 
+    private static final JxLogger log = JxLogger.getLogger(JxEventBus.class);
+
     /** Mapa: tipo de evento → lista de listeners. */
     private static final ConcurrentHashMap<Class<?>, List<Listener>> LISTENERS =
             new ConcurrentHashMap<>();
@@ -63,7 +65,7 @@ public final class JxEventBus {
             if (eventType.isAssignableFrom(type)) {
                 for (Listener l : list) {
                     try { l.invoke(event); }
-                    catch (Exception ignored) {}  // errores en listeners no interrumpen
+                    catch (Exception e) { log.warn("listener error para {}: {}", type.getSimpleName(), e.getMessage()); }
                 }
             }
         });

@@ -170,12 +170,14 @@ class BaseDispatcher {
             Map<String, String> vars = new LinkedHashMap<>();
             if (rawM.matches()) {
                 for (int i = 0; i < tr.varNames().size(); i++)
-                    vars.put(tr.varNames().get(i).toLowerCase(), rawM.group(i + 1));
+                    vars.put(tr.varNames().get(i).toLowerCase(),
+                             URLDecoder.decode(rawM.group(i + 1), StandardCharsets.UTF_8));
             } else {
                 Matcher m = tr.pattern().matcher(path);
                 m.matches();
                 for (int i = 0; i < tr.varNames().size(); i++)
-                    vars.put(tr.varNames().get(i).toLowerCase(), m.group(i + 1));
+                    vars.put(tr.varNames().get(i).toLowerCase(),
+                             URLDecoder.decode(m.group(i + 1), StandardCharsets.UTF_8));
             }
             return new AnnotatedMatch(tr.route(), new String[0], vars);
         }
@@ -288,12 +290,13 @@ class BaseDispatcher {
                         addClass(cn, classes);
                     }
                 } else if ("jar".equalsIgnoreCase(url.getProtocol())) {
-                    JarFile jar = ((JarURLConnection) url.openConnection()).getJarFile();
-                    Enumeration<JarEntry> entries = jar.entries();
-                    while (entries.hasMoreElements()) {
-                        JarEntry e = entries.nextElement();
-                        if (e.isDirectory() || !e.getName().startsWith(pkg) || !e.getName().endsWith("Controller.class")) continue;
-                        addClass(e.getName().replace('/', '.').replace(".class", ""), classes);
+                    try (JarFile jar = ((JarURLConnection) url.openConnection()).getJarFile()) {
+                        Enumeration<JarEntry> entries = jar.entries();
+                        while (entries.hasMoreElements()) {
+                            JarEntry e = entries.nextElement();
+                            if (e.isDirectory() || !e.getName().startsWith(pkg) || !e.getName().endsWith("Controller.class")) continue;
+                            addClass(e.getName().replace('/', '.').replace(".class", ""), classes);
+                        }
                     }
                 }
             }

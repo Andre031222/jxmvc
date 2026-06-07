@@ -61,6 +61,8 @@ import java.util.List;
  */
 public abstract class JxRepository<T, ID> {
 
+    private static final JxLogger log = JxLogger.getLogger(JxRepository.class);
+
     protected final String   tableName;
     protected final Class<T> entityType;
 
@@ -365,7 +367,8 @@ public abstract class JxRepository<T, ID> {
                 if (val != null) f.set(obj, coerceField(val, f.getType()));
             }
             return obj;
-        } catch (Exception ignored) {
+        } catch (Exception e) {
+            log.warn("rowToEntity falló para {}: {}", entityType.getSimpleName(), e.getMessage());
             return null;
         }
     }
@@ -412,7 +415,9 @@ public abstract class JxRepository<T, ID> {
             try {
                 Object val = f.get(entity);
                 if (val != null) row.add(columnName(f), val);
-            } catch (IllegalAccessException ignored) {}
+            } catch (IllegalAccessException e) {
+                log.warn("entityToRow: no se pudo leer {}.{}: {}", entityType.getSimpleName(), f.getName(), e.getMessage());
+            }
         }
         return row;
     }
@@ -456,7 +461,9 @@ public abstract class JxRepository<T, ID> {
             if (idField.getType() == long.class    || idField.getType() == Long.class)    idField.set(entity, generated);
             else if (idField.getType() == int.class|| idField.getType() == Integer.class) idField.set(entity, (int) generated);
             else if (idField.getType() == String.class)                                   idField.set(entity, String.valueOf(generated));
-        } catch (IllegalAccessException ignored) {}
+        } catch (IllegalAccessException e) {
+            log.warn("setIdValue falló en {}: {}", entityType.getSimpleName(), e.getMessage());
+        }
     }
 
     private static Field findIdField(Class<?> cls) {

@@ -128,8 +128,11 @@ public class MainLxServlet extends HttpServlet {
             String ae = req.getHeader("Accept-Encoding");
             if (ae != null && ae.contains("gzip")) {
                 JxGzip.GzipWrapper gzipResp = new JxGzip.GzipWrapper(resp);
-                serviceInternal(req, gzipResp, local);
-                if (!resp.isCommitted()) gzipResp.finish(resp, JxGzip.MIN_BYTES);
+                try {
+                    serviceInternal(req, gzipResp, local);
+                } finally {
+                    if (!resp.isCommitted()) gzipResp.finish(resp, JxGzip.MIN_BYTES);
+                }
                 return;
             }
         }
@@ -379,9 +382,12 @@ public class MainLxServlet extends HttpServlet {
 
     private String getClientIp(HttpServletRequest req) {
         String ip = req.getHeader("X-Forwarded-For");
-        if (ip != null && !ip.isBlank()) return ip.split(",")[0].trim();
+        if (ip != null && !ip.isBlank()) {
+            String candidate = ip.split(",")[0].trim();
+            if (!candidate.isEmpty()) return candidate;
+        }
         ip = req.getHeader("X-Real-IP");
-        return (ip != null && !ip.isBlank()) ? ip : req.getRemoteAddr();
+        return (ip != null && !ip.isBlank()) ? ip.trim() : req.getRemoteAddr();
     }
 
     // ── Auth ──────────────────────────────────────────────────────────────

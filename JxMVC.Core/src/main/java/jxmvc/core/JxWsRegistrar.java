@@ -138,7 +138,7 @@ public final class JxWsRegistrar implements ServletContextListener {
                             && !java.lang.reflect.Modifier.isAbstract(cls.getModifiers())) {
                         result.add(cls);
                     }
-                } catch (Throwable ignored) {}
+                } catch (Throwable e) { log.warn("WS scan: clase omitida: {}", e.getMessage()); }
             }
         }
     }
