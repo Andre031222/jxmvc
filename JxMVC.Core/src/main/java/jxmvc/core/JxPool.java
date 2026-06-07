@@ -27,6 +27,8 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public final class JxPool {
 
+    private static final JxLogger log = JxLogger.getLogger(JxPool.class);
+
     private static volatile JxPool globalInstance;
 
     private final LinkedBlockingQueue<Connection> idle;
@@ -155,11 +157,16 @@ public final class JxPool {
             Connection conn = idle.poll();
             if (conn == null) break;
             if (isValid(conn)) {
-                idle.offer(conn);  // sana: devolverla al pool
+                idle.offer(conn);
             } else {
-                total.decrementAndGet();  // muerta: descartarla
+                total.decrementAndGet();
                 try { conn.close(); } catch (SQLException ignored) {}
             }
+        }
+        // Reponer conexiones si la BD volvió tras una caída
+        while (total.get() < Math.min(2, maxSize) && idle.size() < Math.min(2, maxSize)) {
+            try { int cur; do { cur = total.get(); if (cur >= maxSize) break; } while (!total.compareAndSet(cur, cur + 1)); if (total.get() <= maxSize) idle.offer(open()); }
+            catch (SQLException e) { log.warn("keepAlive: no se pudo reponer conexión: {}", e.getMessage()); break; }
         }
     }
 
@@ -179,7 +186,10 @@ public final class JxPool {
             try {
                 idle.offer(open());
                 total.incrementAndGet();
-            } catch (SQLException ignored) {}
+            } catch (SQLException e) {
+                log.warn("Pool prewarm: no se pudo abrir conexión ({}). El pool iniciará vacío.", e.getMessage());
+                break;
+            }
         }
     }
 

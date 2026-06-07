@@ -104,9 +104,14 @@ public class MainLxServlet extends HttpServlet {
     @Override
     public void destroy() {
         JxScheduler.shutdown();
+        JxDevMode.shutdown();
         JxPool pool = JxPool.global();
         if (pool != null) pool.shutdown();
-        if (asyncExecutor != null) asyncExecutor.shutdownNow();
+        if (asyncExecutor != null) {
+            asyncExecutor.shutdown();
+            try { asyncExecutor.awaitTermination(5, java.util.concurrent.TimeUnit.SECONDS); }
+            catch (InterruptedException ignored) { Thread.currentThread().interrupt(); }
+        }
         log.info("Lux framework detenido correctamente");
     }
 

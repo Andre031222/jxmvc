@@ -38,9 +38,13 @@ public final class JxJson {
      *   List&lt;?&gt; list = JxJson.fromJson(body, List.class);
      * </pre>
      */
+    private static final int MAX_JSON_BYTES = 10 * 1024 * 1024; // 10 MB
+
     @SuppressWarnings("unchecked")
     public static <T> T fromJson(String json, Class<T> type) {
         if (json == null || json.isBlank()) return null;
+        if (json.length() > MAX_JSON_BYTES)
+            throw new JxException(400, "JSON demasiado grande (máx 10 MB)");
         Object parsed = new JsonParser(json.trim()).parse();
         if (parsed == null) return null;
 
@@ -115,8 +119,10 @@ public final class JxJson {
     // ── Parser JSON interno ────────────────────────────────────────────────
 
     private static final class JsonParser {
+        private static final int MAX_DEPTH = 64;
         private final String src;
         private int pos;
+        private int depth;
 
         JsonParser(String src) { this.src = src; }
 
@@ -134,6 +140,7 @@ public final class JxJson {
         }
 
         private Map<String, Object> parseObject() {
+            if (++depth > MAX_DEPTH) throw new JxException(400, "JSON demasiado anidado");
             Map<String, Object> map = new LinkedHashMap<>();
             pos++;  // '{'
             skipWs();
@@ -151,10 +158,12 @@ public final class JxJson {
                 skipWs();
             }
             if (pos < src.length()) pos++;  // '}'
+            depth--;
             return map;
         }
 
         private List<Object> parseArray() {
+            if (++depth > MAX_DEPTH) throw new JxException(400, "JSON demasiado anidado");
             List<Object> list = new ArrayList<>();
             pos++;  // '['
             skipWs();
@@ -165,6 +174,7 @@ public final class JxJson {
                 skipWs();
             }
             if (pos < src.length()) pos++;  // ']'
+            depth--;
             return list;
         }
 

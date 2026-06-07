@@ -179,9 +179,12 @@ public final class JxScheduler {
         });
     }
 
-    /** Detiene el executor. Llamar desde {@code MainLxServlet.destroy()}. */
+    /** Detiene el executor esperando hasta 10s para tareas en curso (graceful shutdown). */
     public static void shutdown() {
-        exec.shutdownNow();
+        exec.shutdown();
+        try { exec.awaitTermination(10, TimeUnit.SECONDS); }
+        catch (InterruptedException ignored) { Thread.currentThread().interrupt(); }
+        finally { if (!exec.isTerminated()) exec.shutdownNow(); }
     }
 
     /** Retorna {@code true} si el scheduler está activo. */

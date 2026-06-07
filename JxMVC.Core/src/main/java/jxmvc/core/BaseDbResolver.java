@@ -35,6 +35,8 @@ import java.util.Properties;
  */
 public final class BaseDbResolver {
 
+    private static final java.util.logging.Logger cfgLog =
+            java.util.logging.Logger.getLogger(BaseDbResolver.class.getName());
     private static final Properties props = loadProps();
 
     private static volatile String overrideDriver;
@@ -138,7 +140,6 @@ public final class BaseDbResolver {
 
     private static Properties loadProps() {
         Properties p = new Properties();
-        // Intentar cargar según el perfil activo (application-dev.properties, etc.)
         String profile = System.getProperty("jxmvc.profile",
                          System.getenv("JXMVC_PROFILE") != null
                              ? System.getenv("JXMVC_PROFILE") : "");
@@ -148,14 +149,16 @@ public final class BaseDbResolver {
                 if (in != null) p.load(in);
             } catch (Exception ignored) {}
         }
-        // Base: application.properties (puede ser sobrescrito por el perfil)
         try (InputStream in = BaseDbResolver.class.getClassLoader()
                 .getResourceAsStream("application.properties")) {
             if (in != null) {
                 Properties base = new Properties();
                 base.load(in);
-                // Las props del perfil tienen prioridad sobre la base
                 base.forEach(p::putIfAbsent);
+            } else if (p.isEmpty()) {
+                cfgLog.warning("application.properties no encontrado en classpath — usando valores por defecto. " +
+                               "Configure DB_URL, DB_USER, DB_PASS como variables de entorno o " +
+                               "añada application.properties a src/main/resources/");
             }
         } catch (Exception ignored) {}
         return p;
