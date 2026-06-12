@@ -108,13 +108,18 @@ public abstract class JxWebSocket {
     @OnError
     public final void _onError(Session session, Throwable error) {
         onError(session, error);
+        if (session != null && !session.isOpen()) {
+            allSessions.remove(session);
+            removeFromAllRooms(session);
+        }
     }
 
     // ── API de mensajería ─────────────────────────────────────────────────
 
-    /** Envía un mensaje a una sesión específica. */
+    /** Envía un mensaje a una sesión específica. El envío se serializa por sesión. */
     protected void send(Session session, String message) {
-        if (session != null && session.isOpen()) {
+        if (session == null || !session.isOpen()) return;
+        synchronized (session) {
             try { session.getBasicRemote().sendText(message); }
             catch (IOException e) { log.warn("[WS] Error enviando a {}: {}", session.getId(), e.getMessage()); }
         }

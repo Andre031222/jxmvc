@@ -7,6 +7,7 @@ package jxmvc.core;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -20,6 +21,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  * jxmvc.pool.enabled=true
  * jxmvc.pool.size=10
  * jxmvc.pool.timeout=5
+ * jxmvc.pool.validationInterval=30   # segundos sin validar contra la BD (0 = validar siempre)
  * </pre>
  *
  * Si {@code jxmvc.pool.enabled=true}, {@link JxDB} lo usa automáticamente.
@@ -35,10 +37,13 @@ public final class JxPool {
     private final AtomicInteger total = new AtomicInteger(0);
     private final int maxSize;
     private final int timeoutSecs;
+    private final int validationIntervalSecs;
     private final String url;
     private final String user;
     private final String pass;
     private final String engine;
+
+    private final ConcurrentHashMap<Connection, Long> lastValidated = new ConcurrentHashMap<>();
 
     // ── Acceso global ─────────────────────────────────────────────────────
 
@@ -68,11 +73,18 @@ public final class JxPool {
     // ── Constructor ───────────────────────────────────────────────────────
 
     public JxPool(String url, String user, String pass, int maxSize, int timeoutSecs) {
+        this(url, user, pass, maxSize, timeoutSecs,
+             BaseDbResolver.propertyInt("jxmvc.pool.validationInterval", 30));
+    }
+
+    public JxPool(String url, String user, String pass, int maxSize, int timeoutSecs,
+                  int validationIntervalSecs) {
         this.url         = url;
         this.user        = user;
         this.pass        = pass;
         this.maxSize     = maxSize;
         this.timeoutSecs = timeoutSecs;
+        this.validationIntervalSecs = validationIntervalSecs;
         this.engine      = detectEngine(url);
         this.idle        = new LinkedBlockingQueue<>(maxSize);
         prewarm(Math.min(2, maxSize));
@@ -87,8 +99,12 @@ public final class JxPool {
      * @throws SQLException si no hay conexiones disponibles en el tiempo límite
      */
     public Connection borrow() throws SQLException {
-        Connection conn = idle.poll();
-        if (conn != null && isValid(conn)) return conn;
+        Connection conn;
+        while ((conn = idle.poll()) != null) {
+            if (isValid(conn)) return conn;
+            closeQuietly(conn);
+            total.decrementAndGet();
+        }
 
         // CAS garantiza que no se supere maxSize aunque varios hilos lleguen aquí simultáneamente
         int current;
@@ -96,7 +112,10 @@ public final class JxPool {
             current = total.get();
             if (current >= maxSize) break;
         } while (!total.compareAndSet(current, current + 1));
-        if (current < maxSize) return open();
+        if (current < maxSize) {
+            try { return open(); }
+            catch (SQLException e) { total.decrementAndGet(); throw e; }
+        }
 
         // Esperar a que se libere una conexión
         try {
@@ -106,7 +125,11 @@ public final class JxPool {
             throw new SQLException("Pool interrumpido esperando conexión");
         }
         if (conn == null) throw new SQLException("Pool agotado: no hay conexiones disponibles en " + timeoutSecs + "s");
-        if (!isValid(conn)) { total.decrementAndGet(); return open(); }
+        if (!isValid(conn)) {
+            closeQuietly(conn);
+            try { return open(); }
+            catch (SQLException e) { total.decrementAndGet(); throw e; }
+        }
         return conn;
     }
 
@@ -116,8 +139,8 @@ public final class JxPool {
      */
     public void release(Connection conn) {
         if (conn == null) return;
-        if (!isValid(conn)) { total.decrementAndGet(); return; }
-        idle.offer(conn);
+        if (!isValid(conn)) { closeQuietly(conn); total.decrementAndGet(); return; }
+        if (!idle.offer(conn)) { closeQuietly(conn); total.decrementAndGet(); }
     }
 
     public int available() { return idle.size(); }
@@ -156,11 +179,11 @@ public final class JxPool {
         for (int i = 0; i < size; i++) {
             Connection conn = idle.poll();
             if (conn == null) break;
-            if (isValid(conn)) {
+            if (isValid(conn, true)) {
                 idle.offer(conn);
             } else {
                 total.decrementAndGet();
-                try { conn.close(); } catch (SQLException ignored) {}
+                closeQuietly(conn);
             }
         }
         // Reponer conexiones si la BD volvió tras una caída
@@ -178,12 +201,15 @@ public final class JxPool {
         }
     }
 
-    /** Cierra todas las conexiones del pool. */
+    /**
+     * Cierra todas las conexiones idle del pool.
+     * Las conexiones prestadas (en uso) no se cierran: el caller debe liberarlas
+     * con {@link #release(Connection)} o cerrarlas por su cuenta.
+     */
     public void shutdown() {
         Connection conn;
-        while ((conn = idle.poll()) != null) {
-            try { conn.close(); } catch (SQLException ignored) {}
-        }
+        while ((conn = idle.poll()) != null) closeQuietly(conn);
+        lastValidated.clear();
         total.set(0);
     }
 
@@ -192,8 +218,9 @@ public final class JxPool {
     private void prewarm(int count) {
         for (int i = 0; i < count; i++) {
             try {
-                idle.offer(open());
+                Connection conn = open();
                 total.incrementAndGet();
+                idle.offer(conn);
             } catch (SQLException e) {
                 log.warn("Pool prewarm: no se pudo abrir conexión ({}). El pool iniciará vacío.", e.getMessage());
                 break;
@@ -203,10 +230,18 @@ public final class JxPool {
 
     private Connection open() throws SQLException {
         loadDriver();
-        return switch (engine) {
+        Connection conn = switch (engine) {
             case "MSSQL" -> DriverManager.getConnection(url);
             default      -> DriverManager.getConnection(url, user, pass);
         };
+        lastValidated.put(conn, System.currentTimeMillis());
+        return conn;
+    }
+
+    private void closeQuietly(Connection conn) {
+        if (conn == null) return;
+        lastValidated.remove(conn);
+        try { conn.close(); } catch (SQLException ignored) {}
     }
 
     private void loadDriver() throws SQLException {
@@ -220,9 +255,23 @@ public final class JxPool {
         catch (ClassNotFoundException e) { throw new SQLException("Driver no encontrado: " + cls, e); }
     }
 
-    private boolean isValid(Connection conn) {
-        try { return conn != null && !conn.isClosed() && conn.isValid(1); }
-        catch (SQLException e) { return false; }
+    private boolean isValid(Connection conn) { return isValid(conn, false); }
+
+    private boolean isValid(Connection conn, boolean force) {
+        try {
+            if (conn == null || conn.isClosed()) return false;
+            if (!force && validationIntervalSecs > 0) {
+                Long last = lastValidated.get(conn);
+                if (last != null && System.currentTimeMillis() - last < validationIntervalSecs * 1000L)
+                    return true;
+            }
+            boolean ok = conn.isValid(1);
+            if (ok) lastValidated.put(conn, System.currentTimeMillis());
+            else    lastValidated.remove(conn);
+            return ok;
+        } catch (SQLException e) {
+            return false;
+        }
     }
 
     private String detectEngine(String u) {

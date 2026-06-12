@@ -88,6 +88,9 @@ public final class JxCache {
 
     // ── Instancia ─────────────────────────────────────────────────────────
 
+    private static final int MAX_ENTRIES =
+            BaseDbResolver.propertyInt("jxmvc.cache.maxEntries", 10_000);
+
     private final String name;
     private final ConcurrentHashMap<String, Entry> store = new ConcurrentHashMap<>();
     private final ConcurrentHashMap<String, ReentrantLock> locks = new ConcurrentHashMap<>();
@@ -96,9 +99,7 @@ public final class JxCache {
 
     /** Guarda {@code value} bajo {@code key} sin expiración. */
     public JxCache put(String key, Object value) {
-        if (globalBackend != null) { globalBackend.put(name, key, value, 0); return this; }
-        store.put(key, new Entry(value, 0));
-        return this;
+        return put(key, value, 0);
     }
 
     /** Guarda {@code value} bajo {@code key} con TTL en segundos. */
@@ -107,8 +108,30 @@ public final class JxCache {
         long expireAt = ttlSeconds > 0
                 ? System.currentTimeMillis() + ttlSeconds * 1000
                 : 0;
+        ensureCapacity(key);
         store.put(key, new Entry(value, expireAt));
         return this;
+    }
+
+    private void ensureCapacity(String key) {
+        if (MAX_ENTRIES <= 0 || store.size() < MAX_ENTRIES || store.containsKey(key)) return;
+        cleanExpired();
+        while (store.size() >= MAX_ENTRIES) {
+            String coldest = coldestKey();
+            if (coldest == null) return;
+            store.remove(coldest);
+            locks.remove(coldest);
+        }
+    }
+
+    private String coldestKey() {
+        String coldest = null;
+        long oldest = Long.MAX_VALUE;
+        for (var e : store.entrySet()) {
+            long access = e.getValue().lastAccess;
+            if (access < oldest) { oldest = access; coldest = e.getKey(); }
+        }
+        return coldest;
     }
 
     /** Retorna el valor si existe y no expiró, o {@code null}. */
@@ -118,8 +141,8 @@ public final class JxCache {
             Object v = globalBackend.fetch(name, key);
             return type.isInstance(v) ? (T) v : null;
         }
-        Entry e = store.get(key);
-        if (e == null || e.isExpired()) { store.remove(key); return null; }
+        Entry e = liveEntry(key);
+        if (e == null) return null;
         Object v = e.value();
         return type.isInstance(v) ? (T) v : null;
     }
@@ -127,18 +150,22 @@ public final class JxCache {
     /** Retorna el valor sin verificación de tipo. */
     public Object fetch(String key) {
         if (globalBackend != null) return globalBackend.fetch(name, key);
-        Entry e = store.get(key);
-        if (e == null || e.isExpired()) { store.remove(key); return null; }
-        return e.value();
+        Entry e = liveEntry(key);
+        return e == null ? null : e.value();
     }
 
     /** Retorna si existe y no expiró. */
     public boolean has(String key) {
         if (globalBackend != null) return globalBackend.has(name, key);
+        return liveEntry(key) != null;
+    }
+
+    private Entry liveEntry(String key) {
         Entry e = store.get(key);
-        if (e == null) return false;
-        if (e.isExpired()) { store.remove(key); return false; }
-        return true;
+        if (e == null) return null;
+        if (e.isExpired()) { store.remove(key); return null; }
+        e.lastAccess = System.currentTimeMillis();
+        return e;
     }
 
     /**
@@ -157,7 +184,6 @@ public final class JxCache {
         ReentrantLock lock = locks.computeIfAbsent(key, k -> new ReentrantLock());
         lock.lock();
         try {
-            // Double-check bajo lock para evitar stampede
             cached = fetch(key);
             if (cached != null) return (T) cached;
             T value = loader.call();
@@ -167,20 +193,23 @@ public final class JxCache {
             throw e instanceof RuntimeException r ? r : new JxException(500, e.getMessage());
         } finally {
             lock.unlock();
-            locks.remove(key);
         }
     }
 
     /** Elimina la entrada con la clave dada. */
     public JxCache evict(String key) {
         if (globalBackend != null) { globalBackend.evict(name, key); return this; }
-        store.remove(key); return this;
+        store.remove(key);
+        locks.remove(key);
+        return this;
     }
 
     /** Elimina todas las entradas. */
     public JxCache clear() {
         if (globalBackend != null) { globalBackend.clear(name); return this; }
-        store.clear(); return this;
+        store.clear();
+        locks.clear();
+        return this;
     }
 
     /** Número de entradas activas (puede incluir expiradas no limpiadas aún). */
@@ -192,11 +221,25 @@ public final class JxCache {
 
     private void cleanExpired() {
         store.entrySet().removeIf(e -> e.getValue().isExpired());
+        locks.entrySet().removeIf(e -> !store.containsKey(e.getKey())
+                && !e.getValue().isLocked()
+                && !e.getValue().hasQueuedThreads());
     }
 
     // ── Entry interna ──────────────────────────────────────────────────────
 
-    private record Entry(Object value, long expireAt) {
+    private static final class Entry {
+        final Object value;
+        final long expireAt;
+        volatile long lastAccess = System.currentTimeMillis();
+
+        Entry(Object value, long expireAt) {
+            this.value = value;
+            this.expireAt = expireAt;
+        }
+
+        Object value() { return value; }
+
         boolean isExpired() {
             return expireAt > 0 && System.currentTimeMillis() > expireAt;
         }
