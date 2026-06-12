@@ -87,6 +87,9 @@ public final class JxHttp {
         private static final int MAX_RESPONSE_BYTES = 10 * 1024 * 1024; // 10 MB
 
         private Builder(String method, String url) {
+            String scheme = URI.create(url).getScheme();
+            if (!"http".equalsIgnoreCase(scheme) && !"https".equalsIgnoreCase(scheme))
+                throw new IllegalArgumentException("JxHttp solo permite http/https: " + url);
             this.method = method.toUpperCase();
             this.url    = url;
         }

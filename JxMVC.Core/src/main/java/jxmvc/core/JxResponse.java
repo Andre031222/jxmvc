@@ -70,10 +70,16 @@ public final class JxResponse {
      */
     public void raw(byte[] data, String contentType, String fileName) throws IOException {
         response.setContentType(contentType);
-        response.setHeader("Content-Disposition", "attachment; filename=\"" + fileName + "\"");
+        response.setHeader("Content-Disposition",
+                "attachment; filename=\"" + sanitizeFileName(fileName) + "\"");
         response.setContentLength(data.length);
         response.getOutputStream().write(data);
         bodyWritten = true;
+    }
+
+    static String sanitizeFileName(String fileName) {
+        if (fileName == null || fileName.isBlank()) return "download";
+        return fileName.replaceAll("[\\r\\n\"\\\\;/]", "_");
     }
 
     /** Serializa el objeto con {@link JxJson} y envía {@code application/json}. */

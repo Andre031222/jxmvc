@@ -26,6 +26,8 @@ import java.util.Map;
  */
 public final class JxJson {
 
+    private static final JxLogger log = JxLogger.getLogger(JxJson.class);
+
     private JxJson() {}
 
     // ── Deserialización ───────────────────────────────────────────────────
@@ -80,7 +82,10 @@ public final class JxJson {
                 f.set(obj, coerce(raw, f.getType()));
             }
             return obj;
-        } catch (Exception ignored) { return null; }
+        } catch (Exception e) {
+            log.debug("No se pudo mapear JSON a {}: {}", type.getName(), e.getMessage());
+            return null;
+        }
     }
 
     private static Object coerce(Object value, Class<?> type) {
@@ -110,10 +115,20 @@ public final class JxJson {
     private static List<Field> collectPojoFields(Class<?> cls) {
         List<Field> fields = new ArrayList<>();
         while (cls != null && cls != Object.class) {
-            for (Field f : cls.getDeclaredFields()) fields.add(f);
+            for (Field f : cls.getDeclaredFields()) {
+                if (isBindable(f)) fields.add(f);
+            }
             cls = cls.getSuperclass();
         }
         return fields;
+    }
+
+    private static boolean isBindable(Field f) {
+        int m = f.getModifiers();
+        return !java.lang.reflect.Modifier.isStatic(m)
+            && !java.lang.reflect.Modifier.isFinal(m)
+            && !java.lang.reflect.Modifier.isTransient(m)
+            && !f.isSynthetic();
     }
 
     // ── Parser JSON interno ────────────────────────────────────────────────
@@ -262,7 +277,7 @@ public final class JxJson {
 
     // ── Internos ──────────────────────────────────────────────────────────
 
-    private static String quote(String s) {
+    static String quote(String s) {
         return "\"" + s
                 .replace("\\", "\\\\")
                 .replace("\"", "\\\"")

@@ -377,6 +377,7 @@ class BaseDispatcher {
         if (!n.startsWith("/")) n = "/" + n;
         n = n.replaceAll("/+", "/");
         if (n.length() > 1 && n.endsWith("/")) n = n.substring(0, n.length() - 1);
+        if (n.contains("..") || n.contains("\\")) return "/__invalid";
         return n.toLowerCase();
     }
 

@@ -44,6 +44,8 @@ import java.util.concurrent.Executors;
 @MultipartConfig(maxFileSize = 20_971_520, maxRequestSize = 41_943_040)
 public class MainLxServlet extends HttpServlet {
 
+    public static final String VERSION = "3.2.0";
+
     private static final JxLogger log = JxLogger.getLogger(MainLxServlet.class);
 
     private final BaseDispatcher   dispatcher   = new BaseDispatcher();
@@ -97,8 +99,8 @@ public class MainLxServlet extends HttpServlet {
         }, 180_000, 180_000);
 
         JxDevMode.init();
-        log.info("Lux framework v3.1.1 iniciado — perfil activo: {}",
-                JxProfile.active());
+        log.info("Lux framework v{} iniciado — perfil activo: {}",
+                VERSION, JxProfile.active());
     }
 
     @Override
@@ -148,10 +150,16 @@ public class MainLxServlet extends HttpServlet {
             throws ServletException, IOException {
 
         // ── Endpoints internos ────────────────────────────────────────────
-        if ("/jx/health".equals(local))  { handleHealth(resp);  return; }
-        if ("/jx/info".equals(local))    { handleInfo(resp);     return; }
-        if ("/jx/metrics".equals(local)) { handleMetrics(resp);  return; }
-        if ("/jx/openapi".equals(local)) { handleOpenApi(resp);  return; }
+        if ("/jx/health".equals(local)) { handleHealth(resp); return; }
+        if ("/jx/info".equals(local) || "/jx/metrics".equals(local) || "/jx/openapi".equals(local)) {
+            if (!internalEndpointsExposed()) { sendError(req, resp, 404, "Ruta no encontrada"); return; }
+            switch (local) {
+                case "/jx/info"    -> handleInfo(resp);
+                case "/jx/metrics" -> handleMetrics(resp);
+                default            -> handleOpenApi(resp);
+            }
+            return;
+        }
 
         long startMs    = System.currentTimeMillis();
         int  statusCode = 200;
@@ -273,7 +281,8 @@ public class MainLxServlet extends HttpServlet {
 
         } catch (IllegalArgumentException ex) {
             statusCode = 400;
-            sendError(req, resp, 400, ex.getMessage());
+            log.warn("Petición inválida en {}: {}", local, ex.getMessage());
+            sendError(req, resp, 400, safeMessage(ex.getMessage(), "Solicitud inválida"));
 
         } catch (InvocationTargetException ex) {
             Throwable cause = ex.getTargetException() != null ? ex.getTargetException() : ex;
@@ -283,12 +292,12 @@ public class MainLxServlet extends HttpServlet {
         } catch (ReflectiveOperationException ex) {
             statusCode = 500;
             log.error("Error de reflexión: {}", ex.getMessage(), ex);
-            sendError(req, resp, 500, ex.getMessage());
+            sendError(req, resp, 500, safeMessage(ex.getMessage(), "Error interno del servidor"));
 
         } catch (Exception ex) {
             statusCode = 500;
             log.error("Error inesperado: {}", ex.getMessage(), ex);
-            sendError(req, resp, 500, ex.getMessage());
+            sendError(req, resp, 500, safeMessage(ex.getMessage(), "Error interno del servidor"));
 
         } finally {
             long durationMs = System.currentTimeMillis() - startMs;
@@ -661,7 +670,7 @@ public class MainLxServlet extends HttpServlet {
             sendError(req, resp, jx.getStatus(), jx.getMessage());
         } else {
             log.error("Error sin handler: {}", cause.getMessage(), cause);
-            sendError(req, resp, 500, cause.getMessage());
+            sendError(req, resp, 500, safeMessage(cause.getMessage(), "Error interno del servidor"));
         }
     }
 
@@ -697,7 +706,11 @@ public class MainLxServlet extends HttpServlet {
         if (result instanceof String s) {
             if (statusOverride > 0) resp.setStatus(statusOverride);
             if (s.startsWith("redirect:"))  { resp.sendRedirect(s.substring(9)); return; }
-            if (s.endsWith(".jsp"))         { req.getRequestDispatcher(s).forward(req, resp); return; }
+            if (s.endsWith(".jsp")) {
+                if (!safeViewPath(s)) { sendError(req, resp, 404, "Vista no encontrada"); return; }
+                req.getRequestDispatcher(s).forward(req, resp);
+                return;
+            }
             write(resp, "text/plain;charset=UTF-8", s);
             return;
         }
@@ -708,16 +721,16 @@ public class MainLxServlet extends HttpServlet {
 
         if (accept != null && accept.contains("text/html")
                 && !accept.contains("application/json")) {
-            // El cliente prefiere HTML → intentar vista
             String viewPath = plan.controller() + "/" + plan.action();
-            try {
-                req.setAttribute("model", result);
-                req.getRequestDispatcher("/WEB-INF/views/" + viewPath + ".jsp")
-                   .forward(req, resp);
-            } catch (Exception ignored) {
-                // Sin vista → fallback a JSON
-                write(resp, "application/json;charset=UTF-8", JxJson.toJson(result));
+            if (safeViewPath(viewPath)) {
+                try {
+                    req.setAttribute("model", result);
+                    req.getRequestDispatcher("/WEB-INF/views/" + viewPath + ".jsp")
+                       .forward(req, resp);
+                    return;
+                } catch (Exception ignored) {}
             }
+            write(resp, "application/json;charset=UTF-8", JxJson.toJson(result));
             return;
         }
 
@@ -754,6 +767,7 @@ public class MainLxServlet extends HttpServlet {
 
     private void forwardView(String path, HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
+        if (!safeViewPath(path)) { sendError(req, resp, 404, "Vista no encontrada"); return; }
         req.getRequestDispatcher("/WEB-INF/views/" + path + ".jsp").forward(req, resp);
     }
 
@@ -767,18 +781,25 @@ public class MainLxServlet extends HttpServlet {
     private void handleHealth(HttpServletResponse resp) throws IOException {
         boolean schedOk = JxScheduler.isRunning();
         JxPool  pool    = JxPool.global();
-        String body = GenApi.JsonStr(
-            "status",    "UP",
-            "version",   "3.1.1",
-            "profile",   JxProfile.active(),
-            "devMode",   JxDevMode.isActive(),
-            "pool",      pool != null
+        Object poolJson = pool != null
                 ? GenApi.nested("enabled", true, "available", pool.available(), "total", pool.total())
-                : GenApi.nested("enabled", false),
-            "scheduler", GenApi.nested("running", schedOk),
-            "async",     GenApi.nested("active", asyncExecutor != null && !asyncExecutor.isShutdown()),
-            "ws",        GenApi.nested("connections", JxWebSocket.totalConnections())
-        );
+                : GenApi.nested("enabled", false);
+        String body = hideInternals()
+            ? GenApi.JsonStr(
+                "status",    "UP",
+                "pool",      poolJson,
+                "scheduler", GenApi.nested("running", schedOk),
+                "async",     GenApi.nested("active", asyncExecutor != null && !asyncExecutor.isShutdown()),
+                "ws",        GenApi.nested("connections", JxWebSocket.totalConnections()))
+            : GenApi.JsonStr(
+                "status",    "UP",
+                "version",   VERSION,
+                "profile",   JxProfile.active(),
+                "devMode",   JxDevMode.isActive(),
+                "pool",      poolJson,
+                "scheduler", GenApi.nested("running", schedOk),
+                "async",     GenApi.nested("active", asyncExecutor != null && !asyncExecutor.isShutdown()),
+                "ws",        GenApi.nested("connections", JxWebSocket.totalConnections()));
         resp.setStatus(200);
         write(resp, "application/json;charset=UTF-8", body);
     }
@@ -787,7 +808,7 @@ public class MainLxServlet extends HttpServlet {
         String body = GenApi.JsonStr(
             "framework", "JxMVC",
             "brand",     "Lux",
-            "version",   "3.1.1",
+            "version",   VERSION,
             "profile",   JxProfile.active(),
             "devMode",   JxDevMode.isActive(),
             "java",      System.getProperty("java.version"),
@@ -816,6 +837,7 @@ public class MainLxServlet extends HttpServlet {
      *   jxmvc.security.frame-options = DENY          # DENY | SAMEORIGIN | false
      *   jxmvc.security.hsts          = true          # Strict-Transport-Security
      *   jxmvc.security.hsts.maxage   = 31536000      # segundos (1 año)
+     *   jxmvc.security.csp           = default-src 'self'   # Content-Security-Policy
      * </pre>
      */
     private void applySecurityHeaders(HttpServletResponse resp) {
@@ -837,6 +859,9 @@ public class MainLxServlet extends HttpServlet {
             resp.setHeader("Strict-Transport-Security",
                     "max-age=" + maxAge + "; includeSubDomains");
         }
+
+        String csp = BaseDbResolver.property("jxmvc.security.csp", "");
+        if (!csp.isBlank()) resp.setHeader("Content-Security-Policy", csp);
     }
 
     // ── Errores ───────────────────────────────────────────────────────────
@@ -880,8 +905,7 @@ public class MainLxServlet extends HttpServlet {
         req.setAttribute("jx_error_message", msg);
         resp.setStatus(code);
         if (wantsJson(req)) {
-            write(resp, "application/json;charset=UTF-8",
-                    "{\"error\":" + code + ",\"message\":\"" + msg.replace("\"", "'") + "\"}");
+            write(resp, "application/json;charset=UTF-8", jsonError(code, msg));
             return;
         }
         try {
@@ -901,10 +925,32 @@ public class MainLxServlet extends HttpServlet {
     private void writeError(HttpServletRequest req, HttpServletResponse resp, int code, String msg)
             throws IOException {
         if (wantsJson(req)) {
-            write(resp, "application/json;charset=UTF-8",
-                    "{\"error\":" + code + ",\"message\":\"" + msg.replace("\"", "'") + "\"}");
+            write(resp, "application/json;charset=UTF-8", jsonError(code, msg));
         } else {
             write(resp, "text/plain;charset=UTF-8", code + " " + msg);
         }
+    }
+
+    static String jsonError(int code, String msg) {
+        return "{\"error\":" + code + ",\"message\":" + JxJson.quote(msg == null ? "Error" : msg) + "}";
+    }
+
+    static String safeMessage(String raw, String fallback) {
+        if (raw == null || raw.isBlank()) return fallback;
+        return hideInternals() ? fallback : raw;
+    }
+
+    static boolean safeViewPath(String path) {
+        return path != null && !path.contains("..") && !path.contains("\\") && !path.contains("//");
+    }
+
+    private static boolean hideInternals() {
+        return JxProfile.isProd() && !JxDevMode.isActive();
+    }
+
+    private static boolean internalEndpointsExposed() {
+        String prop = BaseDbResolver.property("jxmvc.internal.expose", "");
+        if (!prop.isBlank()) return "true".equalsIgnoreCase(prop);
+        return !hideInternals();
     }
 }
