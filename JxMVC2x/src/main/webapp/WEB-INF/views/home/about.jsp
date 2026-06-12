@@ -5,42 +5,42 @@
 
 <%-- ── Encabezado ───────────────────────────────────────────────────── --%>
 <div class="mb-12 jx-reveal jx-delay-1">
-    <p class="text-xs font-mono uppercase tracking-[0.25em] text-muted dark:text-[#86868b] mb-3" data-i18n="about.tag">About</p>
-    <h1 class="text-4xl font-bold tracking-tight mb-4 text-ink dark:text-[#f5f5f7]">
-        Lightning-X MVC <span class="text-apple">3.1.1</span>
+    <p class="text-[10px] font-mono uppercase tracking-[0.28em] text-muted dark:text-[#8E8E93] mb-3" data-i18n="about.tag">About</p>
+    <h1 class="text-4xl sm:text-5xl font-bold tracking-tight mb-4 text-ink dark:text-white">
+        Lightning-X MVC <span class="text-apple">3.2.0</span>
     </h1>
-    <p class="text-base text-muted dark:text-[#86868b] max-w-2xl leading-relaxed" data-i18n="about.desc">
+    <p class="text-base text-muted dark:text-[#8E8E93] max-w-2xl leading-relaxed" data-i18n="about.desc">
         Framework MVC para Jakarta EE construido desde cero — sin Spring, sin Hibernate,
-        sin dependencias en runtime. Un JAR de 205 KB con routing, pool de conexiones,
+        sin dependencias en runtime. Un JAR de 224 KB con routing, pool de conexiones,
         validación, JSON, WebSocket, métricas y OpenAPI integrados. Virtual Threads
         detectados automáticamente en Java 21+.
     </p>
 </div>
 
 <%-- ── Métricas clave ──────────────────────────────────────────────── --%>
-<div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-12 jx-reveal jx-delay-2">
-    <div class="bg-white dark:bg-white/[0.05] border border-black/[0.06] dark:border-white/[0.06] rounded-2xl px-5 py-4">
-        <p class="text-2xl font-bold text-ink dark:text-[#f5f5f7]">205<span class="text-apple text-sm font-semibold"> KB</span></p>
-        <p class="text-xs text-muted dark:text-[#86868b] mt-1">Tamaño del JAR</p>
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-12 jx-reveal jx-delay-2">
+    <div class="bg-white dark:bg-[#1C1C1E] border border-black/[0.06] dark:border-white/[0.07] rounded-2xl px-5 py-5 shadow-card">
+        <p class="text-2xl font-bold text-ink dark:text-white">224<span class="text-apple text-sm font-semibold"> KB</span></p>
+        <p class="text-[11px] text-muted dark:text-[#8E8E93] mt-1">Tamaño del JAR</p>
     </div>
-    <div class="bg-white dark:bg-white/[0.05] border border-black/[0.06] dark:border-white/[0.06] rounded-2xl px-5 py-4">
-        <p class="text-2xl font-bold text-ink dark:text-[#f5f5f7]">0<span class="text-apple text-sm font-semibold"> deps</span></p>
-        <p class="text-xs text-muted dark:text-[#86868b] mt-1">Dependencias runtime</p>
+    <div class="bg-white dark:bg-[#1C1C1E] border border-black/[0.06] dark:border-white/[0.07] rounded-2xl px-5 py-5 shadow-card">
+        <p class="text-2xl font-bold text-ink dark:text-white">0<span class="text-apple text-sm font-semibold"> deps</span></p>
+        <p class="text-[11px] text-muted dark:text-[#8E8E93] mt-1">Dependencias runtime</p>
     </div>
-    <div class="bg-white dark:bg-white/[0.05] border border-black/[0.06] dark:border-white/[0.06] rounded-2xl px-5 py-4">
-        <p class="text-2xl font-bold text-ink dark:text-[#f5f5f7]">14</p>
-        <p class="text-xs text-muted dark:text-[#86868b] mt-1">Etapas del pipeline</p>
+    <div class="bg-white dark:bg-[#1C1C1E] border border-black/[0.06] dark:border-white/[0.07] rounded-2xl px-5 py-5 shadow-card">
+        <p class="text-2xl font-bold text-ink dark:text-white">14</p>
+        <p class="text-[11px] text-muted dark:text-[#8E8E93] mt-1">Etapas del pipeline</p>
     </div>
-    <div class="bg-white dark:bg-white/[0.05] border border-black/[0.06] dark:border-white/[0.06] rounded-2xl px-5 py-4">
-        <p class="text-2xl font-bold text-ink dark:text-[#f5f5f7]">49</p>
-        <p class="text-xs text-muted dark:text-[#86868b] mt-1">Clases en el core</p>
+    <div class="bg-white dark:bg-[#1C1C1E] border border-black/[0.06] dark:border-white/[0.07] rounded-2xl px-5 py-5 shadow-card">
+        <p class="text-2xl font-bold text-ink dark:text-white">49</p>
+        <p class="text-[11px] text-muted dark:text-[#8E8E93] mt-1">Clases en el core</p>
     </div>
 </div>
 
 <%-- ── Pipeline 14 etapas ─────────────────────────────────────────── --%>
 <div class="mb-12 jx-reveal jx-delay-3">
-    <p class="text-xs font-mono uppercase tracking-[0.25em] text-muted dark:text-[#86868b] mb-5" data-i18n="about.pipeline">Pipeline de cada request</p>
-    <div class="bg-white dark:bg-white/[0.05] border border-black/[0.06] dark:border-white/[0.06] rounded-2xl overflow-hidden divide-y divide-black/[0.05] dark:divide-white/[0.05]">
+    <p class="text-[10px] font-mono uppercase tracking-[0.28em] text-muted dark:text-[#8E8E93] mb-5" data-i18n="about.pipeline">Pipeline de cada request</p>
+    <div class="bg-white dark:bg-[#1C1C1E] border border-black/[0.06] dark:border-white/[0.07] rounded-2xl overflow-hidden divide-y divide-black/[0.05] dark:divide-white/[0.05] shadow-card">
         <%
         String[][] steps = {
             {"01","Endpoints internos",    "/jx/health · /jx/info · /jx/metrics · /jx/openapi"},
@@ -60,11 +60,11 @@
         };
         for (String[] step : steps) {
         %>
-        <div class="flex items-start gap-5 px-5 py-3.5 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors">
-            <span class="text-xs font-mono text-muted dark:text-[#86868b] w-6 shrink-0 pt-px"><%= step[0] %></span>
+        <div class="flex items-start gap-5 px-5 py-3.5 hover:bg-[#F5F5F7] dark:hover:bg-white/[0.04] transition-colors">
+            <span class="text-[10px] font-mono text-muted dark:text-[#8E8E93] w-6 shrink-0 pt-px"><%= step[0] %></span>
             <div class="min-w-0">
-                <p class="text-sm font-medium text-ink dark:text-[#f5f5f7]"><%= step[1] %></p>
-                <p class="text-xs text-muted dark:text-[#86868b] mt-0.5"><%= step[2] %></p>
+                <p class="text-sm font-medium text-ink dark:text-white"><%= step[1] %></p>
+                <p class="text-xs text-muted dark:text-[#8E8E93] mt-0.5"><%= step[2] %></p>
             </div>
         </div>
         <% } %>
@@ -73,21 +73,21 @@
 
 <%-- ── Comparativa ─────────────────────────────────────────────────── --%>
 <div class="mb-12 jx-reveal jx-delay-4">
-    <p class="text-xs font-mono uppercase tracking-[0.25em] text-muted dark:text-[#86868b] mb-5" data-i18n="about.compare">Comparativa</p>
-    <div class="overflow-x-auto border border-black/[0.06] dark:border-white/[0.06] rounded-2xl">
+    <p class="text-[10px] font-mono uppercase tracking-[0.28em] text-muted dark:text-[#8E8E93] mb-5" data-i18n="about.compare">Comparativa</p>
+    <div class="overflow-x-auto bg-white dark:bg-[#1C1C1E] border border-black/[0.06] dark:border-white/[0.07] rounded-2xl shadow-card">
         <table class="w-full text-xs">
             <thead>
-                <tr class="border-b border-black/[0.06] dark:border-white/[0.06] bg-black/[0.02] dark:bg-white/[0.02]">
-                    <th class="text-left px-5 py-3 font-semibold text-muted dark:text-[#86868b] uppercase tracking-wider">Aspecto</th>
+                <tr class="border-b border-black/[0.06] dark:border-white/[0.06] bg-[#F5F5F7] dark:bg-white/[0.04]">
+                    <th class="text-left px-5 py-3 font-semibold text-muted dark:text-[#8E8E93] uppercase tracking-wider">Aspecto</th>
                     <th class="text-center px-4 py-3 font-semibold text-apple">JxMVC 3.1</th>
-                    <th class="text-center px-4 py-3 font-semibold text-muted dark:text-[#86868b]">Spring Boot 3</th>
-                    <th class="text-center px-4 py-3 font-semibold text-muted dark:text-[#86868b]">Jakarta EE raw</th>
+                    <th class="text-center px-4 py-3 font-semibold text-muted dark:text-[#8E8E93]">Spring Boot 3</th>
+                    <th class="text-center px-4 py-3 font-semibold text-muted dark:text-[#8E8E93]">Jakarta EE raw</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-black/[0.05] dark:divide-white/[0.05]">
                 <%
                 String[][] rows = {
-                    {"WAR / JAR mínimo",    "205 KB",   "~18 MB",     "~50 KB"},
+                    {"WAR / JAR mínimo",    "224 KB",   "~18 MB",     "~50 KB"},
                     {"Dependencias runtime", "0",        "~50-150+",   "0"},
                     {"Routing",             "Conv+Ann",  "Ann",        "Manual"},
                     {"Pool de conexiones",  "propio",    "HikariCP",   "ninguno"},
@@ -101,11 +101,11 @@
                 };
                 for (String[] row : rows) {
                 %>
-                <tr class="hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors">
-                    <td class="px-5 py-3 text-ink dark:text-[#f5f5f7] font-medium"><%= row[0] %></td>
+                <tr class="hover:bg-[#F5F5F7] dark:hover:bg-white/[0.03] transition-colors">
+                    <td class="px-5 py-3 text-ink dark:text-white font-medium"><%= row[0] %></td>
                     <td class="px-4 py-3 text-center font-mono text-apple font-semibold"><%= row[1] %></td>
-                    <td class="px-4 py-3 text-center text-muted dark:text-[#86868b] font-mono"><%= row[2] %></td>
-                    <td class="px-4 py-3 text-center text-muted dark:text-[#86868b] font-mono"><%= row[3] %></td>
+                    <td class="px-4 py-3 text-center text-muted dark:text-[#8E8E93] font-mono"><%= row[2] %></td>
+                    <td class="px-4 py-3 text-center text-muted dark:text-[#8E8E93] font-mono"><%= row[3] %></td>
                 </tr>
                 <% } %>
             </tbody>
@@ -115,8 +115,8 @@
 
 <%-- ── Stack técnico ───────────────────────────────────────────────── --%>
 <div class="mb-12 jx-reveal jx-delay-4">
-    <p class="text-xs font-mono uppercase tracking-[0.25em] text-muted dark:text-[#86868b] mb-5" data-i18n="about.stack">Stack</p>
-    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <p class="text-[10px] font-mono uppercase tracking-[0.28em] text-muted dark:text-[#8E8E93] mb-5" data-i18n="about.stack">Stack</p>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
         <%
         String[][] stack = {
             {"Lenguaje",  "Java 17+ / 21+",                  "Virtual Threads detectados automáticamente en Java 21+"},
@@ -128,10 +128,10 @@
         };
         for (String[] s : stack) {
         %>
-        <div class="bg-white dark:bg-white/[0.05] border border-black/[0.06] dark:border-white/[0.06] rounded-2xl p-5 hover:border-apple/30 transition-colors">
-            <p class="text-xs text-muted dark:text-[#86868b] mb-1"><%= s[0] %></p>
-            <p class="text-sm font-semibold text-ink dark:text-[#f5f5f7] mb-0.5"><%= s[1] %></p>
-            <p class="text-xs text-muted dark:text-[#86868b]"><%= s[2] %></p>
+        <div class="bg-white dark:bg-[#1C1C1E] border border-black/[0.06] dark:border-white/[0.07] rounded-2xl p-5 shadow-card hover:shadow-cardh hover:border-apple/25 transition-all">
+            <p class="text-[10px] font-mono uppercase tracking-wider text-muted dark:text-[#8E8E93] mb-1.5"><%= s[0] %></p>
+            <p class="text-sm font-semibold text-ink dark:text-white mb-1"><%= s[1] %></p>
+            <p class="text-xs text-muted dark:text-[#8E8E93] leading-relaxed"><%= s[2] %></p>
         </div>
         <% } %>
     </div>
@@ -140,13 +140,13 @@
 <%-- ── CTA ──────────────────────────────────────────────────────────── --%>
 <div class="flex flex-wrap gap-3 mb-4 jx-reveal jx-delay-4">
     <a href="${pageContext.request.contextPath}/docs"
-       class="px-5 py-2.5 bg-apple text-white text-sm font-medium rounded-full hover:bg-[#0040CC] transition-colors shadow-sm"
+       class="px-5 py-2.5 bg-apple text-white text-sm font-medium rounded-full hover:bg-[#0077ED] active:scale-[0.97] transition-all shadow-sm"
        data-i18n="about.docs.btn">Ver documentación</a>
     <a href="${pageContext.request.contextPath}/downloads"
-       class="px-5 py-2.5 bg-white dark:bg-white/10 text-ink dark:text-[#f5f5f7] border border-black/10 dark:border-white/10 text-sm font-medium rounded-full hover:bg-black/5 dark:hover:bg-white/15 transition-colors"
+       class="px-5 py-2.5 bg-black/[0.05] dark:bg-white/[0.08] text-ink dark:text-white border border-black/[0.09] dark:border-white/[0.09] text-sm font-medium rounded-full hover:bg-black/[0.09] dark:hover:bg-white/[0.12] transition-colors"
        data-i18n="about.dl.btn">Descargar</a>
     <a href="${pageContext.request.contextPath}/jx/info" target="_blank"
-       class="px-5 py-2.5 bg-white dark:bg-white/10 text-ink dark:text-[#f5f5f7] border border-black/10 dark:border-white/10 text-sm font-mono rounded-full hover:bg-black/5 dark:hover:bg-white/15 transition-colors">
+       class="px-5 py-2.5 bg-black/[0.05] dark:bg-white/[0.08] text-muted dark:text-[#8E8E93] border border-black/[0.09] dark:border-white/[0.09] text-sm font-mono rounded-full hover:text-ink dark:hover:text-white hover:bg-black/[0.09] dark:hover:bg-white/[0.12] transition-colors">
         /jx/info →</a>
 </div>
 

@@ -2,8 +2,8 @@
 <%@ include file="/WEB-INF/views/shared/header.jspf" %>
 
 <style>
-  :root { --dc-bg:#f6f8fa; --dc-border:rgba(0,0,0,0.08); --dc-label:rgba(0,0,0,0.45); --dc-text:#1d1d1f; }
-  .dark { --dc-bg:#1e2432; --dc-border:#2d3448; --dc-label:#8892aa; --dc-text:#e8eaf0; }
+  :root { --dc-bg:#F5F5F7; --dc-border:rgba(0,0,0,0.08); --dc-label:rgba(0,0,0,0.45); --dc-text:#1D1D1F; }
+  .dark { --dc-bg:#2C2C2E; --dc-border:rgba(255,255,255,0.09); --dc-label:#8E8E93; --dc-text:#F5F5F7; }
   .jx-code { background:var(--dc-bg); border:1px solid var(--dc-border); border-radius:.625rem; overflow:clip; }
   .jx-code-label { font-size:.6rem; font-family:monospace; letter-spacing:.12em; padding:.3rem .75rem;
                    border-bottom:1px solid var(--dc-border); color:var(--dc-label); text-transform:uppercase;
@@ -18,7 +18,7 @@
     <div class="max-w-3xl mb-10 jx-reveal jx-delay-1">
         <p class="text-xs font-mono uppercase tracking-[0.25em] text-muted dark:text-[#86868b] mb-3" data-i18n="dl.tag">Generador de proyectos</p>
         <h1 class="text-4xl md:text-5xl font-bold tracking-tight text-ink dark:text-[#f5f5f7] mb-3">
-            JxMVC <span class="text-apple">3.1.1</span>
+            JxMVC <span class="text-apple">3.2.0</span>
         </h1>
         <p class="text-base text-muted dark:text-[#86868b] leading-relaxed" data-i18n="dl.subtitle">
             Genera un proyecto starter personalizado y listo para desplegar.
@@ -216,8 +216,8 @@ cd mi-app && mvn package cargo:run</pre>
 
             <div class="bg-white dark:bg-white/[0.05] border border-black/[0.06] dark:border-white/[0.06] rounded-2xl p-5 hover:border-apple/30 transition-colors">
                 <p class="text-xs font-mono uppercase tracking-[0.25em] text-muted dark:text-[#86868b] mb-2">JAR del framework</p>
-                <h3 class="text-base font-semibold text-ink dark:text-[#f5f5f7] mb-1">jxmvc-core-3.1.1.jar</h3>
-                <p class="text-xs text-muted dark:text-[#86868b] mb-3">205 KB — cero dependencias en runtime</p>
+                <h3 class="text-base font-semibold text-ink dark:text-[#f5f5f7] mb-1">jxmvc-core-3.2.0.jar</h3>
+                <p class="text-xs text-muted dark:text-[#86868b] mb-3">224 KB — cero dependencias en runtime</p>
                 <div class="jx-code">
                     <pre>mvn install -f JxMVC.Core/pom.xml</pre>
                 </div>
@@ -230,7 +230,7 @@ cd mi-app && mvn package cargo:run</pre>
 <pre>&lt;dependency&gt;
   &lt;groupId&gt;jxmvc&lt;/groupId&gt;
   &lt;artifactId&gt;jxmvc-core&lt;/artifactId&gt;
-  &lt;version&gt;3.1.1&lt;/version&gt;
+  &lt;version&gt;3.2.0&lt;/version&gt;
 &lt;/dependency&gt;</pre>
                 </div>
             </div>

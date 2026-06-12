@@ -3,7 +3,7 @@
 **Framework MVC para Jakarta EE. Cero dependencias externas en runtime.**
 
 ```
-JAR:  205 KB     vs  Spring Boot 20 MB   → 100x más ligero
+JAR:  224 KB     vs  Spring Boot 20 MB   → 100x más ligero
 Arranque: 1.2 s  vs  Spring Boot 6 s     → 5x más rápido
 Deps:     0      vs  cualquier otro      → único en su clase
 ```
@@ -22,7 +22,7 @@ Demo en vivo: [jxmvc.andre.net.pe](https://jxmvc.andre.net.pe)
 <dependency>
     <groupId>jxmvc</groupId>
     <artifactId>jxmvc-core</artifactId>
-    <version>3.1.1</version>
+    <version>3.2.0</version>
 </dependency>
 ```
 
@@ -106,7 +106,7 @@ Los campos se leen directamente del `DBRow`. Los modelos usan Views y cruces def
 ## Endpoints internos
 
 ```
-GET /jx/health    → {"status":"UP","version":"3.1.1","pool":{...},"ws":{...}}
+GET /jx/health    → {"status":"UP","version":"3.2.0","pool":{...},"ws":{...}}
 GET /jx/info      → {"framework":"JxMVC","java":"17","server":"Tomcat/10.1"}
 GET /jx/metrics   → métricas por ruta
 GET /jx/openapi   → spec OpenAPI 3.0 generado automáticamente
@@ -132,7 +132,7 @@ jxmvc.profile    = dev
 ## Estructura del repositorio
 
 ```
-JxMVC.Core/    Framework JAR — 205 KB, 49 clases, 0 deps externas
+JxMVC.Core/    Framework JAR — 224 KB, 49 clases, 0 deps externas
 JxMVC2x/       Sitio demo y generador de proyectos (jxmvc.andre.net.pe)
 ```
 
@@ -140,9 +140,9 @@ JxMVC2x/       Sitio demo y generador de proyectos (jxmvc.andre.net.pe)
 
 ## Comparativa
 
-| | JxMVC 3.1.1 | Spring Boot 3 | Micronaut 4 | Quarkus 3 | Javalin 6 |
+| | JxMVC 3.2.0 | Spring Boot 3 | Micronaut 4 | Quarkus 3 | Javalin 6 |
 |---|---|---|---|---|---|
-| JAR runtime | **205 KB** | ~20 MB | ~25 MB | ~15 MB | ~1.5 MB |
+| JAR runtime | **224 KB** | ~20 MB | ~25 MB | ~15 MB | ~1.5 MB |
 | Deps externas | **0** | 200+ | 50+ | 80+ | 10+ |
 | Arranque | **1.2 s** | 4–8 s | 0.3 s | 0.3 s | 0.5 s |
 | JSON propio | si | no | no | no | no |

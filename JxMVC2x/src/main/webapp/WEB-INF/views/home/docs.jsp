@@ -10,16 +10,16 @@
 <style>
   /* ── Code blocks — tema claro y oscuro ─────────────────────────── */
   :root {
-    --cb-bg:     #f6f8fa;
+    --cb-bg:     #F5F5F7;
     --cb-border: rgba(0,0,0,0.08);
     --cb-label:  rgba(0,0,0,0.45);
     --cb-lborder:rgba(0,0,0,0.06);
   }
   .dark {
-    --cb-bg:     #1e2432;
-    --cb-border: #2d3448;
-    --cb-label:  #8892aa;
-    --cb-lborder:#2d3448;
+    --cb-bg:     #2C2C2E;
+    --cb-border: rgba(255,255,255,0.09);
+    --cb-label:  #8E8E93;
+    --cb-lborder:rgba(255,255,255,0.07);
   }
 
   .hljs { background: transparent !important; font-size: 0.72rem; line-height: 1.65; }
@@ -121,7 +121,7 @@
     <p class="text-xs font-mono uppercase tracking-[0.25em] text-muted dark:text-[#86868b] mb-2">Reference</p>
     <h1 class="text-4xl font-bold tracking-tight text-ink dark:text-[#f5f5f7]">JxMVC <span class="text-apple">3.1</span> Docs</h1>
     <p class="text-sm text-muted dark:text-[#86868b] mt-2 max-w-xl">
-      Jakarta EE 11 · Java 17+ · Cero dependencias en runtime · WAR ~205 KB
+      Jakarta EE 11 · Java 17+ · Cero dependencias en runtime · WAR ~224 KB
     </p>
   </div>
   <a href="${pageContext.request.contextPath}/downloads"
@@ -180,9 +180,9 @@
     <div class="md:hidden mb-6">
         <button id="jxDocsMobileBtn" onclick="jxDocsDrawerToggle()"
                 class="flex items-center gap-2 w-full px-4 py-2.5 rounded-2xl
-                       bg-white dark:bg-white/[0.05]
-                       border border-black/[0.06] dark:border-white/[0.06]
-                       text-muted dark:text-[#86868b] hover:text-ink dark:hover:text-[#f5f5f7]
+                       bg-white dark:bg-[#1C1C1E]
+                       border border-black/[0.06] dark:border-white/[0.07]
+                       text-muted dark:text-[#8E8E93] hover:text-ink dark:hover:text-white
                        hover:border-apple/30 transition-all text-sm">
             <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                 <path d="M4 6h16M4 12h10M4 18h7" stroke-linecap="round"/>
@@ -194,8 +194,8 @@
             </svg>
         </button>
         <div id="jxDocsDrawer"
-             class="hidden mt-2 bg-white dark:bg-white/[0.05]
-                    border border-black/[0.06] dark:border-white/[0.06]
+             class="hidden mt-2 bg-white dark:bg-[#1C1C1E]
+                    border border-black/[0.06] dark:border-white/[0.07]
                     rounded-2xl overflow-hidden">
             <%
             String[][] mobNav = {
@@ -215,9 +215,9 @@
             <a href="#<%= mn[0] %>" onclick="jxDocsDrawerClose()"
                class="flex items-center gap-3 px-4 py-2.5
                       border-b border-black/[0.04] dark:border-white/[0.04] last:border-0
-                      text-sm text-muted dark:text-[#86868b]
-                      hover:text-ink dark:hover:text-[#f5f5f7]
-                      hover:bg-black/[0.02] dark:hover:bg-white/[0.03] transition-colors">
+                      text-sm text-muted dark:text-[#8E8E93]
+                      hover:text-ink dark:hover:text-white
+                      hover:bg-[#F5F5F7] dark:hover:bg-white/[0.05] transition-colors">
                 <span class="w-1.5 h-1.5 rounded-full shrink-0" style="background:<%= mn[2] %>"></span>
                 <span class="text-[10px] font-mono opacity-50 w-5 shrink-0"><%= mn[3] %></span>
                 <span><%= mn[1] %></span>
@@ -433,7 +433,7 @@ public class AdminController extends JxController {
 
     @JxModelAttr
     public void commonAttrs() {
-        model.setVar("appVersion", "3.1.1");
+        model.setVar("appVersion", "3.2.0");
         model.setVar("usuario", sessionGet("user"));
     }
 
