@@ -16,6 +16,8 @@ public class CacheTest {
         testEvictAll();
         testComputeIfAbsent();
         testNoExpiry();
+        testStampede();
+        testMaxEntries();
         System.out.printf("CacheTest: pass=%d fail=%d%n", passed, failed);
     }
 
@@ -67,5 +69,36 @@ public class CacheTest {
         JxCache c = JxCache.get("test-noexp");
         c.put("forever", "yes");
         check("no-expiry entry present", "yes".equals(c.fetch("forever", String.class)));
+    }
+
+    static void testStampede() throws Exception {
+        JxCache c = JxCache.get("test-stampede");
+        var calls = new java.util.concurrent.atomic.AtomicInteger(0);
+        var start = new java.util.concurrent.CountDownLatch(1);
+        var done  = new java.util.concurrent.CountDownLatch(20);
+        for (int i = 0; i < 20; i++) {
+            new Thread(() -> {
+                try {
+                    start.await();
+                    c.computeIfAbsent("hot", 60, () -> {
+                        calls.incrementAndGet();
+                        Thread.sleep(50);
+                        return "value";
+                    });
+                } catch (Exception ignored) {
+                } finally {
+                    done.countDown();
+                }
+            }).start();
+        }
+        start.countDown();
+        done.await();
+        check("stampede: loader ejecutado una sola vez con 20 threads", calls.get() == 1);
+    }
+
+    static void testMaxEntries() {
+        JxCache c = JxCache.get("test-maxentries");
+        for (int i = 0; i < 10_050; i++) c.put("k" + i, i, 600);
+        check("la caché respeta el tope de entradas", c.size() <= 10_000);
     }
 }

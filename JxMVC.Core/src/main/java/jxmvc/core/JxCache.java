@@ -33,6 +33,11 @@ import java.util.concurrent.locks.ReentrantLock;
  * Un daemon de limpieza elimina entradas expiradas cada 60 segundos automáticamente.
  * Para usar un backend externo (Redis, Memcached…) registrar un {@link JxCacheBackend}
  * vía {@link #setGlobalBackend(JxCacheBackend)}.
+ *
+ * <pre>
+ * # application.properties
+ * jxmvc.cache.maxEntries=10000   # tope por caché; al llenarse desaloja la menos accedida (0 = sin límite)
+ * </pre>
  */
 public final class JxCache {
 

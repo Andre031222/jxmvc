@@ -936,8 +936,12 @@ public class MainLxServlet extends HttpServlet {
     }
 
     static String safeMessage(String raw, String fallback) {
+        return safeMessage(raw, fallback, hideInternals());
+    }
+
+    static String safeMessage(String raw, String fallback, boolean hide) {
         if (raw == null || raw.isBlank()) return fallback;
-        return hideInternals() ? fallback : raw;
+        return hide ? fallback : raw;
     }
 
     static boolean safeViewPath(String path) {

@@ -14,7 +14,11 @@ public class JxTestSuite {
         "jxmvc.core.ValidationExtTest",
         "jxmvc.core.RateLimiterTest",
         "jxmvc.core.MetricsTest",
-        "jxmvc.core.SanitizerTest"
+        "jxmvc.core.SanitizerTest",
+        "jxmvc.core.PoolTest",
+        "jxmvc.core.GzipTest",
+        "jxmvc.core.WebSocketTest",
+        "jxmvc.core.SecurityTest"
     );
 
     public static void main(String[] args) throws Exception {

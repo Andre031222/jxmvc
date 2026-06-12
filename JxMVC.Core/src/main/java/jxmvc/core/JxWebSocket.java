@@ -44,10 +44,18 @@ import java.util.concurrent.ConcurrentHashMap;
  *       }
  *   }
  * </pre>
+ *
+ * <pre>
+ * # application.properties
+ * jxmvc.ws.maxConnections=0   # tope global de conexiones; exceso se cierra con VIOLATED_POLICY (0 = sin límite)
+ * </pre>
  */
 public abstract class JxWebSocket {
 
     private static final JxLogger log = JxLogger.getLogger(JxWebSocket.class);
+
+    private static final int MAX_CONNECTIONS =
+            BaseDbResolver.propertyInt("jxmvc.ws.maxConnections", 0);
 
     // ── Salas — mapa sala → sesiones activas ─────────────────────────────
     private static final Map<String, Set<Session>> rooms = new ConcurrentHashMap<>();
@@ -82,6 +90,12 @@ public abstract class JxWebSocket {
 
     @OnOpen
     public final void _onOpen(Session session) {
+        if (MAX_CONNECTIONS > 0 && allSessions.size() >= MAX_CONNECTIONS) {
+            log.warn("[WS] Conexión rechazada: límite de {} alcanzado", MAX_CONNECTIONS);
+            try { session.close(new CloseReason(CloseReason.CloseCodes.VIOLATED_POLICY, "Límite de conexiones")); }
+            catch (IOException ignored) {}
+            return;
+        }
         allSessions.add(session);
         String[] vars = extractPathVars(session);
         log.debug("[WS] Abierta sesión {} — {}", session.getId(), session.getRequestURI());
