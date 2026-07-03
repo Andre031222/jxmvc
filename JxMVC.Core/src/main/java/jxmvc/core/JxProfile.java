@@ -42,10 +42,14 @@ public final class JxProfile {
     private static final Set<String> ACTIVE;
 
     static {
-        // Precedencia: sistema → entorno → properties
+        // Precedencia: sistema → entorno → properties.
+        // Clave canónica jxmvc.profiles.active; se acepta el alias legado
+        // jxmvc.profile (singular) para no fallar en silencio si se usa esa.
         String raw = System.getProperty("jxmvc.profiles.active");
+        if (raw == null) raw = System.getProperty("jxmvc.profile");
         if (raw == null) raw = System.getenv("JXMVC_PROFILE");
-        if (raw == null) raw = BaseDbResolver.property("jxmvc.profiles.active", "default");
+        if (raw == null) raw = BaseDbResolver.property("jxmvc.profiles.active", "");
+        if (raw.isBlank()) raw = BaseDbResolver.property("jxmvc.profile", "default");
         ACTIVE = Arrays.stream(raw.split(","))
                        .map(String::trim)
                        .filter(s -> !s.isBlank())
