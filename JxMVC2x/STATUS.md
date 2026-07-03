@@ -1,4 +1,4 @@
-# JxMVC2x — App demo / plantilla de arranque
+# JxMVC2x — Sitio oficial + generador / plantilla de arranque
 
 ## Estructura
 

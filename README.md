@@ -15,7 +15,7 @@
 ### Framework MVC para Jakarta EE · JAR de 224 KB · **cero** dependencias externas en runtime
 
 <p>
-  <a href="https://jxmvc.ginit.dev"><img src="https://img.shields.io/badge/Demo-jxmvc.ginit.dev-0F62FE?style=for-the-badge&logo=googlechrome&logoColor=white"></a>
+  <a href="https://jxmvc.ginit.dev"><img src="https://img.shields.io/badge/Sitio-jxmvc.ginit.dev-0F62FE?style=for-the-badge&logo=googlechrome&logoColor=white"></a>
   <img src="https://img.shields.io/badge/Versión-3.2.0-1565C0?style=for-the-badge">
   <img src="https://img.shields.io/badge/Estado-Producción-2E7D32?style=for-the-badge">
   <img src="https://img.shields.io/badge/Licencia-MIT-555555?style=for-the-badge">
@@ -41,7 +41,7 @@
 ## Tabla de contenidos
 
 - [Qué es JxMVC](#qué-es-jxmvc)
-- [Demo en vivo](#demo-en-vivo)
+- [Sitio oficial](#sitio-oficial)
 - [Por qué JxMVC](#por-qué-jxmvc)
 - [Características](#características)
 - [Inicio rápido](#inicio-rápido)
@@ -80,12 +80,12 @@ El resultado es un **JAR de 224 KB** (frente a los ~20 MB de Spring Boot) que **
 
 ---
 
-## Demo en vivo
+## Sitio oficial
 
 **Sitio y generador de proyectos:** [jxmvc.ginit.dev](https://jxmvc.ginit.dev)
 
-El módulo `JxMVC2x` es a la vez el sitio de documentación y un **generador** que arma un
-proyecto de arranque listo para descargar.
+El módulo `JxMVC2x` es a la vez el **sitio oficial** de documentación y un **generador** que
+arma un proyecto de arranque listo para descargar.
 
 ---
 
@@ -236,7 +236,7 @@ El detalle clase por clase está en [`JxMVC.Core/STATUS.md`](JxMVC.Core/STATUS.m
 │   ├── src/test/java/jxmvc/core/     275 verificaciones sin framework externo
 │   ├── CHANGELOG.md · STATUS.md · build.sh · pom.xml
 │
-└── JxMVC2x/             Sitio demo + generador de proyectos (jxmvc.ginit.dev)
+└── JxMVC2x/             Sitio oficial + generador de proyectos (jxmvc.ginit.dev)
     └── src/main/…       controllers, vistas JSP, assets
 ```
 
@@ -259,7 +259,7 @@ cd JxMVC.Core
 mvn clean package
 # → target/jxmvc-core-3.2.0.jar
 
-# Sitio demo / generador (genera el WAR)
+# Sitio oficial / generador (genera el WAR)
 cd ../JxMVC2x
 mvn clean package
 # → target/*.war  (desplegar en Tomcat 10.1+)
