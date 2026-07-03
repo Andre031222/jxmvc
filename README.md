@@ -8,14 +8,14 @@
 
 <div align="center">
 
-<img src="JxMVC2x/src/main/webapp/assets/jxlogo.png" width="90" alt="JxMVC" />
+<img src="JxMVC2x/src/main/webapp/assets/jxlogo-mark.png" width="96" alt="JxMVC" />
 
 # JxMVC — Lux Framework
 
 ### Framework MVC para Jakarta EE · JAR de 224 KB · **cero** dependencias externas en runtime
 
 <p>
-  <a href="https://jxmvc.andre.net.pe"><img src="https://img.shields.io/badge/Demo-jxmvc.andre.net.pe-0F62FE?style=for-the-badge&logo=googlechrome&logoColor=white"></a>
+  <a href="https://jxmvc.ginit.dev"><img src="https://img.shields.io/badge/Demo-jxmvc.ginit.dev-0F62FE?style=for-the-badge&logo=googlechrome&logoColor=white"></a>
   <img src="https://img.shields.io/badge/Versión-3.2.0-1565C0?style=for-the-badge">
   <img src="https://img.shields.io/badge/Estado-Producción-2E7D32?style=for-the-badge">
   <img src="https://img.shields.io/badge/Licencia-MIT-555555?style=for-the-badge">
@@ -82,7 +82,7 @@ El resultado es un **JAR de 224 KB** (frente a los ~20 MB de Spring Boot) que **
 
 ## Demo en vivo
 
-**Sitio y generador de proyectos:** [jxmvc.andre.net.pe](https://jxmvc.andre.net.pe)
+**Sitio y generador de proyectos:** [jxmvc.ginit.dev](https://jxmvc.ginit.dev)
 
 El módulo `JxMVC2x` es a la vez el sitio de documentación y un **generador** que arma un
 proyecto de arranque listo para descargar.
@@ -236,7 +236,7 @@ El detalle clase por clase está en [`JxMVC.Core/STATUS.md`](JxMVC.Core/STATUS.m
 │   ├── src/test/java/jxmvc/core/     275 verificaciones sin framework externo
 │   ├── CHANGELOG.md · STATUS.md · build.sh · pom.xml
 │
-└── JxMVC2x/             Sitio demo + generador de proyectos (jxmvc.andre.net.pe)
+└── JxMVC2x/             Sitio demo + generador de proyectos (jxmvc.ginit.dev)
     └── src/main/…       controllers, vistas JSP, assets
 ```
 
