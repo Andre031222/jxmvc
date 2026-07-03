@@ -12,4 +12,4 @@ fi
 
 mvn clean package
 
-echo "Jar generado en: $DIR/target/jxmvc-core-2.1.0.jar"
+echo "Jar generado en: $DIR/target/jxmvc-core-3.2.0.jar"

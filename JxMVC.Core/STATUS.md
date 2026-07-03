@@ -1,6 +1,6 @@
-# JxMVC.Core — v3.1.1
+# JxMVC.Core — v3.2.0
 
-Framework MVC ligero para Jakarta EE 11 / Tomcat 10+.
+Framework MVC ligero para Jakarta EE 10 / Tomcat 10.1+.
 Cero dependencias externas en runtime (solo el JDBC driver de la BD en uso).
 
 ---
