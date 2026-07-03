@@ -44,9 +44,12 @@
 
 <%-- ── Hero split ─────────────────────────────────────────────────────── --%>
 <section class="relative overflow-hidden bg-[#F5F5F7] dark:bg-[#000000] border-b border-black/[0.06] dark:border-white/[0.04]">
-  <div class="absolute inset-0 pointer-events-none" aria-hidden="true">
-    <div class="absolute -top-48 left-[30%] w-[700px] h-[560px] rounded-full opacity-[0.16] dark:opacity-[0.10] blur-[90px]"
-         style="background:radial-gradient(ellipse,#0071E3 0%,transparent 65%)"></div>
+  <%-- Glow ambiental: SOLO en tema oscuro. En claro el hero queda limpio, sin difuminado. --%>
+  <div class="absolute inset-0 pointer-events-none hidden dark:block" aria-hidden="true">
+    <div class="absolute -top-48 left-[28%] w-[760px] h-[600px] rounded-full opacity-[0.16] blur-[100px]"
+         style="background:radial-gradient(ellipse,#087CFA 0%,transparent 66%)"></div>
+    <div class="absolute top-24 right-[4%] w-[440px] h-[440px] rounded-full opacity-[0.10] blur-[90px]"
+         style="background:radial-gradient(ellipse,#5A63D6 0%,transparent 65%)"></div>
   </div>
 
   <div class="relative max-w-6xl mx-auto px-4 sm:px-6 py-14 sm:py-20">
@@ -158,7 +161,7 @@ public class PersonaController extends JxController {
 jxmvc.db.url     = jdbc:postgresql://localhost:5432/miapp
 jxmvc.db.user    = usuario
 jxmvc.db.pass    = secreto
-jxmvc.profile    = dev
+jxmvc.profiles.active = dev
 
 # Pool de conexiones
 jxmvc.pool.min     = 2

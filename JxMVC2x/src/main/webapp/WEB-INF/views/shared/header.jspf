@@ -11,31 +11,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <script src="${pageContext.request.contextPath}/assets/js/tailwind.cdn.js"></script>
-    <script>
-    tailwind.config = {
-        darkMode: 'class',
-        theme: {
-            extend: {
-                fontFamily: { sans: ['Space Grotesk','ui-sans-serif','system-ui','sans-serif'] },
-                colors: {
-                    apple:   '#0071E3',
-                    ink:     '#1D1D1F',
-                    muted:   '#6E6E73',
-                    surface: '#F5F5F7',
-                    jxo:     '#FF6B00',
-                    jxr:     '#FF2D55',
-                    jxv:     '#5E5CE6'
-                },
-                boxShadow: {
-                    card:  '0 1px 3px rgba(0,0,0,0.06), 0 6px 20px rgba(0,0,0,0.06)',
-                    cardh: '0 2px 8px rgba(0,0,0,0.08), 0 16px 40px rgba(0,0,0,0.10)',
-                    nav:   '0 1px 0 rgba(0,0,0,0.06)',
-                }
-            }
-        }
-    }
-    </script>
+    <%-- Tailwind precompilado (solo clases usadas, ~29 KB) empaquetado en el WAR.
+         Reemplaza el Play CDN que compilaba en el navegador en cada carga.
+         Regenerar: npx tailwindcss@3 -c JxMVC2x/tailwind.config.js -i JxMVC2x/tailwind.input.css -o JxMVC2x/src/main/webapp/assets/css/tailwind.css --minify --%>
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/tailwind.css">
     <style>
         /* ── Tipografía global ───────────────────────────────────────── */
         *, body { font-family: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif; }
@@ -46,6 +25,17 @@
         .jx-delay-1{animation-delay:.06s} .jx-delay-2{animation-delay:.12s}
         .jx-delay-3{animation-delay:.18s} .jx-delay-4{animation-delay:.26s}
         @keyframes jxIn { to { opacity:1; transform:translateY(0) } }
+
+        /* ── Accesibilidad: respetar reduce-motion ───────────────────────── */
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: .001ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: .001ms !important;
+                scroll-behavior: auto !important;
+            }
+            .jx-reveal { opacity:1 !important; transform:none !important; }
+        }
 
         /* ── Nav links ───────────────────────────────────────────────── */
         .nav-link { position:relative; }
