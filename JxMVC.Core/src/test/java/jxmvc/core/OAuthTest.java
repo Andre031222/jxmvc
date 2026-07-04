@@ -17,7 +17,75 @@ public class OAuthTest {
         testTokenUrlSafe();
         testAuthorizeUrl();
         testUnconfiguredFails();
+        testIdTokenVerification();
         System.out.printf("OAuthTest: pass=%d fail=%d%n", passed, failed);
+    }
+
+    // ── Verificación OIDC del id_token (JWT RS256) ─────────────────────────
+
+    interface ThrowingRunnable { void run() throws Exception; }
+
+    static boolean throws401(ThrowingRunnable r) {
+        try { r.run(); return false; }
+        catch (JxException e) { return e.getStatus() == 401; }
+        catch (Exception e) { return false; }
+    }
+
+    static String b64url(byte[] b) {
+        return java.util.Base64.getUrlEncoder().withoutPadding().encodeToString(b);
+    }
+
+    static String signJwt(java.security.PrivateKey pk, String headerJson, String payloadJson) throws Exception {
+        String h = b64url(headerJson.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        String p = b64url(payloadJson.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+        java.security.Signature s = java.security.Signature.getInstance("SHA256withRSA");
+        s.initSign(pk);
+        s.update((h + "." + p).getBytes(java.nio.charset.StandardCharsets.US_ASCII));
+        return h + "." + p + "." + b64url(s.sign());
+    }
+
+    static void testIdTokenVerification() {
+        try {
+            java.security.KeyPairGenerator g = java.security.KeyPairGenerator.getInstance("RSA");
+            g.initialize(2048);
+            java.security.KeyPair kp = g.generateKeyPair();
+            java.security.PublicKey pub = kp.getPublic();
+            String iss = "https://accounts.google.com";
+            long now = System.currentTimeMillis() / 1000L;
+
+            String header  = "{\"alg\":\"RS256\",\"kid\":\"test\"}";
+            String payload = "{\"iss\":\"" + iss + "\",\"aud\":\"cid\",\"exp\":" + (now + 3600)
+                    + ",\"sub\":\"123\",\"email\":\"a@b.com\",\"email_verified\":true,\"name\":\"Ada\"}";
+            String jwt = signJwt(kp.getPrivate(), header, payload);
+
+            java.util.Map<String, Object> claims = JxOAuth.verifyJwtClaims(jwt, pub, iss, "cid", now);
+            check("id_token válido: sub",   "123".equals(String.valueOf(claims.get("sub"))));
+            check("id_token válido: email", "a@b.com".equals(String.valueOf(claims.get("email"))));
+
+            String tampered = jwt.substring(0, jwt.length() - 4) + "AAAA";
+            check("firma manipulada rechazada",
+                    throws401(() -> JxOAuth.verifyJwtClaims(tampered, pub, iss, "cid", now)));
+            check("audience incorrecta rechazada",
+                    throws401(() -> JxOAuth.verifyJwtClaims(jwt, pub, iss, "otra", now)));
+            check("issuer incorrecto rechazado",
+                    throws401(() -> JxOAuth.verifyJwtClaims(jwt, pub, "https://malo", "cid", now)));
+            check("id_token expirado rechazado",
+                    throws401(() -> JxOAuth.verifyJwtClaims(jwt, pub, iss, "cid", now + 7200)));
+
+            String noneJwt = b64url(header.replace("RS256", "none").getBytes(java.nio.charset.StandardCharsets.UTF_8))
+                    + "." + b64url(payload.getBytes(java.nio.charset.StandardCharsets.UTF_8)) + ".";
+            check("alg:none rechazado",
+                    throws401(() -> JxOAuth.verifyJwtClaims(noneJwt, pub, iss, "cid", now)));
+
+            java.security.interfaces.RSAPublicKey rpk = (java.security.interfaces.RSAPublicKey) pub;
+            java.security.PublicKey rebuilt = JxOAuth.rsaKey(
+                    b64url(rpk.getModulus().toByteArray()),
+                    b64url(rpk.getPublicExponent().toByteArray()));
+            java.util.Map<String, Object> c2 = JxOAuth.verifyJwtClaims(jwt, rebuilt, iss, "cid", now);
+            check("clave RSA reconstruida desde JWK verifica", "123".equals(String.valueOf(c2.get("sub"))));
+        } catch (Exception e) {
+            fail("id_token verification", e.toString());
+        }
     }
 
     // ── JxPasswords ────────────────────────────────────────────────────────

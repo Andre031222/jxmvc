@@ -11,7 +11,7 @@ Cero dependencias externas en runtime (solo el JDBC driver de la BD en uso).
 jxmvc.core/
 |
 |-- Nucleo HTTP
-|   |-- MainLxServlet        Servlet principal. Pipeline de 14 etapas.
+|   |-- MainLxServlet        Servlet principal. Pipeline de 15 etapas.
 |   |-- BaseDispatcher        Router: anotaciones, plantillas {var}, convencion /ctrl/action/args
 |   |-- BaseDispatchPlan      Plan de despacho inmutable (record)
 |   |-- BaseCorsResolver      Politica CORS declarativa por anotacion

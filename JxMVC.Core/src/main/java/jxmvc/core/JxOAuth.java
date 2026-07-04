@@ -4,13 +4,20 @@
 
 package jxmvc.core;
 
+import java.math.BigInteger;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.security.KeyFactory;
 import java.security.MessageDigest;
+import java.security.PublicKey;
 import java.security.SecureRandom;
+import java.security.Signature;
+import java.security.spec.RSAPublicKeySpec;
 import java.util.Base64;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Inicio de sesión con proveedores OAuth 2.0 / OpenID Connect — cero dependencias
@@ -54,7 +61,15 @@ public final class JxOAuth {
             String clientId,
             String clientSecret,
             String redirectUri,
-            String scopes) {
+            String scopes,
+            String issuer,
+            String jwksUrl) {
+
+        /** Compat: proveedor sin verificación de id_token (issuer/jwks vacíos). */
+        public Provider(String authUrl, String tokenUrl, String userInfoUrl, String clientId,
+                        String clientSecret, String redirectUri, String scopes) {
+            this(authUrl, tokenUrl, userInfoUrl, clientId, clientSecret, redirectUri, scopes, "", "");
+        }
     }
 
     /** Datos para arrancar el flujo: URL de consentimiento + secretos a guardar en sesión. */
@@ -99,7 +114,9 @@ public final class JxOAuth {
                 JxEnvironment.get("jxmvc.oauth.google.client-id",     ""),
                 JxEnvironment.get("jxmvc.oauth.google.client-secret", ""),
                 JxEnvironment.get("jxmvc.oauth.google.redirect-uri",  ""),
-                JxEnvironment.get("jxmvc.oauth.google.scopes", "openid email profile"));
+                JxEnvironment.get("jxmvc.oauth.google.scopes", "openid email profile"),
+                "https://accounts.google.com",
+                "https://www.googleapis.com/oauth2/v3/certs");
     }
 
     // ── Paso 1: URL de autorización ───────────────────────────────────────
@@ -150,6 +167,10 @@ public final class JxOAuth {
     /** Igual que {@link #login(String, String)} con {@code redirectUri} explícito. */
     public User login(String code, String codeVerifier, String redirectUri) {
         Tokens tokens = exchange(code, codeVerifier, redirectUri);
+        // OIDC: si el proveedor publica JWKS, verificamos la firma del id_token (más
+        // seguro que confiar solo en userinfo). Si no, caemos al userinfo endpoint.
+        if (notBlank(provider.jwksUrl()) && notBlank(tokens.idToken()))
+            return verifyIdToken(tokens.idToken());
         return userInfo(tokens.accessToken());
     }
 
@@ -201,16 +222,144 @@ public final class JxOAuth {
             throw new JxException(502, "No se pudo obtener el perfil del proveedor OAuth");
         }
 
-        Map<String, Object> json = asMap(resp.body());
+        return userFromClaims(asMap(resp.body()));
+    }
+
+    // ── Verificación OIDC del id_token (JWT RS256 contra JWKS) ─────────────
+
+    private static final ConcurrentHashMap<String, long[]> JWKS_TS = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, Map<String, PublicKey>> JWKS_CACHE = new ConcurrentHashMap<>();
+    private static final long JWKS_TTL_MS = 3_600_000L;
+
+    /**
+     * Verifica la firma RS256 del {@code id_token} contra el JWKS del proveedor y valida
+     * {@code iss}/{@code aud}/{@code exp}, devolviendo la identidad a partir de sus claims.
+     * Es el camino OIDC estándar — no confía en una llamada a userinfo.
+     */
+    public User verifyIdToken(String idToken) {
+        if (!notBlank(idToken)) throw new JxException(401, "id_token ausente");
+        String kid    = jwtKid(idToken);
+        PublicKey key = resolveJwksKey(kid);
+        long nowSecs  = System.currentTimeMillis() / 1000L;
+        return userFromClaims(verifyJwtClaims(idToken, key, provider.issuer(), provider.clientId(), nowSecs));
+    }
+
+    /**
+     * Núcleo criptográfico puro (testeable sin red): valida firma RS256, {@code alg},
+     * {@code iss}, {@code aud} y {@code exp} (con 60 s de tolerancia), y retorna los claims.
+     */
+    static Map<String, Object> verifyJwtClaims(String jwt, PublicKey key, String issuer,
+                                               String audience, long nowSecs) {
+        String[] parts = jwt.split("\\.");
+        if (parts.length != 3) throw new JxException(401, "id_token mal formado");
+
+        Map<String, Object> header = asMap(new String(b64urlDecode(parts[0]), StandardCharsets.UTF_8));
+        if (!"RS256".equals(str(header.get("alg"))))
+            throw new JxException(401, "algoritmo de id_token no soportado: " + str(header.get("alg")));
+
+        byte[] signed = (parts[0] + "." + parts[1]).getBytes(StandardCharsets.US_ASCII);
+        try {
+            Signature verifier = Signature.getInstance("SHA256withRSA");
+            verifier.initVerify(key);
+            verifier.update(signed);
+            if (!verifier.verify(b64urlDecode(parts[2])))
+                throw new JxException(401, "firma del id_token inválida");
+        } catch (JxException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new JxException(401, "no se pudo verificar el id_token: " + e.getMessage());
+        }
+
+        Map<String, Object> claims = asMap(new String(b64urlDecode(parts[1]), StandardCharsets.UTF_8));
+
+        String iss = str(claims.get("iss"));
+        if (notBlank(issuer) && !issuer.equals(iss)
+                && !(issuer.equals("https://accounts.google.com") && "accounts.google.com".equals(iss)))
+            throw new JxException(401, "issuer del id_token inválido");
+
+        if (notBlank(audience) && !audience.equals(str(claims.get("aud"))))
+            throw new JxException(401, "audience del id_token inválido");
+
+        long exp = asLong(claims.get("exp"));
+        if (exp > 0 && nowSecs > exp + 60)
+            throw new JxException(401, "id_token expirado");
+
+        return claims;
+    }
+
+    private PublicKey resolveJwksKey(String kid) {
+        Map<String, PublicKey> keys = jwks(false);
+        PublicKey key = kid != null ? keys.get(kid) : null;
+        if (key == null) {
+            keys = jwks(true);
+            key = kid != null ? keys.get(kid)
+                : (keys.size() == 1 ? keys.values().iterator().next() : null);
+        }
+        if (key == null) throw new JxException(401, "clave JWKS no encontrada (kid=" + kid + ")");
+        return key;
+    }
+
+    private Map<String, PublicKey> jwks(boolean force) {
+        String url = provider.jwksUrl();
+        long[] ts  = JWKS_TS.get(url);
+        long now   = System.currentTimeMillis();
+        Map<String, PublicKey> cached = JWKS_CACHE.get(url);
+        if (!force && cached != null && ts != null && now - ts[0] < JWKS_TTL_MS) return cached;
+
+        JxHttp.Response resp = JxHttp.get(url);
+        if (!resp.isOk()) {
+            if (cached != null) return cached;
+            throw new JxException(502, "no se pudo obtener el JWKS del proveedor");
+        }
+        Map<String, PublicKey> map = new LinkedHashMap<>();
+        Object keysObj = asMap(resp.body()).get("keys");
+        if (keysObj instanceof List<?> list) {
+            for (Object item : list) {
+                if (!(item instanceof Map<?, ?> jwk)) continue;
+                try {
+                    String kid = str(jwk.get("kid"));
+                    String n   = str(jwk.get("n"));
+                    String e   = str(jwk.get("e"));
+                    if (kid != null && n != null && e != null) map.put(kid, rsaKey(n, e));
+                } catch (Exception ignored) {}
+            }
+        }
+        JWKS_CACHE.put(url, map);
+        JWKS_TS.put(url, new long[]{now});
+        return map;
+    }
+
+    private static String jwtKid(String jwt) {
+        String[] parts = jwt.split("\\.");
+        if (parts.length < 2) return null;
+        return str(asMap(new String(b64urlDecode(parts[0]), StandardCharsets.UTF_8)).get("kid"));
+    }
+
+    /** Construye una clave pública RSA a partir del módulo y exponente base64url del JWK. */
+    static PublicKey rsaKey(String modulusB64, String exponentB64) {
+        try {
+            BigInteger n = new BigInteger(1, b64urlDecode(modulusB64));
+            BigInteger e = new BigInteger(1, b64urlDecode(exponentB64));
+            return KeyFactory.getInstance("RSA").generatePublic(new RSAPublicKeySpec(n, e));
+        } catch (Exception ex) {
+            throw new IllegalStateException("JWK RSA inválido", ex);
+        }
+    }
+
+    private static byte[] b64urlDecode(String s) {
+        return Base64.getUrlDecoder().decode(s);
+    }
+
+    private static User userFromClaims(Map<String, Object> c) {
         return new User(
-                str(json.get("sub")),
-                str(json.get("email")),
-                asBool(json.get("email_verified")),
-                str(json.get("name")),
-                str(json.get("given_name")),
-                str(json.get("family_name")),
-                str(json.get("picture")),
-                str(json.get("locale")));
+                str(c.get("sub")),
+                str(c.get("email")),
+                asBool(c.get("email_verified")),
+                str(c.get("name")),
+                str(c.get("given_name")),
+                str(c.get("family_name")),
+                str(c.get("picture")),
+                str(c.get("locale")));
     }
 
     // ── Utilidades PKCE / state ───────────────────────────────────────────

@@ -22,22 +22,27 @@ import java.util.concurrent.Executors;
  * Servlet principal de JxMVC / Lux. Captura todas las rutas y las despacha
  * al controlador y acción correspondientes.
  *
- * <p><b>Pipeline completo (14 etapas):</b>
+ * <p>Transversal a toda respuesta (en {@code service()}, antes del pipeline): cabeceras
+ * de seguridad ({@code applySecurityHeaders}) y compresión gzip condicional ({@link JxGzip}).
+ *
+ * <p><b>Pipeline por petición</b> (orden real de {@code serviceInternal}):
  * <ol>
  *   <li>Endpoints internos: {@code /jx/health}, {@code /jx/info}, {@code /jx/metrics}, {@code /jx/openapi}</li>
  *   <li>Métricas — inicio del timer</li>
- *   <li>Rate limiting ({@code @JxRateLimit})</li>
- *   <li>Resolución de ruta ({@link BaseDispatcher})</li>
- *   <li>Perfil de ejecución ({@link JxProfile})</li>
- *   <li>Verificación auth ({@link JxSecurity})</li>
- *   <li>CORS ({@link BaseCorsResolver})</li>
+ *   <li>Resolución de ruta ({@link BaseDispatcher} → {@link BaseDispatchPlan})</li>
+ *   <li>Rate limiting ({@code @JxRateLimit}) — clave por acción resuelta {@code VERBO:ctrl#accion}</li>
+ *   <li>Verificación auth ({@link JxSecurity}) — <i>fail-closed</i></li>
+ *   <li>Protección CSRF ({@link JxCsrf}) en verbos mutadores, salvo {@code @JxCsrfExempt}</li>
+ *   <li>CORS ({@link BaseCorsResolver}) — corta el preflight {@code OPTIONS}</li>
+ *   <li>Construcción de contexto ({@link JxRequest} / {@link JxResponse})</li>
  *   <li>Filtros {@code before} ({@link JxFilters})</li>
  *   <li>Instanciación del controlador + DI ({@link JxServiceRegistry})</li>
  *   <li>Interceptores {@code @JxBeforeAction}</li>
  *   <li>Atributos del modelo {@code @JxModelAttr}</li>
- *   <li>Invocación async ({@code @JxAsync}) o con retry ({@code @JxRetry})</li>
- *   <li>Interceptores {@code @JxAfterAction} + filtros after</li>
- *   <li>Negociación de contenido + renderizado + métricas</li>
+ *   <li>Invocación: async ({@code @JxAsync}) o con retry ({@code @JxRetry}); dentro se aplican
+ *       {@code @JxCacheable}/{@code @JxCacheEvict} y {@code @JxTransactional}</li>
+ *   <li>Interceptores {@code @JxAfterAction} + filtros {@code after}</li>
+ *   <li>Negociación de contenido + renderizado; registro de métricas en {@code finally}</li>
  * </ol>
  */
 @MultipartConfig(maxFileSize = 20_971_520, maxRequestSize = 41_943_040)
@@ -320,16 +325,31 @@ public class MainLxServlet extends HttpServlet {
         }
     }
 
+    // ── Cache de métodos anotados por clase (evita escanear en cada request) ──
+
+    private static final java.util.concurrent.ConcurrentHashMap<Class<?>, Method[]> BEFORE_CACHE    = new java.util.concurrent.ConcurrentHashMap<>();
+    private static final java.util.concurrent.ConcurrentHashMap<Class<?>, Method[]> AFTER_CACHE     = new java.util.concurrent.ConcurrentHashMap<>();
+    private static final java.util.concurrent.ConcurrentHashMap<Class<?>, Method[]> MODELATTR_CACHE = new java.util.concurrent.ConcurrentHashMap<>();
+
+    private static Method[] annotatedMethods(java.util.concurrent.ConcurrentHashMap<Class<?>, Method[]> cache,
+                                             Class<?> cls, Class<? extends java.lang.annotation.Annotation> ann) {
+        return cache.computeIfAbsent(cls, c -> {
+            java.util.List<Method> found = new java.util.ArrayList<>();
+            for (Method m : c.getDeclaredMethods()) {
+                if (m.isAnnotationPresent(ann)) { m.setAccessible(true); found.add(m); }
+            }
+            return found.toArray(new Method[0]);
+        });
+    }
+
     // ── @JxBeforeAction ───────────────────────────────────────────────────
 
     private ActionResult runBeforeActions(JxController ctrl, String action,
                                           BaseDispatchPlan plan, JxRequest model,
                                           HttpServletRequest req, HttpServletResponse resp) {
-        for (Method m : ctrl.getClass().getDeclaredMethods()) {
+        for (Method m : annotatedMethods(BEFORE_CACHE, ctrl.getClass(), JxMapping.JxBeforeAction.class)) {
             JxMapping.JxBeforeAction ann = m.getAnnotation(JxMapping.JxBeforeAction.class);
-            if (ann == null) continue;
             if (!appliesTo(ann.only(), ann.except(), action)) continue;
-            m.setAccessible(true);
             try {
                 Object result = m.getParameterCount() == 0 ? m.invoke(ctrl)
                         : m.invoke(ctrl, buildArgs(plan, m.getParameters(), model, req));
@@ -350,11 +370,9 @@ public class MainLxServlet extends HttpServlet {
     // ── @JxAfterAction ────────────────────────────────────────────────────
 
     private void runAfterActions(JxController ctrl, String action) {
-        for (Method m : ctrl.getClass().getDeclaredMethods()) {
+        for (Method m : annotatedMethods(AFTER_CACHE, ctrl.getClass(), JxMapping.JxAfterAction.class)) {
             JxMapping.JxAfterAction ann = m.getAnnotation(JxMapping.JxAfterAction.class);
-            if (ann == null) continue;
             if (!appliesTo(ann.only(), ann.except(), action)) continue;
-            m.setAccessible(true);
             try {
                 m.invoke(ctrl);
             } catch (Exception e) {
@@ -376,9 +394,8 @@ public class MainLxServlet extends HttpServlet {
     // ── @JxModelAttr ─────────────────────────────────────────────────────
 
     private void populateModelAttrs(JxController ctrl, String action, HttpServletRequest req) {
-        for (Method m : ctrl.getClass().getDeclaredMethods()) {
+        for (Method m : annotatedMethods(MODELATTR_CACHE, ctrl.getClass(), JxMapping.JxModelAttr.class)) {
             JxMapping.JxModelAttr ann = m.getAnnotation(JxMapping.JxModelAttr.class);
-            if (ann == null) continue;
             if (ann.only().length > 0) {
                 boolean found = false;
                 for (String o : ann.only()) { if (o.equalsIgnoreCase(action)) { found = true; break; } }

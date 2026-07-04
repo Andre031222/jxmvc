@@ -2,16 +2,22 @@
 
 ## 3.4.0 — 2026-07-04
 
-Autenticación de fábrica: inicio de sesión con **Google** (OAuth 2.0 + PKCE) y hashing de contraseñas, ambos sin dependencias externas. API pública intacta; todo lo nuevo es opt-in.
+Autenticación de fábrica (OAuth 2.0 + PKCE con verificación OIDC y hashing PBKDF2), endurecimientos y una mejora de rendimiento en el hot-path — todo sin dependencias externas. API pública intacta; lo nuevo es opt-in.
 
 ### Nuevo
 
-- **JxOAuth**: flujo *Authorization Code* con PKCE (S256) para OpenID Connect, con preset de **Google** listo para usar. Construye la URL de consentimiento, intercambia el código y recupera los claims del usuario apoyándose en `JxHttp` y `JxJson` — cero dependencias. Se configura con `jxmvc.oauth.google.client-id` / `client-secret` / `redirect-uri` (o variables de entorno equivalentes).
-- **JxPasswords**: hashing de contraseñas PBKDF2-SHA256 con salt aleatorio, número de iteraciones embebido en el propio hash, verificación en tiempo constante y `needsRehash` para reforzar hashes antiguos.
+- **JxOAuth**: flujo *Authorization Code* con PKCE (S256) para OpenID Connect, con preset de **Google**. Construye la URL de consentimiento, intercambia el código y obtiene la identidad apoyándose en `JxHttp`/`JxJson` — cero dependencias. **Verifica la firma RS256 del `id_token`** contra el JWKS del proveedor (con caché) y valida `alg`/`iss`/`aud`/`exp` usando solo criptografía del JDK; cae a userinfo si el proveedor no publica JWKS.
+- **JxPasswords**: hashing PBKDF2-SHA256 con salt e iteraciones embebidas, verificación en tiempo constante y `needsRehash`.
+
+### Cambiado / corregido
+
+- **JxRateLimiter**: ahora es un **sliding window counter** real (pondera la ventana previa) — antes el javadoc decía "ventana deslizante" pero el algoritmo era de ventana fija y permitía una ráfaga del doble del límite en el borde.
+- **Rendimiento (hot-path)**: los métodos anotados `@JxBeforeAction`/`@JxAfterAction`/`@JxModelAttr` se **cachean por clase de controlador** en lugar de escanear todos los métodos por reflexión en cada petición.
+- **Documentación del pipeline** alineada con el orden real del código (rate-limit tras resolver la ruta, CSRF explícito, sin "perfil" como etapa).
 
 ### Tests
 
-- **28 verificaciones nuevas** (`OAuthTest`): vector PKCE del RFC 7636, construcción de la URL de autorización, tokens URL-safe y roundtrip de PBKDF2. Total: **333** en verde.
+- **Nuevas verificaciones** en `OAuthTest` (verificación de firma del id_token con par RSA generado en el test: válido, firma manipulada, `aud`/`iss`/`exp` incorrectos, `alg:none` rechazado, reconstrucción de clave desde JWK) y `RateLimiterTest` (estimación de ventana deslizante, arrastre y reseteo). Total: **347** en verde.
 
 ## 3.3.0 — 2026-07-04
 

@@ -11,8 +11,12 @@ import java.util.concurrent.TimeUnit;
 /**
  * Limitador de tasa en memoria — motor para {@link JxMapping.JxRateLimit}.
  *
- * <p>Algoritmo de ventana deslizante por IP + clave de ruta.
- * Los contadores se limpian automáticamente al expirar la ventana.
+ * <p>Algoritmo <b>sliding window counter</b> (contador de ventana deslizante) por IP +
+ * clave de ruta: se mantienen los conteos de la ventana alineada actual y de la anterior,
+ * y el uso estimado es {@code prev·(1 − t/W) + actual}, donde {@code t} es lo transcurrido
+ * dentro de la ventana actual y {@code W} su duración. Esto evita la ráfaga del doble del
+ * límite que permite una ventana fija en el borde entre ventanas. Los contadores se limpian
+ * automáticamente al expirar ambas ventanas.
  *
  * <pre>
  *   // Uso desde MainLxServlet (automático vía @JxRateLimit):
@@ -25,7 +29,7 @@ public final class JxRateLimiter {
 
     private JxRateLimiter() {}
 
-    /** Entrada: [count, windowStart, windowMs] */
+    /** Entrada: [conteoActual, inicioVentanaActual, conteoPrevio, windowMs] */
     private static final ConcurrentHashMap<String, long[]> buckets = new ConcurrentHashMap<>();
 
     private static final java.util.concurrent.ScheduledExecutorService CLEANER =
@@ -55,39 +59,57 @@ public final class JxRateLimiter {
      * @return {@code true} si la petición está permitida, {@code false} si supera el límite
      */
     public static boolean allow(String clientKey, String routeKey, int maxReqs, long windowSecs) {
-        String key  = clientKey + "|" + routeKey;
-        long   now  = System.currentTimeMillis();
-        long   winMs = windowSecs * 1000;
+        String key   = clientKey + "|" + routeKey;
+        long   now   = System.currentTimeMillis();
+        long   winMs = Math.max(1, windowSecs * 1000);
+        long   winStart = (now / winMs) * winMs;
 
-        long[] bucket = buckets.computeIfAbsent(key, k -> new long[]{0, now, winMs});
+        long[] bucket = buckets.computeIfAbsent(key, k -> new long[]{0, winStart, 0, winMs});
         synchronized (bucket) {
-            // Resetear si la ventana expiró
-            if (now - bucket[1] >= winMs) {
-                bucket[0] = 0;
-                bucket[1] = now;
-            }
-            bucket[2] = winMs;
-            if (bucket[0] >= maxReqs) return false;
+            roll(bucket, winStart, winMs);
+            if (estimatedUsage(bucket, now, winMs) >= maxReqs) return false;
             bucket[0]++;
             return true;
         }
     }
 
     /**
-     * Retorna las peticiones restantes en la ventana actual para el cliente y ruta dados.
+     * Retorna las peticiones restantes según la estimación de ventana deslizante.
      *
-     * @return peticiones restantes, o -1 si no hay registro
+     * @return peticiones restantes (>= 0), o {@code maxReqs} si no hay registro
      */
     public static long remaining(String clientKey, String routeKey, int maxReqs, long windowSecs) {
         String key   = clientKey + "|" + routeKey;
         long   now   = System.currentTimeMillis();
-        long   winMs = windowSecs * 1000;
+        long   winMs = Math.max(1, windowSecs * 1000);
+        long   winStart = (now / winMs) * winMs;
         long[] bucket = buckets.get(key);
         if (bucket == null) return maxReqs;
         synchronized (bucket) {
-            if (now - bucket[1] >= winMs) return maxReqs;
-            return Math.max(0, maxReqs - bucket[0]);
+            roll(bucket, winStart, winMs);
+            return Math.max(0, maxReqs - (long) Math.floor(estimatedUsage(bucket, now, winMs)));
         }
+    }
+
+    /** Avanza el bucket a la ventana alineada actual, arrastrando el conteo previo. */
+    static void roll(long[] bucket, long winStart, long winMs) {
+        long prevStart = bucket[1];
+        if (winStart == prevStart) return;
+        if (winStart - prevStart == winMs) {   // ventana inmediatamente siguiente
+            bucket[2] = bucket[0];
+        } else {                                // hueco de más de una ventana: sin arrastre
+            bucket[2] = 0;
+        }
+        bucket[0] = 0;
+        bucket[1] = winStart;
+        bucket[3] = winMs;
+    }
+
+    /** Uso estimado = conteoPrevio·(1 − t/W) + conteoActual. */
+    static double estimatedUsage(long[] bucket, long now, long winMs) {
+        double elapsed = now - bucket[1];
+        double weight  = Math.max(0.0, (winMs - elapsed) / (double) winMs);
+        return bucket[2] * weight + bucket[0];
     }
 
     /** Limpia todos los buckets expirados. Llamar periódicamente para evitar memory leak. */
@@ -99,12 +121,12 @@ public final class JxRateLimiter {
         });
     }
 
-    /** Elimina los buckets cuya propia ventana ya expiró (respeta ventanas largas activas). */
+    /** Elimina los buckets cuyas dos ventanas (actual y previa) ya expiraron (respeta ventanas largas activas). */
     static void cleanupExpired() {
         long now = System.currentTimeMillis();
         buckets.entrySet().removeIf(e -> {
             long[] b = e.getValue();
-            synchronized (b) { return now - b[1] >= b[2]; }
+            synchronized (b) { return now - b[1] >= 2 * b[3]; }
         });
     }
 }
