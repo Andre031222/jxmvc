@@ -47,7 +47,10 @@ class BaseDispatcher {
     BaseDispatchPlan resolve(HttpServletRequest request) throws Exception {
         String rawPath  = extractPath(request);
         String path     = normalize(rawPath);
+        if ("/__invalid".equals(path)) throw new JxException(400, "Ruta inválida");
         String verb     = request.getMethod().toUpperCase();
+        // HEAD se resuelve como GET: el contenedor omite el cuerpo en la respuesta.
+        if ("HEAD".equals(verb)) verb = "GET";
 
         AnnotatedMatch match = resolveAnnotated(verb, path, rawPath);
         if (match == null) {
@@ -104,8 +107,10 @@ class BaseDispatcher {
     private Method resolveMethod(Class<? extends JxController> cls, String action, String verb) throws Exception {
         for (Method m : cls.getDeclaredMethods()) {
             if (!isAction(m) || !m.getName().equalsIgnoreCase(action)) continue;
-            if (!acceptsVerb(m, verb))
-                throw new JxException(405, "Método HTTP no permitido: " + verb + " en " + cls.getSimpleName() + "#" + action);
+            if (!acceptsVerb(m, verb)) {
+                log.debug("405: {} no permitido en {}#{}", verb, cls.getSimpleName(), action);
+                throw new JxException(405, "Método HTTP no permitido: " + verb);
+            }
             return m;
         }
         throw new NoSuchMethodException(cls.getName() + "#" + action);
@@ -128,6 +133,10 @@ class BaseDispatcher {
     // ── Índice de rutas anotadas ──────────────────────────────────────────
 
     private AnnotatedMatch resolveAnnotated(String verb, String path, String rawPath) {
+        return resolveAnnotated(verb, path, rawPath, true);
+    }
+
+    private AnnotatedMatch resolveAnnotated(String verb, String path, String rawPath, boolean check405) {
         ensureIndexed();
         String prefix = verb + ":";
 
@@ -135,8 +144,8 @@ class BaseDispatcher {
         AnnotatedRoute exact = routeCache.get(prefix + path);
         if (exact != null) return new AnnotatedMatch(exact, new String[0], Collections.emptyMap());
 
-        // 2. 405: misma ruta, otro verbo
-        if (!"OPTIONS".equals(verb)) {
+        // 2. 405: misma ruta, otro verbo (omitido al resolver un preflight OPTIONS)
+        if (check405 && !"OPTIONS".equals(verb)) {
             for (String v : ALL_VERBS) {
                 if (v.equals(verb)) continue;
                 if (routeCache.containsKey(v + ":" + path))
@@ -182,10 +191,19 @@ class BaseDispatcher {
             return new AnnotatedMatch(tr.route(), new String[0], vars);
         }
 
-        // 5. OPTIONS: buscar en todos los verbos
+        // 5. 405 también para plantillas: la ruta existe con otro verbo
+        if (check405 && !"OPTIONS".equals(verb)) {
+            for (TemplateRoute tr : templateRoutes) {
+                if (tr.verb().equals(verb) || "ANY".equals(tr.verb())) continue;
+                if (tr.pattern().matcher(path).matches())
+                    throw new JxException(405, "Método HTTP no permitido: " + verb);
+            }
+        }
+
+        // 6. OPTIONS: buscar en todos los verbos sin disparar el 405 del preflight
         if ("OPTIONS".equals(verb)) {
             for (String v : ALL_VERBS) {
-                AnnotatedMatch m = resolveAnnotated(v, path, rawPath);
+                AnnotatedMatch m = resolveAnnotated(v, path, rawPath, false);
                 if (m != null) return m;
             }
         }
@@ -219,6 +237,12 @@ class BaseDispatcher {
                 }
             }
         }
+        // Orden determinista de plantillas: el escaneo viene de un HashSet sin orden.
+        // Gana la más específica (menos variables; a igualdad, patrón más largo).
+        templateRoutes.sort(Comparator
+                .comparingInt((TemplateRoute t) -> t.varNames().size())
+                .thenComparing(t -> -t.pattern().pattern().length())
+                .thenComparing(t -> t.pattern().pattern()));
     }
 
     private boolean hasTemplateVars(String path) {
@@ -258,7 +282,12 @@ class BaseDispatcher {
             addTemplateRoute(verb, rp, m, cls);
             return;
         }
-        routeCache.putIfAbsent(verb + ":" + rp, new AnnotatedRoute(cls, m));
+        AnnotatedRoute prev = routeCache.putIfAbsent(verb + ":" + rp, new AnnotatedRoute(cls, m));
+        if (prev != null && (prev.cls() != cls || !prev.method().equals(m))) {
+            log.warn("Ruta duplicada {} {} — la sirve {}#{}; se ignora {}#{}",
+                    verb, rp, prev.cls().getSimpleName(), prev.method().getName(),
+                    cls.getSimpleName(), m.getName());
+        }
 
         if ("index".equalsIgnoreCase(m.getName()) && rp.equals(base + "/index")) {
             routeCache.putIfAbsent(verb + ":" + base, new AnnotatedRoute(cls, m));
@@ -332,7 +361,7 @@ class BaseDispatcher {
         if (!get && !post && !put && !delete && !patch) return true; // sin anotación = todos
 
         return switch (verb) {
-            case "GET"     -> get;
+            case "GET", "HEAD" -> get;
             case "POST"    -> post;
             case "PUT"     -> put;
             case "DELETE"  -> delete;
@@ -399,8 +428,17 @@ class BaseDispatcher {
     private String[] extraArgs(String rawPath, String matched) {
         String norm = normalize(rawPath);
         if (!norm.startsWith(matched + "/")) return new String[0];
-        return Arrays.stream(rawPath.substring(matched.length() + 1).split("/"))
+        // Por segmentos (no por offset): el path crudo puede traer // o mayúsculas
+        // que desalinean los índices respecto al normalizado.
+        String[] rawSegs = Arrays.stream(rawPath.split("/"))
                 .filter(s -> !s.isBlank()).toArray(String[]::new);
+        int matchedSegs = (int) Arrays.stream(matched.split("/"))
+                .filter(s -> !s.isBlank()).count();
+        if (rawSegs.length <= matchedSegs) return new String[0];
+        String[] out = new String[rawSegs.length - matchedSegs];
+        for (int i = 0; i < out.length; i++)
+            out[i] = URLDecoder.decode(rawSegs[matchedSegs + i], StandardCharsets.UTF_8);
+        return out;
     }
 
     private record AnnotatedRoute(Class<? extends JxController> cls, Method method) {}

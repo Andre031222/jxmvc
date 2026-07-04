@@ -5,7 +5,6 @@
 package jxmvc.core;
 
 import java.sql.*;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -90,8 +89,7 @@ public class JxDB implements AutoCloseable {
     // ── Estado ────────────────────────────────────────────────────────────
 
     public boolean isConnected() {
-        try { Connection c = openOrReuse(); return c != null && c.isValid(2); }
-        catch (SQLException e) { lastError = e.getMessage(); return false; }
+        return Boolean.TRUE.equals(withConn(c -> c.isValid(2), Boolean.FALSE));
     }
 
     public String getError()    { return lastError; }
@@ -101,14 +99,9 @@ public class JxDB implements AutoCloseable {
     @Override
     public void close() {
         if (conn == null) return;
-        // No cerrar si la conexión es administrada por JxTransaction
+        // La conexión administrada por JxTransaction (ThreadLocal) la libera JxTransaction.
         if (conn == JxTransaction.current()) { conn = null; return; }
-        if (borrowedFromPool) {
-            JxPool pool = JxPool.global();
-            if (pool != null) { pool.release(conn); conn = null; return; }
-        }
-        try { conn.close(); } catch (SQLException ignored) {}
-        conn = null;
+        releaseRetained();
     }
 
     // ── SELECT ────────────────────────────────────────────────────────────
@@ -222,16 +215,18 @@ public class JxDB implements AutoCloseable {
         }
         String sql = "INSERT INTO " + qt(table) + " (" + cols + ") VALUES (" + ph + ")";
 
-        try (PreparedStatement stmt = openOrReuse().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            int i = 1;
-            for (String k : fields.keySet()) stmt.setObject(i++, fields.get(k));
-            if (stmt.executeUpdate() > 0) {
-                try (ResultSet rs = stmt.getGeneratedKeys()) {
-                    if (rs.next()) return rs.getLong(1);
+        return withConn(c -> {
+            try (PreparedStatement stmt = c.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+                int i = 1;
+                for (String k : fields.keySet()) stmt.setObject(i++, fields.get(k));
+                if (stmt.executeUpdate() > 0) {
+                    try (ResultSet rs = stmt.getGeneratedKeys()) {
+                        if (rs.next()) return rs.getLong(1);
+                    }
                 }
             }
-        } catch (SQLException e) { lastError = e.getMessage(); }
-        return 0;
+            return 0L;
+        }, 0L);
     }
 
     // ── UPDATE ────────────────────────────────────────────────────────────
@@ -252,15 +247,18 @@ public class JxDB implements AutoCloseable {
             if (set.length() > 0) set.append(", ");
             set.append(qc(k)).append(" = ?");
         }
-        String sql = "UPDATE " + qt(table) + " SET " + set;
-        if (condition != null && !condition.isBlank()) sql += " WHERE " + condition;
+        String base = "UPDATE " + qt(table) + " SET " + set;
+        final String sql = (condition != null && !condition.isBlank())
+                ? base + " WHERE " + condition : base;
 
-        try (PreparedStatement stmt = openOrReuse().prepareStatement(sql)) {
-            int i = 1;
-            for (String k : fields.keySet()) stmt.setObject(i++, fields.get(k));
-            for (Object p : condParams)       stmt.setObject(i++, p);
-            stmt.executeUpdate();
-        } catch (SQLException e) { lastError = e.getMessage(); }
+        withConn(c -> {
+            try (PreparedStatement stmt = c.prepareStatement(sql)) {
+                int i = 1;
+                for (String k : fields.keySet()) stmt.setObject(i++, fields.get(k));
+                for (Object p : condParams)       stmt.setObject(i++, p);
+                return stmt.executeUpdate();
+            }
+        }, -1);
     }
 
     /** Versión con {@link Map} en lugar de {@link DBRow}. */
@@ -282,12 +280,15 @@ public class JxDB implements AutoCloseable {
      */
     public void delete(String table, String condition, Object... params) {
         lastError = "";
-        String sql = "DELETE FROM " + qt(table);
-        if (condition != null && !condition.isBlank()) sql += " WHERE " + condition;
-        try (PreparedStatement stmt = openOrReuse().prepareStatement(sql)) {
-            for (int i = 0; i < params.length; i++) stmt.setObject(i + 1, params[i]);
-            stmt.executeUpdate();
-        } catch (SQLException e) { lastError = e.getMessage(); }
+        String base = "DELETE FROM " + qt(table);
+        final String sql = (condition != null && !condition.isBlank())
+                ? base + " WHERE " + condition : base;
+        withConn(c -> {
+            try (PreparedStatement stmt = c.prepareStatement(sql)) {
+                for (int i = 0; i < params.length; i++) stmt.setObject(i + 1, params[i]);
+                return stmt.executeUpdate();
+            }
+        }, -1);
     }
 
     // ── Parámetros con nombre (:param) ────────────────────────────────────
@@ -365,14 +366,16 @@ public class JxDB implements AutoCloseable {
         }
         String sql = "INSERT INTO " + qt(table) + " (" + cols + ") VALUES (" + ph + ")";
 
-        try (PreparedStatement stmt = openOrReuse().prepareStatement(sql)) {
-            for (DBRow row : rows) {
-                int i = 1;
-                for (String k : first.KeySet()) stmt.setObject(i++, row.Get(k));
-                stmt.addBatch();
+        return withConn(c -> {
+            try (PreparedStatement stmt = c.prepareStatement(sql)) {
+                for (DBRow row : rows) {
+                    int i = 1;
+                    for (String k : first.KeySet()) stmt.setObject(i++, row.Get(k));
+                    stmt.addBatch();
+                }
+                return stmt.executeBatch();
             }
-            return stmt.executeBatch();
-        } catch (SQLException e) { lastError = e.getMessage(); return new int[0]; }
+        }, new int[0]);
     }
 
     /**
@@ -458,33 +461,30 @@ public class JxDB implements AutoCloseable {
      * </pre>
      */
     public void transaction(Runnable work) {
-        try {
-            beginTransaction();
-            try {
-                work.run();
-                commit();
-            } catch (Exception e) {
-                rollback();
-                throw e instanceof RuntimeException r ? r : new JxException(500, e.getMessage());
-            }
-        } catch (Exception e) {
-            throw e instanceof RuntimeException r ? r : new JxException(500, e.getMessage());
-        }
+        JxTransaction.run(work);
     }
 
+    /** Abre una transacción manual sobre una conexión retenida por esta instancia. */
     public void beginTransaction() {
-        try { openOrReuse().setAutoCommit(false); }
-        catch (Exception e) { lastError = e.getMessage(); }
+        if (JxTransaction.current() != null) return;
+        try {
+            if (conn == null) conn = acquire();
+            conn.setAutoCommit(false);
+        } catch (Exception e) { lastError = e.getMessage(); }
     }
 
     public void commit() {
-        try { Connection c = openOrReuse(); c.commit(); c.setAutoCommit(true); }
+        if (conn == null) return;
+        try { conn.commit(); conn.setAutoCommit(true); }
         catch (Exception e) { lastError = e.getMessage(); }
+        finally { releaseRetained(); }
     }
 
     public void rollback() {
-        try { Connection c = openOrReuse(); c.rollback(); c.setAutoCommit(true); }
+        if (conn == null) return;
+        try { conn.rollback(); conn.setAutoCommit(true); }
         catch (Exception e) { lastError = e.getMessage(); }
+        finally { releaseRetained(); }
     }
 
     // ── DML crudo ─────────────────────────────────────────────────────────
@@ -498,57 +498,107 @@ public class JxDB implements AutoCloseable {
      * </pre>
      */
     public int exec(String sql, Object... params) {
-        lastError = "";
-        try (PreparedStatement stmt = openOrReuse().prepareStatement(sql)) {
-            for (int i = 0; i < params.length; i++) stmt.setObject(i + 1, params[i]);
-            return stmt.executeUpdate();
-        } catch (SQLException e) { lastError = e.getMessage(); return -1; }
+        return withConn(c -> {
+            try (PreparedStatement stmt = c.prepareStatement(sql)) {
+                for (int i = 0; i < params.length; i++) stmt.setObject(i + 1, params[i]);
+                return stmt.executeUpdate();
+            }
+        }, -1);
     }
 
     // ── Privados ──────────────────────────────────────────────────────────
 
     private DBRowSet exec_(String sql, Object... params) {
-        lastError = "";
-        DBRowSet result = new DBRowSet();
-        try (PreparedStatement stmt = openOrReuse().prepareStatement(sql)) {
-            for (int i = 0; i < params.length; i++) stmt.setObject(i + 1, params[i]);
-            try (ResultSet rs = stmt.executeQuery()) {
-                ResultSetMetaData meta = rs.getMetaData();
-                int colCount = meta.getColumnCount();
-                while (rs.next()) {
-                    DBRow row = new DBRow();
-                    for (int i = 1; i <= colCount; i++) row.add(meta.getColumnName(i), rs.getObject(i));
-                    result.add(row);
+        return withConn(c -> {
+            DBRowSet result = new DBRowSet();
+            try (PreparedStatement stmt = c.prepareStatement(sql)) {
+                for (int i = 0; i < params.length; i++) stmt.setObject(i + 1, params[i]);
+                try (ResultSet rs = stmt.executeQuery()) {
+                    ResultSetMetaData meta = rs.getMetaData();
+                    int colCount = meta.getColumnCount();
+                    while (rs.next()) {
+                        DBRow row = new DBRow();
+                        for (int i = 1; i <= colCount; i++) row.add(meta.getColumnName(i), rs.getObject(i));
+                        result.add(row);
+                    }
                 }
             }
-        } catch (SQLException e) { lastError = e.getMessage(); }
-        return result;
+            return result;
+        }, new DBRowSet());
     }
 
-    private Connection openOrReuse() throws SQLException {
-        // 1. Respetar la transacción activa del hilo (JxTransaction / @JxTransactional)
-        Connection txConn = JxTransaction.current();
-        if (txConn != null) return txConn;
+    @FunctionalInterface
+    private interface ConnUse<T> { T apply(Connection c) throws SQLException; }
 
-        // 2. Reusar la conexión propia si sigue válida
-        if (conn != null && !conn.isClosed() && conn.isValid(2)) return conn;
-
-        // 3. Pool global
-        JxPool pool = JxPool.global();
-        if (pool != null) {
-            conn = pool.borrow();
-            borrowedFromPool = true;
-            return conn;
+    /**
+     * Ejecuta {@code body} con una conexión.
+     * <ul>
+     *   <li>Dentro de una transacción (ThreadLocal de {@link JxTransaction} o transacción
+     *       manual de esta instancia) reutiliza esa conexión y no la libera.
+     *   <li>Fuera de transacción toma una conexión efímera del pool (o directa), la usa
+     *       y la libera de inmediato — sin fugas ni estado compartido entre hilos.
+     * </ul>
+     */
+    private <T> T withConn(ConnUse<T> body, T onError) {
+        lastError = "";
+        Connection managed = activeConn();
+        if (managed != null) {
+            try { return body.apply(managed); }
+            catch (SQLException e) { lastError = e.getMessage(); return onError; }
         }
+        JxPool pool = JxPool.global();
+        Connection c = null;
+        boolean pooled = false;
+        try {
+            if (pool != null) { c = pool.borrow(); pooled = true; }
+            else             { c = connect(); }
+            return body.apply(c);
+        } catch (SQLException e) {
+            lastError = e.getMessage();
+            return onError;
+        } finally {
+            if (c != null) {
+                if (pooled) pool.release(c);
+                else        closeQuietly(c);
+            }
+        }
+    }
 
-        // 4. Conexión directa
-        conn = connect();
+    /** Conexión de transacción activa (ThreadLocal global o transacción manual), o {@code null}. */
+    private Connection activeConn() {
+        Connection tx = JxTransaction.current();
+        return tx != null ? tx : conn;
+    }
+
+    private Connection acquire() throws SQLException {
+        JxPool pool = JxPool.global();
+        if (pool != null) { borrowedFromPool = true; return pool.borrow(); }
         borrowedFromPool = false;
-        return conn;
+        return connect();
+    }
+
+    private void releaseRetained() {
+        if (conn == null) return;
+        Connection c = conn;
+        conn = null;
+        try { if (!c.getAutoCommit()) { c.rollback(); c.setAutoCommit(true); } }
+        catch (SQLException ignored) {}
+        if (borrowedFromPool) {
+            JxPool pool = JxPool.global();
+            if (pool != null) { pool.release(c); return; }
+        }
+        closeQuietly(c);
+    }
+
+    private void closeQuietly(Connection c) {
+        try { c.close(); } catch (SQLException ignored) {}
     }
 
     /** Para uso exclusivo de {@link JxTransaction} — no llamar externamente. */
-    Connection rawConnection() throws SQLException { return openOrReuse(); }
+    Connection rawConnection() throws SQLException {
+        if (conn == null) conn = acquire();
+        return conn;
+    }
 
     private Connection connect() throws SQLException {
         return switch (engine) {

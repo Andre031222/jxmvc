@@ -121,15 +121,37 @@ public class JxRequest {
 
     // ── Body de la petición (JSON, texto plano, etc.) ─────────────────────
 
+    /** Tope de lectura del body no-multipart — configurable con {@code jxmvc.body.maxBytes}. */
+    static final int MAX_BODY_BYTES =
+            BaseDbResolver.propertyInt("jxmvc.body.maxBytes", 10 * 1024 * 1024);
+
     public String body() {
         if (request == null) return "";
+        long declared = request.getContentLengthLong();
+        if (declared > MAX_BODY_BYTES)
+            throw new JxException(413, "Body demasiado grande (máx " + MAX_BODY_BYTES + " bytes)");
         try {
-            byte[] bytes = request.getInputStream().readAllBytes();
+            byte[] bytes = readCapped(request.getInputStream(), MAX_BODY_BYTES);
             CharsetDecoder decoder = StandardCharsets.UTF_8.newDecoder()
                 .onMalformedInput(CodingErrorAction.REPLACE)
                 .onUnmappableCharacter(CodingErrorAction.REPLACE);
             return decoder.decode(ByteBuffer.wrap(bytes)).toString();
+        } catch (JxException e) { throw e;
         } catch (Exception e) { return null; }
+    }
+
+    /** Lee como máximo {@code max} bytes; si el stream trae más, responde 413 (no confía en Content-Length). */
+    private static byte[] readCapped(java.io.InputStream in, int max) throws java.io.IOException {
+        java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream(Math.min(8192, max));
+        byte[] buf = new byte[8192];
+        int total = 0, n;
+        while ((n = in.read(buf)) != -1) {
+            total += n;
+            if (total > max)
+                throw new JxException(413, "Body demasiado grande (máx " + max + " bytes)");
+            out.write(buf, 0, n);
+        }
+        return out.toByteArray();
     }
 
     // ── Variables de atributo de request ─────────────────────────────────
@@ -190,11 +212,18 @@ public class JxRequest {
         return saved;
     }
 
+    /** Extensiones ejecutables/peligrosas: se rechazan siempre, aunque se permita {@code *}. */
+    private static final java.util.Set<String> BLOCKED_EXTS = java.util.Set.of(
+            ".jsp", ".jspx", ".jspf", ".jsw", ".jsv", ".class", ".war", ".jar",
+            ".sh", ".bat", ".cmd", ".exe", ".dll", ".php", ".phtml", ".pl", ".py", ".rb", ".htaccess");
+
     private boolean allowedExt(String name, String exts) {
+        String lower = name.toLowerCase();
+        for (String bad : BLOCKED_EXTS) if (lower.endsWith(bad)) return false;
+
         if (exts == null || exts.isBlank()) return true;
         String rule = exts.trim().toLowerCase();
         if ("*.*".equals(rule) || "*".equals(rule)) return true;
-        String lower = name.toLowerCase();
         for (String part : rule.split(",")) {
             String ext = part.trim();
             if (ext.isEmpty()) continue;

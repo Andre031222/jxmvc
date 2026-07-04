@@ -15,7 +15,6 @@ import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -44,7 +43,10 @@ import java.util.concurrent.Executors;
 @MultipartConfig(maxFileSize = 20_971_520, maxRequestSize = 41_943_040)
 public class MainLxServlet extends HttpServlet {
 
-    public static final String VERSION = "3.2.0";
+    public static final String VERSION = "3.3.0";
+
+    /** Confiar en X-Forwarded-For/X-Real-IP solo si la app está detrás de un proxy de confianza. */
+    private static final boolean TRUST_PROXY = BaseDbResolver.propertyBool("jxmvc.trustProxy", false);
 
     private static final JxLogger log = JxLogger.getLogger(MainLxServlet.class);
 
@@ -88,9 +90,7 @@ public class MainLxServlet extends HttpServlet {
         int asyncSize = BaseDbResolver.propertyInt("jxmvc.async.threads", 8);
         asyncExecutor = buildAsyncExecutor(asyncSize);
 
-        // Limpieza periódica del rate limiter (cada 10 minutos)
-        JxScheduler.scheduleAtFixedRate(() ->
-                JxRateLimiter.cleanup(3600), 600_000, 600_000);
+        // La limpieza del rate limiter la hace su propio daemon interno (cada 10 min).
 
         // Keepalive del pool: valida conexiones idle cada 3 minutos
         JxScheduler.scheduleAtFixedRate(() -> {
@@ -107,6 +107,8 @@ public class MainLxServlet extends HttpServlet {
     public void destroy() {
         JxScheduler.shutdown();
         JxDevMode.shutdown();
+        JxCache.shutdown();
+        JxRateLimiter.shutdown();
         JxPool pool = JxPool.global();
         if (pool != null) pool.shutdown();
         if (asyncExecutor != null) {
@@ -175,7 +177,10 @@ public class MainLxServlet extends HttpServlet {
             JxMapping.JxRateLimit rl = resolveRateLimit(plan);
             if (rl != null) {
                 String clientIp = getClientIp(req);
-                String routeKey = req.getMethod().toUpperCase() + ":" + local;
+                // Clave por acción resuelta, no por URI cruda: /api/1/x y /api/2/x
+                // comparten bucket (la URI permitiría evadir el límite rotando el {id}).
+                String routeKey = req.getMethod().toUpperCase() + ":"
+                        + plan.controller() + "#" + plan.action();
                 if (!JxRateLimiter.allow(clientIp, routeKey, rl.requests(), rl.window())) {
                     resp.setHeader("Retry-After", String.valueOf(rl.window()));
                     log.warn("Rate limit excedido para IP {} en {}", clientIp, routeKey);
@@ -189,6 +194,13 @@ public class MainLxServlet extends HttpServlet {
             if (!checkAuth(req, plan)) {
                 sendError(req, resp, 401, "No autorizado");
                 statusCode = 401;
+                return;
+            }
+
+            // ── CSRF (verbos mutadores, si jxmvc.security.csrf=true) ──────
+            if (JxCsrf.enabled() && !csrfExempt(plan) && !JxCsrf.validate(req)) {
+                sendError(req, resp, 403, "Token CSRF ausente o inválido");
+                statusCode = 403;
                 return;
             }
 
@@ -230,18 +242,18 @@ public class MainLxServlet extends HttpServlet {
 
             // ── @JxAsync — responde 202 y ejecuta en background ───────────
             if (plan.actionMethod().isAnnotationPresent(JxMapping.JxAsync.class)) {
-                final BaseDispatchPlan  fp    = plan;
-                final JxController      fc    = controller;
-                final JxRequest         fm    = model;
-                final HttpServletRequest fr    = req;
-                final String            flocal = local;
+                // Los argumentos se resuelven AQUÍ, con el request todavía vivo:
+                // el hilo de fondo no debe tocar req/model (Tomcat recicla el objeto al retornar).
+                final BaseDispatchPlan  fp     = plan;
+                final JxController      fc     = controller;
+                final Object[]          fargs  = buildArgs(plan, plan.actionMethod().getParameters(), model, req);
+                final String            fmetric = metricKey(local);
                 final String            fverb  = req.getMethod();
 
                 asyncExecutor.submit(() -> {
                     try {
-                        invokeWithRetry(fp, fc, fm, fr);
+                        invokeResolved(fp, fc, fargs);
                     } catch (Exception e) {
-                        // BUG FIX #1: async ya no es silencioso
                         Throwable cause = e instanceof InvocationTargetException ite
                                 && ite.getTargetException() != null
                                 ? ite.getTargetException() : e;
@@ -249,7 +261,7 @@ public class MainLxServlet extends HttpServlet {
                                 fp.controllerClass().getSimpleName(),
                                 fp.actionMethod().getName(),
                                 cause.getMessage(), cause);
-                        JxMetrics.record(flocal, fverb, 500, 0);
+                        JxMetrics.record(fmetric, fverb, 500, 0);
                     }
                 });
 
@@ -301,7 +313,7 @@ public class MainLxServlet extends HttpServlet {
 
         } finally {
             long durationMs = System.currentTimeMillis() - startMs;
-            JxMetrics.record(local, req.getMethod(), statusCode, durationMs);
+            JxMetrics.record(metricKey(local), req.getMethod(), statusCode, durationMs);
             if (log.isDebugEnabled()) {
                 log.debug("{} {} → {} en {}ms", req.getMethod(), local, statusCode, durationMs);
             }
@@ -389,19 +401,43 @@ public class MainLxServlet extends HttpServlet {
 
     // ── @JxRateLimit ─────────────────────────────────────────────────────
 
+    private boolean csrfExempt(BaseDispatchPlan plan) {
+        return plan.actionMethod().isAnnotationPresent(JxMapping.JxCsrfExempt.class)
+            || plan.controllerClass().isAnnotationPresent(JxMapping.JxCsrfExempt.class);
+    }
+
     private JxMapping.JxRateLimit resolveRateLimit(BaseDispatchPlan plan) {
         JxMapping.JxRateLimit m = plan.actionMethod().getAnnotation(JxMapping.JxRateLimit.class);
         return m != null ? m : plan.controllerClass().getAnnotation(JxMapping.JxRateLimit.class);
     }
 
+    /**
+     * IP del cliente para rate limiting.
+     * Solo confía en {@code X-Forwarded-For}/{@code X-Real-IP} cuando
+     * {@code jxmvc.trustProxy=true} (app detrás de un reverse proxy de confianza);
+     * de lo contrario usa {@code getRemoteAddr()} para no ser evadible por cabecera falsa.
+     */
     private String getClientIp(HttpServletRequest req) {
-        String ip = req.getHeader("X-Forwarded-For");
-        if (ip != null && !ip.isBlank()) {
-            String candidate = ip.split(",")[0].trim();
-            if (!candidate.isEmpty()) return candidate;
+        if (TRUST_PROXY) {
+            String ip = req.getHeader("X-Forwarded-For");
+            if (ip != null && !ip.isBlank()) {
+                String candidate = ip.split(",")[0].trim();
+                if (!candidate.isEmpty()) return candidate;
+            }
+            ip = req.getHeader("X-Real-IP");
+            if (ip != null && !ip.isBlank()) return ip.trim();
         }
-        ip = req.getHeader("X-Real-IP");
-        return (ip != null && !ip.isBlank()) ? ip.trim() : req.getRemoteAddr();
+        return req.getRemoteAddr();
+    }
+
+    /**
+     * Clave de métrica normalizada: colapsa segmentos variables (números, UUIDs,
+     * hashes hex largos) a {@code {n}} para que {@code /users/123} y
+     * {@code /users/a1b2…} no exploten la cardinalidad del mapa.
+     */
+    private String metricKey(String local) {
+        if (local == null || local.isEmpty()) return "/";
+        return local.replaceAll("/(\\d+|[0-9a-fA-F-]{16,}|[0-9a-fA-F]{8,})(?=/|$)", "/{n}");
     }
 
     // ── Auth ──────────────────────────────────────────────────────────────
@@ -421,7 +457,12 @@ public class MainLxServlet extends HttpServlet {
 
         boolean needed = requireAuth || roleAnn != null || (authAnn != null && authAnn.required());
         if (!needed) return true;
-        if (!JxSecurity.isConfigured()) return true;
+        if (!JxSecurity.isConfigured()) {
+            log.error("Ruta protegida en {} pero no hay JxAuthProvider configurado — denegando acceso (fail-closed). "
+                    + "Registrar el proveedor con JxSecurity.setProvider(...)",
+                    c.getSimpleName());
+            return false;
+        }
 
         String[] roles = roleAnn  != null ? roleAnn.value()
                        : authAnn  != null ? authAnn.roles()
@@ -553,6 +594,22 @@ public class MainLxServlet extends HttpServlet {
         return result[0];
     }
 
+    /** Invoca la acción con argumentos ya resueltos (usado por @JxAsync, sin tocar el request). */
+    private void invokeResolved(BaseDispatchPlan plan, JxController ctrl, Object[] args)
+            throws ReflectiveOperationException {
+        boolean tx = plan.actionMethod().isAnnotationPresent(JxMapping.JxTransactional.class)
+                  || plan.controllerClass().isAnnotationPresent(JxMapping.JxTransactional.class);
+        if (!tx) { plan.actionMethod().invoke(ctrl, args); return; }
+
+        final Throwable[] error = {null};
+        JxTransaction.run(() -> {
+            try { plan.actionMethod().invoke(ctrl, args); }
+            catch (Exception e) { error[0] = e; }
+        });
+        if (error[0] instanceof ReflectiveOperationException roe) throw roe;
+        if (error[0] != null) throw new JxException(500, error[0].getMessage());
+    }
+
     private Object[] buildArgs(BaseDispatchPlan plan, Parameter[] params,
                                 JxRequest model, HttpServletRequest raw) {
         Object[] args = new Object[params.length];
@@ -580,6 +637,11 @@ public class MainLxServlet extends HttpServlet {
                 args[i] = val != null ? convert(val, p.getType(), i) : defaultValue(p.getType());
 
             } else if (body != null) {
+                String ct = raw.getContentType();
+                boolean json = ct != null
+                        && (ct.toLowerCase().startsWith("application/json") || ct.toLowerCase().contains("+json"));
+                if (!json)
+                    throw new JxException(415, "Content-Type debe ser application/json");
                 Object parsed = JxJson.fromJson(model.body(), p.getType());
                 if (p.getAnnotation(JxMapping.JxValid.class) != null && parsed != null) {
                     JxValidation.validate(parsed);
@@ -617,8 +679,8 @@ public class MainLxServlet extends HttpServlet {
 
     private Object convert(String raw, Class<?> type, int i) {
         if (raw == null || raw.isEmpty()) return defaultValue(type);
-        if (type == String.class) return raw;
         String v = BaseSanitizer.clean(raw);
+        if (type == String.class) return v;
         try {
             if (type == int.class     || type == Integer.class) return Integer.parseInt(v);
             if (type == long.class    || type == Long.class)    return Long.parseLong(v);
@@ -628,7 +690,8 @@ public class MainLxServlet extends HttpServlet {
         } catch (NumberFormatException ex) {
             throw new JxException(400, "Argumento " + i + " inválido para " + type.getSimpleName());
         }
-        throw new JxException(400, "Tipo de argumento no soportado: " + type.getName());
+        log.error("Tipo de parámetro no soportado en la acción: {}", type.getName());
+        throw new JxException(400, "Argumento " + i + " de tipo no soportado");
     }
 
     private Object defaultValue(Class<?> type) {
@@ -705,7 +768,7 @@ public class MainLxServlet extends HttpServlet {
 
         if (result instanceof String s) {
             if (statusOverride > 0) resp.setStatus(statusOverride);
-            if (s.startsWith("redirect:"))  { resp.sendRedirect(s.substring(9)); return; }
+            if (s.startsWith("redirect:"))  { resp.sendRedirect(JxResponse.checkRedirect(s.substring(9))); return; }
             if (s.endsWith(".jsp")) {
                 if (!safeViewPath(s)) { sendError(req, resp, 404, "Vista no encontrada"); return; }
                 req.getRequestDispatcher(s).forward(req, resp);
@@ -728,7 +791,13 @@ public class MainLxServlet extends HttpServlet {
                     req.getRequestDispatcher("/WEB-INF/views/" + viewPath + ".jsp")
                        .forward(req, resp);
                     return;
-                } catch (Exception ignored) {}
+                } catch (Exception e) {
+                    // Si el JSP ya escribió bytes antes de fallar, no anexar el fallback JSON.
+                    if (resp.isCommitted()) {
+                        log.error("Vista {} falló con respuesta ya comprometida: {}", viewPath, e.getMessage());
+                        return;
+                    }
+                }
             }
             write(resp, "application/json;charset=UTF-8", JxJson.toJson(result));
             return;
@@ -760,7 +829,7 @@ public class MainLxServlet extends HttpServlet {
                     resp.sendRedirect(req.getContextPath()
                             + (ar.payload().startsWith("/") ? "" : "/") + ar.payload());
                 else
-                    resp.sendRedirect(ar.payload());
+                    resp.sendRedirect(JxResponse.checkRedirect(ar.payload()));
             }
         }
     }

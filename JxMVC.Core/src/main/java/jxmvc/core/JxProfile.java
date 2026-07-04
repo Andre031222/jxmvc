@@ -51,7 +51,7 @@ public final class JxProfile {
         if (raw == null) raw = BaseDbResolver.property("jxmvc.profiles.active", "");
         if (raw.isBlank()) raw = BaseDbResolver.property("jxmvc.profile", "default");
         ACTIVE = Arrays.stream(raw.split(","))
-                       .map(String::trim)
+                       .map(s -> s.trim().toLowerCase())
                        .filter(s -> !s.isBlank())
                        .collect(Collectors.toUnmodifiableSet());
     }

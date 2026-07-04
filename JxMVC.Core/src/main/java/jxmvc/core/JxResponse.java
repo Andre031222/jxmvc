@@ -98,8 +98,26 @@ public final class JxResponse {
 
     // ── Redirección ───────────────────────────────────────────────────────
 
+    /** Destinos externos (esquema absoluto o {@code //host}) solo con {@code jxmvc.redirect.external=true}. */
+    private static final boolean EXTERNAL_REDIRECT =
+            BaseDbResolver.propertyBool("jxmvc.redirect.external", false);
+
+    /**
+     * Valida el destino de una redirección: los destinos externos se bloquean por
+     * defecto para impedir <i>open redirect</i> cuando el destino deriva de entrada
+     * del usuario. Se habilitan globalmente con {@code jxmvc.redirect.external=true}.
+     */
+    static String checkRedirect(String location) {
+        if (location == null || location.isBlank()) return "/";
+        String t = location.trim();
+        boolean external = t.startsWith("//") || t.matches("^[a-zA-Z][a-zA-Z0-9+.\\-]*:.*");
+        if (external && !EXTERNAL_REDIRECT)
+            throw new JxException(400, "Redirección externa no permitida");
+        return t;
+    }
+
     public void redirect(String location) throws IOException {
-        if (location == null || location.isBlank()) location = "/";
+        location = checkRedirect(location);
         if (location.startsWith("http://") || location.startsWith("https://")) {
             response.sendRedirect(location);
         } else {

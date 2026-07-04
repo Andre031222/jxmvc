@@ -31,7 +31,11 @@ public final class BaseCorsResolver {
         String origin = safe(req.getHeader("Origin"));
 
         if (origin.isBlank()) return true;   // same-origin sin cabecera, siempre OK
-        if (isSameHost(req, origin)) return true;  // mismo host:puerto → same-origin
+        if (isSameHost(req, origin)) {       // mismo host:puerto → same-origin
+            // La respuesta depende de Origin: que las cachés intermedias no la reutilicen cross-origin.
+            resp.addHeader("Vary", "Origin");
+            return true;
+        }
         if (!hasAnnotation)   return false;  // cross-origin sin política → bloquear
 
         CorsPolicy policy = resolvePolicy(methodPolicy, controllerPolicy);

@@ -215,11 +215,6 @@ public final class GenApi {
     }
 
     private static String escapeJson(String s) {
-        if (s == null) return "";
-        return s.replace("\\", "\\\\")
-                .replace("\"", "\\\"")
-                .replace("\n", "\\n")
-                .replace("\r", "\\r")
-                .replace("\t", "\\t");
+        return JxJson.escape(s);
     }
 }

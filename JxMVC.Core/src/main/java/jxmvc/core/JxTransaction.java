@@ -39,9 +39,6 @@ public final class JxTransaction {
     /** Conexión activa para el hilo actual (null fuera de una transacción). */
     static final ThreadLocal<Connection> TX = new ThreadLocal<>();
 
-    /** Contador de anidamiento para aplanar transacciones internas. */
-    static final ThreadLocal<Integer> DEPTH = ThreadLocal.withInitial(() -> 0);
-
     private JxTransaction() {}
 
     /** Devuelve la conexión transaccional del hilo actual, o {@code null}. */
@@ -70,19 +67,17 @@ public final class JxTransaction {
     public static <T> T call(Callable<T> work) {
         boolean root = TX.get() == null;
         if (!root) {
-            // Transacción anidada — delegar al nivel raíz
-            DEPTH.set(DEPTH.get() + 1);
+            // Transacción anidada — se aplana: participa en la conexión de la raíz.
             try { return work.call(); }
             catch (Exception e) { rethrow(e); return null; }
-            finally { DEPTH.set(DEPTH.get() - 1); }
         }
 
         // Nivel raíz: abrir conexión y gestionar commit/rollback
         try (JxDB db = new JxDB()) {
             Connection conn = db.rawConnection();
             TX.set(conn);
-            conn.setAutoCommit(false);
             try {
+                conn.setAutoCommit(false);
                 T result = work.call();
                 conn.commit();
                 return result;
@@ -91,11 +86,9 @@ public final class JxTransaction {
                 rethrow(e);
                 return null; // unreachable
             } finally {
+                // Limpieza garantizada aunque falle setAutoCommit: nunca fuga el ThreadLocal.
                 safeAutoCommit(conn);
                 TX.remove();
-                DEPTH.remove();
-                // La conexión la cierra el try-with-resources de JxDB,
-                // pero como TX ya se limpió, close() la devolverá al pool normalmente.
             }
         } catch (Exception e) {
             rethrow(e);

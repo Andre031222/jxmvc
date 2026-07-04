@@ -48,6 +48,9 @@ public final class JxEventBus {
     private static final ConcurrentHashMap<Class<?>, List<Listener>> LISTENERS =
             new ConcurrentHashMap<>();
 
+    /** Firmas ya registradas para que el descubrimiento sea idempotente (evita listeners duplicados). */
+    private static final java.util.Set<String> REGISTERED = ConcurrentHashMap.newKeySet();
+
     private static volatile boolean scanned = false;
 
     private JxEventBus() {}
@@ -112,6 +115,9 @@ public final class JxEventBus {
             if (m.getAnnotation(JxMapping.JxEventListener.class) == null) continue;
             if (m.getParameterCount() != 1) continue;
             Class<?> eventType = m.getParameterTypes()[0];
+            String sig = System.identityHashCode(target) + "#"
+                    + target.getClass().getName() + "#" + m.getName() + "#" + eventType.getName();
+            if (!REGISTERED.add(sig)) continue;
             m.setAccessible(true);
             LISTENERS.computeIfAbsent(eventType, k -> new CopyOnWriteArrayList<>())
                      .add(event -> m.invoke(target, event));

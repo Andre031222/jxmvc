@@ -278,13 +278,38 @@ public final class JxJson {
     // ── Internos ──────────────────────────────────────────────────────────
 
     static String quote(String s) {
-        return "\"" + s
-                .replace("\\", "\\\\")
-                .replace("\"", "\\\"")
-                .replace("\n",  "\\n")
-                .replace("\r",  "\\r")
-                .replace("\t",  "\\t")
-                + "\"";
+        return "\"" + escape(s) + "\"";
+    }
+
+    /**
+     * Escapa una cadena para insertarla en JSON de forma segura.
+     * Además de los escapes estándar, neutraliza {@code <} y {@code >} (evita romper
+     * el contexto {@code </script>} cuando el JSON se incrusta en HTML), los separadores
+     * de línea U+2028/U+2029 (que rompen literales JS) y todo carácter de control.
+     */
+    static String escape(String s) {
+        if (s == null) return "";
+        StringBuilder sb = new StringBuilder(s.length() + 8);
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            switch (c) {
+                case '\\' -> sb.append("\\\\");
+                case '"'  -> sb.append("\\\"");
+                case '\n' -> sb.append("\\n");
+                case '\r' -> sb.append("\\r");
+                case '\t' -> sb.append("\\t");
+                case '\b' -> sb.append("\\b");
+                case '\f' -> sb.append("\\f");
+                case '<'  -> sb.append("\\u003c");
+                case '>'  -> sb.append("\\u003e");
+                default -> {
+                    if (c < 0x20 || c == 0x2028 || c == 0x2029)
+                        sb.append(String.format("\\u%04x", (int) c));
+                    else sb.append(c);
+                }
+            }
+        }
+        return sb.toString();
     }
 
     private static String rowToJson(DBRow row) {

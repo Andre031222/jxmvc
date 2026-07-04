@@ -1,5 +1,52 @@
 # Changelog — JxMVC Core
 
+## 3.3.0 — 2026-07-04
+
+Routing endurecido, capas de seguridad nuevas (CSRF, límites, anti open-redirect) y métricas más ricas. API pública intacta; todo lo nuevo es opt-in o corrección de comportamiento incorrecto.
+
+### ⚠ Cambios de comportamiento
+
+1. **Rate limiting por acción**: la clave del bucket es la acción resuelta (`VERBO:controlador#accion`), no la URI cruda — rotar `/api/{id}` ya no evade el límite.
+2. **405 correcto**: pedir una ruta de plantilla (`{id}`) con el verbo equivocado responde 405 (antes 404). `HEAD` se resuelve como `GET` (antes 405).
+3. **Auth fail-closed**: una ruta protegida sin `JxAuthProvider` configurado deniega el acceso (antes lo permitía).
+4. **`@JxBody` exige `application/json`** (o `*+json`); otros `Content-Type` responden 415.
+5. **Redirecciones externas bloqueadas** por defecto (anti open-redirect); se habilitan con `jxmvc.redirect.external=true`.
+6. **Body no-multipart con tope** (10 MB por defecto); al excederlo responde 413.
+7. **Parámetros `String` de método** pasan por el sanitizador, consistente con `model.param()`.
+
+### Nuevo
+
+- **JxCsrf**: protección CSRF por token de sesión (`jxmvc.security.csrf=true`), campo `_csrf` o cabecera `X-CSRF-Token`, comparación en tiempo constante, `@JxCsrfExempt` para APIs. Funciones EL `jx:csrf` / `jx:csrfToken`.
+- **JxHtml** (`jx:esc`): codificación de salida HTML — la defensa XSS en el punto correcto.
+- **JxMetrics**: mín/máx por ruta y contadores por clase de estado (1xx–5xx) en `/jx/metrics`.
+- **Router determinista**: rutas de plantilla ordenadas por especificidad (antes dependían del orden del `HashSet` del escaneo); las colisiones de rutas se registran con `log.warn`.
+
+### Corregido
+
+- **extraArgs**: argumentos posicionales calculados por segmentos — `//` dobles o mayúsculas en el path ya no desalinean los args; además se URL-decodifican (consistente con `{vars}`).
+- **JxRateLimiter**: la limpieza respeta ventanas largas activas (antes un bucket de 1 h se reseteaba a los 10 min); daemon único de limpieza.
+- **JxCache**: desalojo LRU aproximado por muestreo (estilo Redis) — sin escaneo O(n) por `put` a tope; el daemon de limpieza se detiene en el shutdown (fuga de classloader).
+- **JxDB**: ciclo de vida de conexiones centralizado en `withConn` (sin fugas en caminos de error).
+- **@JxAsync**: los argumentos se resuelven con el request vivo (Tomcat recicla el objeto al retornar) y la clave de métrica se normaliza.
+- **Métricas**: los segmentos variables (números, UUIDs, hex) se colapsan a `{n}` — cardinalidad acotada.
+- **render()**: si la vista falla con la respuesta ya comprometida, no se anexa el fallback JSON (respuesta mixta).
+- **CORS**: `Vary: Origin` también en el camino same-host.
+- **Mensajes de error** sin nombres de clases/paquetes internos hacia el cliente.
+
+### Nuevas propiedades
+
+```properties
+jxmvc.security.csrf=false      # protección CSRF por token de sesión
+jxmvc.body.maxBytes=10485760   # tope del body no-multipart (413 al exceder)
+jxmvc.redirect.external=false  # permitir redirecciones a otros dominios
+```
+
+### Tests
+
+305 verificaciones (30 nuevas): CSRF (token, header, campo, exención), open redirect, body cap 413, min/máx y clases de estado en métricas, ventanas largas del rate limiter, extraArgs con dobles slashes/mayúsculas/URL-encoding, colapso de cardinalidad, escape HTML.
+
+---
+
 ## 3.2.0 — 2026-06-12
 
 Auditoría completa de producción: concurrencia, recursos y seguridad. Cero dependencias, API pública intacta.

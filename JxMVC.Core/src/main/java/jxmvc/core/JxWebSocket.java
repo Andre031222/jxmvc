@@ -57,6 +57,10 @@ public abstract class JxWebSocket {
     private static final int MAX_CONNECTIONS =
             BaseDbResolver.propertyInt("jxmvc.ws.maxConnections", 0);
 
+    /** Reserva atómica de cupo para respetar el tope aún con aperturas concurrentes. */
+    private static final java.util.concurrent.atomic.AtomicInteger connectionCount =
+            new java.util.concurrent.atomic.AtomicInteger(0);
+
     // ── Salas — mapa sala → sesiones activas ─────────────────────────────
     private static final Map<String, Set<Session>> rooms = new ConcurrentHashMap<>();
 
@@ -90,7 +94,8 @@ public abstract class JxWebSocket {
 
     @OnOpen
     public final void _onOpen(Session session) {
-        if (MAX_CONNECTIONS > 0 && allSessions.size() >= MAX_CONNECTIONS) {
+        if (MAX_CONNECTIONS > 0 && connectionCount.incrementAndGet() > MAX_CONNECTIONS) {
+            connectionCount.decrementAndGet();
             log.warn("[WS] Conexión rechazada: límite de {} alcanzado", MAX_CONNECTIONS);
             try { session.close(new CloseReason(CloseReason.CloseCodes.VIOLATED_POLICY, "Límite de conexiones")); }
             catch (IOException ignored) {}
@@ -114,7 +119,7 @@ public abstract class JxWebSocket {
 
     @OnClose
     public final void _onClose(Session session) {
-        allSessions.remove(session);
+        if (allSessions.remove(session) && MAX_CONNECTIONS > 0) connectionCount.decrementAndGet();
         removeFromAllRooms(session);
         onClose(session);
     }
@@ -123,7 +128,7 @@ public abstract class JxWebSocket {
     public final void _onError(Session session, Throwable error) {
         onError(session, error);
         if (session != null && !session.isOpen()) {
-            allSessions.remove(session);
+            if (allSessions.remove(session) && MAX_CONNECTIONS > 0) connectionCount.decrementAndGet();
             removeFromAllRooms(session);
         }
     }
@@ -152,17 +157,23 @@ public abstract class JxWebSocket {
 
     // ── Gestión de salas ──────────────────────────────────────────────────
 
-    /** Une una sesión a una sala. */
+    /** Une una sesión a una sala. Atómico: no compite con la limpieza de salas vacías. */
     protected void joinRoom(String room, Session session) {
-        rooms.computeIfAbsent(room, k -> Collections.newSetFromMap(new ConcurrentHashMap<>()))
-             .add(session);
+        rooms.compute(room, (k, set) -> {
+            if (set == null) set = Collections.newSetFromMap(new ConcurrentHashMap<>());
+            set.add(session);
+            return set;
+        });
         session.getUserProperties().put("sala", room);
     }
 
-    /** Retira una sesión de una sala. */
+    /** Retira una sesión de una sala y elimina la sala si queda vacía, de forma atómica. */
     protected void leaveRoom(String room, Session session) {
-        Set<Session> s = rooms.get(room);
-        if (s != null) { s.remove(session); if (s.isEmpty()) rooms.remove(room); }
+        rooms.compute(room, (k, set) -> {
+            if (set == null) return null;
+            set.remove(session);
+            return set.isEmpty() ? null : set;
+        });
     }
 
     /** Número de conexiones activas en una sala. */
@@ -176,8 +187,13 @@ public abstract class JxWebSocket {
     // ── Internos ──────────────────────────────────────────────────────────
 
     private void removeFromAllRooms(Session session) {
-        rooms.forEach((room, sessions) -> sessions.remove(session));
-        rooms.entrySet().removeIf(e -> e.getValue().isEmpty());
+        for (String room : rooms.keySet()) {
+            rooms.compute(room, (k, set) -> {
+                if (set == null) return null;
+                set.remove(session);
+                return set.isEmpty() ? null : set;
+            });
+        }
     }
 
     private String[] extractPathVars(Session session) {

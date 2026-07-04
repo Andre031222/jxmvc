@@ -25,17 +25,24 @@ public final class JxRateLimiter {
 
     private JxRateLimiter() {}
 
-    /** Entrada: [count, windowStart] */
+    /** Entrada: [count, windowStart, windowMs] */
     private static final ConcurrentHashMap<String, long[]> buckets = new ConcurrentHashMap<>();
 
+    private static final java.util.concurrent.ScheduledExecutorService CLEANER =
+            Executors.newSingleThreadScheduledExecutor(r -> {
+                Thread t = new Thread(r, "jx-ratelimiter-cleaner");
+                t.setDaemon(true);
+                return t;
+            });
+
     static {
-        // Daemon de limpieza: elimina buckets inactivos >10 min para evitar memory leak
-        var cleaner = Executors.newSingleThreadScheduledExecutor(r -> {
-            Thread t = new Thread(r, "jx-ratelimiter-cleaner");
-            t.setDaemon(true);
-            return t;
-        });
-        cleaner.scheduleWithFixedDelay(() -> cleanup(600), 10, 10, TimeUnit.MINUTES);
+        // Daemon de limpieza: elimina solo buckets cuya propia ventana ya expiró
+        CLEANER.scheduleWithFixedDelay(JxRateLimiter::cleanupExpired, 10, 10, TimeUnit.MINUTES);
+    }
+
+    /** Detiene el daemon de limpieza — llamar en el shutdown del contenedor. */
+    public static void shutdown() {
+        CLEANER.shutdownNow();
     }
 
     /**
@@ -52,13 +59,14 @@ public final class JxRateLimiter {
         long   now  = System.currentTimeMillis();
         long   winMs = windowSecs * 1000;
 
-        long[] bucket = buckets.computeIfAbsent(key, k -> new long[]{0, now});
+        long[] bucket = buckets.computeIfAbsent(key, k -> new long[]{0, now, winMs});
         synchronized (bucket) {
             // Resetear si la ventana expiró
             if (now - bucket[1] >= winMs) {
                 bucket[0] = 0;
                 bucket[1] = now;
             }
+            bucket[2] = winMs;
             if (bucket[0] >= maxReqs) return false;
             bucket[0]++;
             return true;
@@ -88,6 +96,15 @@ public final class JxRateLimiter {
         buckets.entrySet().removeIf(e -> {
             long[] b = e.getValue();
             synchronized (b) { return b[1] < cutoff; }
+        });
+    }
+
+    /** Elimina los buckets cuya propia ventana ya expiró (respeta ventanas largas activas). */
+    static void cleanupExpired() {
+        long now = System.currentTimeMillis();
+        buckets.entrySet().removeIf(e -> {
+            long[] b = e.getValue();
+            synchronized (b) { return now - b[1] >= b[2]; }
         });
     }
 }

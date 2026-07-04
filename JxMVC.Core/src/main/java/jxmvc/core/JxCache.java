@@ -63,14 +63,20 @@ public final class JxCache {
 
     private static final ConcurrentHashMap<String, JxCache> REGISTRY = new ConcurrentHashMap<>();
 
+    private static final java.util.concurrent.ScheduledExecutorService CLEANER =
+            Executors.newSingleThreadScheduledExecutor(r -> {
+                Thread t = new Thread(r, "jx-cache-cleaner");
+                t.setDaemon(true);
+                return t;
+            });
+
     static {
-        // Daemon de limpieza periódica
-        var cleaner = Executors.newSingleThreadScheduledExecutor(r -> {
-            Thread t = new Thread(r, "jx-cache-cleaner");
-            t.setDaemon(true);
-            return t;
-        });
-        cleaner.scheduleWithFixedDelay(JxCache::cleanAll, 60, 60, TimeUnit.SECONDS);
+        CLEANER.scheduleWithFixedDelay(JxCache::cleanAll, 60, 60, TimeUnit.SECONDS);
+    }
+
+    /** Detiene el daemon de limpieza — llamar en el shutdown del contenedor (evita fuga de classloader). */
+    public static void shutdown() {
+        CLEANER.shutdownNow();
     }
 
     /** Retorna (o crea) la caché de nombre {@code name}. */
@@ -129,12 +135,21 @@ public final class JxCache {
         }
     }
 
+    /**
+     * LRU aproximado por muestreo (estilo Redis): examina hasta {@code EVICT_SAMPLE}
+     * entradas y desaloja la más fría de la muestra. Evita el escaneo O(n) del mapa
+     * completo en cada {@code put} cuando la caché está a tope.
+     */
+    private static final int EVICT_SAMPLE = 64;
+
     private String coldestKey() {
         String coldest = null;
         long oldest = Long.MAX_VALUE;
+        int seen = 0;
         for (var e : store.entrySet()) {
             long access = e.getValue().lastAccess;
             if (access < oldest) { oldest = access; coldest = e.getKey(); }
+            if (++seen >= EVICT_SAMPLE) break;
         }
         return coldest;
     }

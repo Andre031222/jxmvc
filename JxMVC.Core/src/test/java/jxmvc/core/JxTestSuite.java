@@ -18,7 +18,8 @@ public class JxTestSuite {
         "jxmvc.core.PoolTest",
         "jxmvc.core.GzipTest",
         "jxmvc.core.WebSocketTest",
-        "jxmvc.core.SecurityTest"
+        "jxmvc.core.SecurityTest",
+        "jxmvc.core.HardeningV33Test"
     );
 
     public static void main(String[] args) throws Exception {

@@ -94,6 +94,13 @@ public final class JxMapping {
     @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.TYPE, ElementType.METHOD})
     public @interface JxRequireRole { String[] value(); }
 
+    /**
+     * Excluye la acción (o todo el controlador) de la validación CSRF cuando
+     * {@code jxmvc.security.csrf=true} — típico en APIs consumidas sin sesión.
+     */
+    @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.TYPE, ElementType.METHOD})
+    public @interface JxCsrfExempt {}
+
     // ── Parámetros de método ─────────────────────────────────────────────
 
     /** Vincula un segmento de ruta {@code {variable}} al parámetro del método. */
