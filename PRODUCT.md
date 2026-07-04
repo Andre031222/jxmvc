@@ -7,7 +7,7 @@ brand
 ## Users
 
 Desarrolladores Java (hispanohablantes primero) que evalúan o usan JxMVC: estudiantes
-de la UNA Puno, devs de backends institucionales y gente cansada del peso de Spring
+devs de backends institucionales y gente cansada del peso de Spring
 Boot. Llegan al sitio para entender qué es el framework, comparar, leer docs y
 descargar/generar un proyecto de arranque.
 

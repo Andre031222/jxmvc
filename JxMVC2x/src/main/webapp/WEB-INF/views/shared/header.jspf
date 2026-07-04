@@ -309,7 +309,7 @@
     </script>
 </head>
 
-<body class="bg-[#F5F5F7] dark:bg-[#000000] text-ink dark:text-[#F5F5F7] min-h-screen font-sans antialiased selection:bg-apple/15 selection:text-apple">
+<body class="bg-white dark:bg-[#000000] text-ink dark:text-[#F5F5F7] min-h-screen font-sans antialiased selection:bg-apple/15 selection:text-apple">
 
 <%-- ══ Nav ════════════════════════════════════════════════════════════ --%>
 <header class="jx-nav sticky top-0 z-50">

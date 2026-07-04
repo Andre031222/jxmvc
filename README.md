@@ -354,9 +354,9 @@ mín/máx por ruta, con la API pública intacta). Ver el
 ## Autores
 
 - **Dr. Ramiro Pedro Laura Murillo** — Diseño y arquitectura principal
-- **R. Andre Vilca Solorzano** — Contribuciones v3.0.0 · [andre.net.pe](https://andre.net.pe) · [night.fury.oi.ma@gmail.com](mailto:night.fury.oi.ma@gmail.com)
+- **R. Andre Vilca Solorzano** — Contribuciones v3.x · [andre.net.pe](https://andre.net.pe) · [night.fury.oi.ma@gmail.com](mailto:night.fury.oi.ma@gmail.com)
 
-<sub>Universidad Nacional del Altiplano — Puno, Perú · FINESI · 2024–2026</sub>
+<sub>Proyecto independiente de código abierto · 2024–2026</sub>
 
 ---
 
