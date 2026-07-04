@@ -320,9 +320,9 @@ GET /jx/openapi   → spec OpenAPI 3.0 generada automáticamente
 | JAR runtime | **237 KB** | ~20 MB | ~25 MB | ~15 MB | ~1.5 MB |
 | Deps externas | **0** | 200+ | 50+ | 80+ | 10+ |
 | Arranque | **1.2 s** | 4–8 s | 0.3 s | 0.3 s | 0.5 s |
-| JSON propio | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Pool propio | ✅ | ❌ | ❌ | ❌ | ❌ |
-| Scheduler propio | ✅ | ❌ | ❌ | ❌ | ❌ |
+| JSON propio | **Sí** | No | No | No | No |
+| Pool propio | **Sí** | No | No | No | No |
+| Scheduler propio | **Sí** | No | No | No | No |
 
 ---
 

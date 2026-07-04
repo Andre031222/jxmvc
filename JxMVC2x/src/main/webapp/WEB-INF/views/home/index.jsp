@@ -813,14 +813,14 @@ public class AdminController extends JxController {
       </div>
     </div>
 
-    <%-- Mobile: lista compacta --%>
-    <div class="md:hidden space-y-2">
+    <%-- Mobile: lista vertical (sin jx-pipe-node: esa clase global fuerza columna/opacity y rompía el layout) --%>
+    <div class="md:hidden space-y-2.5">
       <% for (String[] p : pipe) { %>
-      <div class="jx-pipe-node flex items-center gap-3 rounded-xl bg-[#F5F5F7] dark:bg-[#1C1C1E] border border-black/[0.06] dark:border-white/[0.07] px-4 py-3">
-        <span class="w-7 h-7 rounded-lg flex items-center justify-center text-[9px] font-mono font-bold text-white shrink-0" style="background:<%= p[2] %>"><%= p[0] %></span>
-        <div class="min-w-0">
-          <span class="text-[12px] font-medium text-ink dark:text-white"><%= p[1] %></span>
-          <p class="text-[10.5px] text-muted dark:text-[#8E8E93] leading-tight mt-0.5 truncate"><%= p[3] %></p>
+      <div class="flex items-start gap-3 rounded-xl bg-[#F5F5F7] dark:bg-[#1C1C1E] border border-black/[0.06] dark:border-white/[0.07] px-4 py-3">
+        <span class="w-7 h-7 rounded-lg flex items-center justify-center text-[10px] font-mono font-bold text-white shrink-0 mt-0.5" style="background:<%= p[2] %>"><%= p[0] %></span>
+        <div class="min-w-0 flex-1">
+          <span class="block text-[13px] font-semibold text-ink dark:text-white"><%= p[1] %></span>
+          <p class="text-[11.5px] text-muted dark:text-[#8E8E93] leading-snug mt-0.5"><%= p[3] %></p>
         </div>
       </div>
       <% } %>
