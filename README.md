@@ -31,7 +31,7 @@
 </p>
 
 <p align="center">
-  <img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=600&size=18&duration=2800&pause=900&color=0F62FE&center=true&vCenter=true&width=860&lines=%24+jxmvc+--jar+-%3E+237+KB+%C2%B7+0+dependencias+externas;%24+jxmvc+--start+-%3E+1.2+s+sobre+Tomcat+10+%28Jakarta+EE+10%29;%24+jxmvc+--stack+-%3E+Routing+%7C+JxDB+%7C+Pool+%7C+JSON+%7C+WebSocket+%7C+Scheduler;%24+jxmvc+--tests+-%3E+333+verificaciones+en+verde">
+  <img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=600&size=18&duration=2800&pause=900&color=0F62FE&center=true&vCenter=true&width=860&lines=%24+jxmvc+--jar+-%3E+237+KB+%C2%B7+0+dependencias+externas;%24+jxmvc+--start+-%3E+1.2+s+sobre+Tomcat+10+%28Jakarta+EE+10%29;%24+jxmvc+--stack+-%3E+Routing+%7C+JxDB+%7C+Pool+%7C+JSON+%7C+WebSocket+%7C+Scheduler;%24+jxmvc+--auth+-%3E+Google+OAuth+2.0+%2B+PKCE+%C2%B7+PBKDF2%2C+sin+librerias;%24+jxmvc+--tests+-%3E+333+verificaciones+en+verde">
 </p>
 
 </div>
@@ -51,6 +51,7 @@
 - [Requisitos previos](#requisitos-previos)
 - [Compilación](#compilación)
 - [Configuración](#configuración)
+- [Autenticación](#autenticación)
 - [Endpoints internos](#endpoints-internos)
 - [Comparativa](#comparativa)
 - [Pruebas y calidad](#pruebas-y-calidad)
@@ -136,6 +137,8 @@ en la BD. **Cero POJOs, cero Lombok, cero mapeo por reflexión.**
 | **JxWebSocket** | Endpoints WS con salas, *broadcast* y `@JxWsEndpoint` |
 | **JxRateLimiter** | *Rate limiting* por IP con `@JxRateLimit` — clave por acción, no evadible rotando `{id}` |
 | **JxSecurity** | Autenticación y roles enchufables (`JxAuthProvider`) — *fail-closed* sin provider |
+| **JxOAuth** | Inicio de sesión con **Google** (OAuth 2.0 + PKCE S256) — construye la URL, intercambia el código y trae los claims, sin librería externa |
+| **JxPasswords** | Hashing de contraseñas **PBKDF2-SHA256** con salt y coste embebidos, verificación en tiempo constante |
 | **JxCsrf** | Protección CSRF por token de sesión — `jx:csrf` en JSP, `X-CSRF-Token` en fetch, `@JxCsrfExempt` |
 | **JxHtml** | Codificación de salida HTML (`jx:esc`) — la defensa XSS en el render |
 | **JxDevMode** | *Watcher* de cambios en perfil `dev` |
@@ -295,6 +298,66 @@ jxmvc.redirect.external       = false    # permitir redirecciones a otros domini
 jxmvc.trustProxy              = false    # confiar en X-Forwarded-For (solo tras proxy propio)
 jxmvc.ws.maxConnections       = 0        # tope global de conexiones WebSocket
 ```
+
+---
+
+## Autenticación
+
+JxMVC trae de fábrica inicio de sesión con **Google** (OAuth 2.0 + PKCE) y **hashing de
+contraseñas** para el login nativo — ambos sin dependencias externas. Están en el core
+(`jxmvc.core.JxOAuth`, `jxmvc.core.JxPasswords`) y funcionan en vivo en
+[jxmvc.ginit.dev/auth/login](https://jxmvc.ginit.dev/auth/login).
+
+### Login con Google (OAuth 2.0 + PKCE)
+
+Configura las credenciales (nunca en el código — usa variables de entorno):
+
+```properties
+jxmvc.oauth.google.client-id     = xxxxx.apps.googleusercontent.com   # env JXMVC_OAUTH_GOOGLE_CLIENT_ID
+jxmvc.oauth.google.client-secret = xxxxx                              # env JXMVC_OAUTH_GOOGLE_CLIENT_SECRET
+jxmvc.oauth.google.redirect-uri  = https://tu-app/auth/google/callback
+```
+
+En el controlador, dos pasos:
+
+```java
+// 1) Redirigir al consentimiento de Google (genera state anti-CSRF y verificador PKCE)
+@JxGetMapping("google")
+public ActionResult google() {
+    JxOAuth.Flow flow = JxOAuth.google().start();
+    sessionSet("oauth.state",    flow.state());
+    sessionSet("oauth.verifier", flow.codeVerifier());
+    view.status(302);
+    view.header("Location", flow.url());   // URL absoluta al proveedor
+    return text("");
+}
+
+// 2) Callback: valida el state, intercambia el código y crea la sesión
+@JxGetMapping("google/callback")
+public ActionResult googleCallback() {
+    if (!model.param("state").equals(sessionGet("oauth.state")))
+        throw JxException.forbidden("state inválido");
+    JxOAuth.User user = JxOAuth.google()
+            .login(model.param("code"), (String) sessionGet("oauth.verifier"));
+    sessionSet("user", user);   // user.email(), user.name(), user.picture()…
+    return redirect("/auth/perfil");
+}
+```
+
+### Login nativo (correo + contraseña)
+
+```java
+// Al registrar: guarda el hash, nunca la contraseña en claro
+String stored = JxPasswords.hash("s3cr3t!");
+
+// Al iniciar sesión: verificación en tiempo constante
+if (JxPasswords.verify(inputPassword, stored)) {
+    sessionSet("user", user);
+}
+```
+
+Rutas protegidas con `@JxRequireAuth` / `@JxRequireRole` — el core valida la sesión
+mediante el `JxAuthProvider` que registres (ver `JxSecurity.setProvider`).
 
 ---
 
