@@ -3,7 +3,9 @@ package jxmvc.controllers;
 import jxmvc.core.ActionResult;
 import jxmvc.core.JxController;
 import jxmvc.core.JxDB;
+import jxmvc.core.JxException;
 import jxmvc.core.JxJson;
+import jxmvc.core.JxProfile;
 
 /**
  * Controlador base de la aplicación.
@@ -13,6 +15,15 @@ public abstract class BaseController extends JxController {
 
     /** Conexión a la BD por defecto (application.properties). */
     protected JxDB db() { return new JxDB(); }
+
+    /**
+     * Bloquea la acción fuera del perfil {@code dev}: responde 404 en producción.
+     * Usar en endpoints de demostración que no deben quedar expuestos en un sitio público.
+     */
+    protected void requireDev() {
+        if (!JxProfile.isDev())
+            throw JxException.notFound("Ruta no encontrada");
+    }
 
     /** Respuesta JSON con estado HTTP personalizado. */
     protected ActionResult jsonStatus(int status, Object body) {

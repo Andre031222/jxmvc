@@ -7,11 +7,11 @@
 <div class="mb-12 jx-reveal jx-delay-1">
     <p class="text-[10px] font-mono uppercase tracking-[0.28em] text-muted dark:text-[#8E8E93] mb-3" data-i18n="about.tag">About</p>
     <h1 class="text-4xl sm:text-5xl font-bold tracking-tight mb-4 text-ink dark:text-white">
-        Lightning-X MVC <span class="text-apple">3.2.0</span>
+        Lightning-X MVC <span class="text-apple">3.3.0</span>
     </h1>
     <p class="text-base text-muted dark:text-[#8E8E93] max-w-2xl leading-relaxed" data-i18n="about.desc">
         Framework MVC para Jakarta EE construido desde cero — sin Spring, sin Hibernate,
-        sin dependencias en runtime. Un JAR de 224 KB con routing, pool de conexiones,
+        sin dependencias en runtime. Un JAR de 237 KB con routing, pool de conexiones,
         validación, JSON, WebSocket, métricas y OpenAPI integrados. Virtual Threads
         detectados automáticamente en Java 21+.
     </p>
@@ -87,7 +87,7 @@
             <tbody class="divide-y divide-black/[0.05] dark:divide-white/[0.05]">
                 <%
                 String[][] rows = {
-                    {"WAR / JAR mínimo",    "224 KB",   "~18 MB",     "~50 KB"},
+                    {"WAR / JAR mínimo",    "237 KB",   "~18 MB",     "~50 KB"},
                     {"Dependencias runtime", "0",        "~50-150+",   "0"},
                     {"Routing",             "Conv+Ann",  "Ann",        "Manual"},
                     {"Pool de conexiones",  "propio",    "HikariCP",   "ninguno"},

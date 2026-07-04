@@ -1,4 +1,5 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
+<%@ taglib prefix="jx" uri="http://jxmvc/tags" %>
 <%@ include file="/WEB-INF/views/shared/header.jspf" %>
 
 <section class="max-w-4xl mx-auto px-4 sm:px-6 py-10">
@@ -14,12 +15,12 @@
         <div class="grid gap-5">
             <div>
                 <p class="text-xs font-mono uppercase tracking-[0.25em] text-muted dark:text-[#86868b] mb-1">Ruta invocada</p>
-                <p class="text-lg font-semibold text-ink dark:text-[#f5f5f7]">${route}</p>
+                <p class="text-lg font-semibold text-ink dark:text-[#f5f5f7]">${jx:esc(route)}</p>
             </div>
             <div class="grid md:grid-cols-2 gap-5">
                 <div>
                     <p class="text-xs font-mono uppercase tracking-[0.25em] text-muted dark:text-[#86868b] mb-1">Valor capturado</p>
-                    <p class="text-lg font-semibold text-ink dark:text-[#f5f5f7]">${value}</p>
+                    <p class="text-lg font-semibold text-ink dark:text-[#f5f5f7]">${jx:esc(value)}</p>
                 </div>
                 <div>
                     <p class="text-xs font-mono uppercase tracking-[0.25em] text-muted dark:text-[#86868b] mb-1">Cantidad de argumentos</p>

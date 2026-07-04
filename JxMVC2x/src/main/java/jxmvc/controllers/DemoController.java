@@ -8,12 +8,14 @@ import java.nio.file.Paths;
 @JxControllerMapping("demo")
 public class DemoController extends BaseController {
 
+    private static final String DB_UNAVAILABLE = "Base de datos de demostración no configurada";
+
     // ── Demo básico ───────────────────────────────────────────────────────
 
     @JxGetMapping("index")
     public String index() {
         view.contentType("text/html;charset=UTF-8");
-        return "Demo JxMVC 3.2.0 — <b>funcionando</b>";
+        return "Demo JxMVC 3.3.0 — <b>funcionando</b>";
     }
 
     @JxGetMapping("salud")
@@ -23,7 +25,7 @@ public class DemoController extends BaseController {
 
     @JxGetMapping("ping")
     public ActionResult ping() {
-        return json(GenApi.JsonStr("pong", true, "version", "3.2.0"));
+        return json(GenApi.JsonStr("pong", true, "version", "3.3.0"));
     }
 
     // ── CORS ──────────────────────────────────────────────────────────────
@@ -60,12 +62,13 @@ public class DemoController extends BaseController {
         return text(val != null ? "t1 = " + val : "nulo");
     }
 
-    // ── Base de datos ─────────────────────────────────────────────────────
+    // ── Base de datos (solo perfil dev) ───────────────────────────────────
 
     @JxGetMapping("/inscrips")
     public void inscrips() {
+        requireDev();
         TestModel db = new TestModel();
-        if (!db.IsConnected()) { view.print("Error: " + db.getError()); return; }
+        if (!db.IsConnected()) { view.print(DB_UNAVAILABLE); return; }
 
         DBRowSet tbl = db.GetInscrips(null);
         model.setVar("connState", "Conectado");
@@ -73,14 +76,14 @@ public class DemoController extends BaseController {
         model.setVar("hasRows",   !tbl.isEmpty());
     }
 
-    // Demo del patrón v3: FindBy + GenApi.JsonStr (acceso directo sin POJO)
     @JxGetMapping("persona")
     public ActionResult persona() {
-        String id = model.argRaw(0);
+        requireDev();
+        String id = model.arg(0);
         if (id == null || id.isBlank()) return json(GenApi.Error("Uso: /demo/persona/{id}"));
 
         TestModel db = new TestModel();
-        if (!db.IsConnected()) return json(GenApi.Error("Sin conexión: " + db.getError()));
+        if (!db.IsConnected()) return json(GenApi.Error(503, DB_UNAVAILABLE));
 
         DBRow per = db.FindBy("tblPersonas", "id", id);
         if (per == null) return json(GenApi.Error(404, "Persona no encontrada"));
@@ -98,17 +101,23 @@ public class DemoController extends BaseController {
 
     @JxGetMapping("dbremote")
     public ActionResult dbRemote() {
-        try (JxDB db = new JxDB("postgresql://fcd.org.pe:5432/dbtest", "rplm", "finesi++")) {
-            return db.isConnected() ? text("Conexión remota OK") : text("ERROR: " + db.getError());
+        requireDev();
+        JxDB db = demoDb();
+        if (db == null) return text(DB_UNAVAILABLE);
+        try (db) {
+            return db.isConnected() ? text("Conexión remota OK") : text(DB_UNAVAILABLE);
         }
     }
 
-    // ── CRUD seguro (sin SQL injection) ───────────────────────────────────
+    // ── CRUD (solo dev; mutaciones por POST) ──────────────────────────────
 
     @JxGetMapping("test-list")
     public ActionResult testList() {
-        try (JxDB db = remoteDb()) {
-            if (!db.isConnected()) return text("ERROR: " + db.getError());
+        requireDev();
+        JxDB db = demoDb();
+        if (db == null) return text(DB_UNAVAILABLE);
+        try (db) {
+            if (!db.isConnected()) return text(DB_UNAVAILABLE);
             DBRowSet rows = db.getTable("dicTest", "", "ORDER BY \"Id\"");
             StringBuilder sb = new StringBuilder("Filas: " + rows.size() + "\n");
             for (DBRow row : rows.result()) sb.append(renderRow(row)).append("\n");
@@ -118,12 +127,14 @@ public class DemoController extends BaseController {
 
     @JxGetMapping("test-get")
     public ActionResult testGet() {
-        String raw = model.argRaw(0);
+        requireDev();
+        String raw = model.arg(0);
         if (raw == null || raw.isBlank()) return text("Uso: /demo/test-get/{id}");
 
-        try (JxDB db = remoteDb()) {
-            if (!db.isConnected()) return text("ERROR: " + db.getError());
-            // Parameterized → sin SQL injection
+        JxDB db = demoDb();
+        if (db == null) return text(DB_UNAVAILABLE);
+        try (db) {
+            if (!db.isConnected()) return text(DB_UNAVAILABLE);
             DBRow row = db.queryRow("SELECT * FROM \"dicTest\" WHERE \"Id\" = ?",
                                     Integer.parseInt(raw));
             return row != null ? text(renderRow(row)) : text("No encontrado id=" + raw);
@@ -132,42 +143,50 @@ public class DemoController extends BaseController {
         }
     }
 
-    @JxGetMapping("test-add")
+    @JxPostMapping("test-add")
     public ActionResult testAdd() {
-        String dni     = model.argRaw(0);
-        String nombres = model.argRaw(1);
-        if (dni == null || nombres == null) return text("Uso: /demo/test-add/{dni}/{nombres}");
+        requireDev();
+        String dni     = model.arg(0);
+        String nombres = model.arg(1);
+        if (dni == null || nombres == null) return text("Uso: POST /demo/test-add/{dni}/{nombres}");
 
-        try (JxDB db = remoteDb()) {
-            if (!db.isConnected()) return text("ERROR: " + db.getError());
+        JxDB db = demoDb();
+        if (db == null) return text(DB_UNAVAILABLE);
+        try (db) {
+            if (!db.isConnected()) return text(DB_UNAVAILABLE);
             long id = db.insert("dicTest", DBRow.of("DNI", dni, "Nombres", nombres));
             return text("Insertado Id=" + id);
         }
     }
 
-    @JxGetMapping("test-update")
+    @JxPostMapping("test-update")
     public ActionResult testUpdate() {
-        String id      = model.argRaw(0);
-        String nombres = model.argRaw(1);
-        if (id == null || nombres == null) return text("Uso: /demo/test-update/{id}/{nombres}");
+        requireDev();
+        String id      = model.arg(0);
+        String nombres = model.arg(1);
+        if (id == null || nombres == null) return text("Uso: POST /demo/test-update/{id}/{nombres}");
 
-        try (JxDB db = remoteDb()) {
-            if (!db.isConnected()) return text("ERROR: " + db.getError());
+        JxDB db = demoDb();
+        if (db == null) return text(DB_UNAVAILABLE);
+        try (db) {
+            if (!db.isConnected()) return text(DB_UNAVAILABLE);
             db.update("dicTest", DBRow.of("Nombres", nombres), "\"Id\" = ?", Integer.parseInt(id));
-            return text(db.getError() == null || db.getError().isBlank()
-                ? "Actualizado Id=" + id : "ERROR: " + db.getError());
+            return text("Actualizado Id=" + id);
         } catch (NumberFormatException e) {
             throw JxException.badRequest("Id debe ser número entero");
         }
     }
 
-    @JxGetMapping("test-delete")
+    @JxPostMapping("test-delete")
     public ActionResult testDelete() {
-        String id = model.argRaw(0);
-        if (id == null || id.isBlank()) return text("Uso: /demo/test-delete/{id}");
+        requireDev();
+        String id = model.arg(0);
+        if (id == null || id.isBlank()) return text("Uso: POST /demo/test-delete/{id}");
 
-        try (JxDB db = remoteDb()) {
-            if (!db.isConnected()) return text("ERROR: " + db.getError());
+        JxDB db = demoDb();
+        if (db == null) return text(DB_UNAVAILABLE);
+        try (db) {
+            if (!db.isConnected()) return text(DB_UNAVAILABLE);
             db.delete("dicTest", "\"Id\" = ?", Integer.parseInt(id));
             return text("Eliminado Id=" + id);
         } catch (NumberFormatException e) {
@@ -178,21 +197,32 @@ public class DemoController extends BaseController {
     // ── Subida de archivos ────────────────────────────────────────────────
 
     @JxGetMapping("upload")
-    public ActionResult uploadForm() { return view("demo/upload"); }
+    public ActionResult uploadForm() { requireDev(); return view("demo/upload"); }
 
     @JxPostMapping("upload")
     public ActionResult uploadPost() {
-        var saved = model.uploadFile("file", Paths.get("/tmp/files"), "pdf,jpg,png");
+        requireDev();
+        var saved = model.uploadFile("file", uploadDir(), "pdf,jpg,png");
         return saved != null ? text("OK: " + saved.getFileName()) : text("Error: " + model.lastError());
     }
 
     @JxGetMapping("testdb")
-    public ActionResult testDb() { return view("demo/testdb"); }
+    public ActionResult testDb() { requireDev(); return view("demo/testdb"); }
 
     // ── Helpers ───────────────────────────────────────────────────────────
 
-    private JxDB remoteDb() {
-        return new JxDB("postgresql://fcd.org.pe:5432/dbtest", "rplm", "finesi++");
+    private JxDB demoDb() {
+        String url  = BaseDbResolver.property("jxmvc.demo.db.url",  "");
+        String user = BaseDbResolver.property("jxmvc.demo.db.user", "");
+        String pass = BaseDbResolver.property("jxmvc.demo.db.pass", "");
+        if (url.isBlank()) return null;
+        return new JxDB(url, user, pass);
+    }
+
+    private java.nio.file.Path uploadDir() {
+        String base = BaseDbResolver.property("jxmvc.demo.upload.dir",
+                System.getProperty("java.io.tmpdir"));
+        return Paths.get(base, "jxmvc-uploads");
     }
 
     private String renderRow(DBRow row) {

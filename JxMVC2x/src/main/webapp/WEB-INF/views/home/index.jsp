@@ -1,20 +1,39 @@
 <%@page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ include file="/WEB-INF/views/shared/header.jspf" %>
 
-<link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/hljs/dark.min.css">
+<link id="jxHljsTheme" rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/hljs/dark.min.css">
+<script>
+/* Sintaxis del código: tema claro en modo claro, oscuro en modo oscuro. */
+(function () {
+  var ctx = '${pageContext.request.contextPath}';
+  var link = document.getElementById('jxHljsTheme');
+  function apply() {
+    var dark = document.documentElement.classList.contains('dark');
+    var href = ctx + '/assets/css/hljs/' + (dark ? 'dark' : 'light') + '.min.css';
+    if (link.getAttribute('href') !== href) link.setAttribute('href', href);
+  }
+  apply();
+  new MutationObserver(apply).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+})();
+</script>
 <script src="${pageContext.request.contextPath}/assets/js/highlight.min.js"></script>
 <script src="${pageContext.request.contextPath}/assets/js/hljs-java.min.js"></script>
 <script src="${pageContext.request.contextPath}/assets/js/hljs-properties.min.js"></script>
 <script src="${pageContext.request.contextPath}/assets/js/hljs-xml.min.js"></script>
 
 <style>
-  .jx-win { background:#1C1C1E; border:1px solid rgba(255,255,255,0.09); border-radius:16px; overflow:hidden; }
-  .jx-win-bar { display:flex; align-items:center; gap:6px; padding:11px 16px; border-bottom:1px solid rgba(255,255,255,0.06); }
+  .jx-win { background:#FFFFFF; border:1px solid rgba(0,0,0,0.10); border-radius:16px; overflow:hidden;
+    box-shadow:0 1px 3px rgba(0,0,0,.05); }
+  .dark .jx-win { background:#1C1C1E; border-color:rgba(255,255,255,0.09); box-shadow:none; }
+  .jx-win-bar { display:flex; align-items:center; gap:6px; padding:11px 16px; border-bottom:1px solid rgba(0,0,0,0.07); }
+  .dark .jx-win-bar { border-bottom-color:rgba(255,255,255,0.06); }
   .jxd-r { width:11px; height:11px; border-radius:50%; background:#FF5F57; flex-shrink:0; }
   .jxd-y { width:11px; height:11px; border-radius:50%; background:#FEBC2E; flex-shrink:0; }
   .jxd-g { width:11px; height:11px; border-radius:50%; background:#28C840; flex-shrink:0; }
-  .jx-win-tab { padding:3px 10px; border-radius:6px; font-size:11px; font-family:monospace; color:#636366; cursor:pointer; transition:background .13s,color .13s; user-select:none; }
-  .jx-win-tab.active { background:rgba(255,255,255,0.09); color:#F5F5F7; }
+  .jx-win-tab { padding:3px 10px; border-radius:6px; font-size:11px; font-family:monospace; color:#8a8a90; cursor:pointer; transition:background .13s,color .13s; user-select:none; }
+  .dark .jx-win-tab { color:#636366; }
+  .jx-win-tab.active { background:rgba(0,0,0,0.06); color:#1D1D1F; }
+  .dark .jx-win-tab.active { background:rgba(255,255,255,0.09); color:#F5F5F7; }
   .jx-code-pane { padding:20px; font-family:'SF Mono','Menlo','Consolas',monospace; overflow-x:auto; min-height:270px; }
   .hljs { background:transparent !important; font-size:.715rem; line-height:1.72; }
 
@@ -40,58 +59,168 @@
   .jx-pipe-node.jx-in + .jx-pipe-line { opacity:1; }
 
   .jx-counter { font-variant-numeric:tabular-nums; }
+
+  /* ── Hero rediseñado: escena geométrica de marca ── */
+  /* Fondo por CSS propio: bg-white/bg-black NO están en el Tailwind precompilado. */
+  .jx-hero { position:relative; overflow:hidden; background:#FFFFFF; }
+  .dark .jx-hero { background:#000000; }
+  /* Padding y layout en CSS propio: varias clases (pt-*, gap-8, w-[44%]) NO están en el Tailwind precompilado. */
+  .jx-hero-wrap { padding-top:64px; padding-bottom:48px; }
+  @media (min-width:640px)  { .jx-hero-wrap { padding-top:80px;  padding-bottom:60px; } }
+  @media (min-width:1024px) { .jx-hero-wrap { padding-top:112px; padding-bottom:80px; } }
+  .jx-hero-row { gap:32px; }
+  .jx-hero-left, .jx-hero-right { width:100%; }
+  @media (min-width:1024px) {
+    .jx-hero-row { gap:44px; }
+    .jx-hero-left  { width:44%; }
+    .jx-hero-right { width:56%; }
+  }
+  .jx-hero-bg { position:absolute; inset:0; overflow:hidden; pointer-events:none; }
+  .jx-hero-glow { position:absolute; border-radius:50%; filter:blur(96px); }
+  .jx-hero-glow.g1 { width:520px; height:520px; top:-140px; right:-2%;
+    background:radial-gradient(circle,#FF7A00 0%,transparent 68%); opacity:0; }
+  .jx-hero-glow.g2 { width:460px; height:460px; bottom:-180px; right:26%;
+    background:radial-gradient(circle,#5E5CE6 0%,transparent 66%); opacity:0; }
+  /* Sin halo de fondo: blanco limpio en claro, negro puro en oscuro. */
+  .dark .jx-hero-glow.g1 { opacity:0; }
+  .dark .jx-hero-glow.g2 { opacity:0; }
+
+  /* La columna de texto siempre por encima de la escena 3D (nunca la tapan formas/ventana). */
+  .jx-hero-left { position:relative; z-index:5; }
+
+  .jx-hero-title { font-weight:800; letter-spacing:-.025em; line-height:1.02; margin-bottom:20px; }
+  .jx-grad2 { display:inline-block; font-size:clamp(2.9rem,6.6vw,4.6rem);
+    background:linear-gradient(110deg,#FF6B00 0%,#FF2D55 28%,#0071E3 66%,#5E5CE6 100%);
+    -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+  .jx-hero-sub { font-size:clamp(1.35rem,3.2vw,2.05rem); font-weight:700; letter-spacing:-.02em;
+    color:#111; -webkit-text-fill-color:#111; }
+  .dark .jx-hero-sub { color:#fff; -webkit-text-fill-color:#fff; }
+  .jx-hero-desc { font-size:15px; line-height:1.62; max-width:400px; color:#57575c; margin-bottom:28px; }
+  .dark .jx-hero-desc { color:#8E8E93; }
+
+  .jx-hero-cta { display:flex; flex-wrap:wrap; gap:12px; }
+  .jx-cta-primary { display:inline-block; padding:12px 26px; border-radius:999px; font-size:14px;
+    font-weight:600; color:#fff; background:linear-gradient(120deg,#0071E3 0%,#4B47D6 100%);
+    box-shadow:0 8px 24px rgba(75,71,214,.35); transition:transform .15s ease, box-shadow .15s ease; }
+  .jx-cta-primary:hover { transform:translateY(-2px); box-shadow:0 12px 34px rgba(94,92,230,.48); }
+  .jx-cta-primary:active { transform:translateY(0); }
+  .jx-cta-ghost { display:inline-block; padding:12px 24px; border-radius:999px; font-size:14px;
+    font-weight:600; color:#141416; -webkit-text-fill-color:#141416; border:1px solid rgba(0,0,0,.16);
+    transition:background .15s ease, border-color .15s ease; }
+  .dark .jx-cta-ghost { color:#fff; -webkit-text-fill-color:#fff; border-color:rgba(255,255,255,.24); }
+  .jx-cta-ghost:hover { background:rgba(0,0,0,.05); border-color:rgba(0,0,0,.26); }
+  .dark .jx-cta-ghost:hover { background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.28); }
+
+  .jx-stats { display:flex; flex-wrap:wrap; gap:9px; margin-top:30px; justify-content:center; }
+  .jx-stat { padding:9px 15px; border-radius:15px; border:1px solid rgba(0,0,0,.08);
+    background:rgba(0,0,0,.015); text-align:left; }
+  .dark .jx-stat { border-color:rgba(255,255,255,.09); background:rgba(255,255,255,.03); }
+  .jx-stat b { font-size:16px; font-weight:700; color:#111; -webkit-text-fill-color:#111; }
+  .dark .jx-stat b { color:#fff; -webkit-text-fill-color:#fff; }
+  .jx-stat .u { font-size:10px; font-weight:700;
+    background:linear-gradient(120deg,#FF2D55,#5E5CE6); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+  .jx-stat .l { display:block; font-size:9px; font-family:monospace; text-transform:uppercase;
+    letter-spacing:.06em; color:#8a8a90; margin-top:2px; }
+  .jx-counter { color:#111; -webkit-text-fill-color:#111; }
+  .dark .jx-counter { color:#fff; -webkit-text-fill-color:#fff; }
+
+  /* Terminal quick-start — limpio, responsive, sin sombra flotante */
+  .jx-cmd { display:flex; align-items:center; gap:10px; margin-top:24px; max-width:400px;
+    border:1px solid rgba(0,0,0,0.10); background:rgba(0,0,0,0.02); border-radius:12px; padding:11px 14px; }
+  .dark .jx-cmd { border-color:rgba(255,255,255,0.10); background:rgba(255,255,255,0.04); }
+  .jx-cmd-prompt { color:#0071E3; font-family:monospace; font-weight:700; font-size:14px; flex-shrink:0; }
+  .jx-cmd-code { font-family:monospace; font-size:13px; color:#1D1D1F; flex:1 1 auto; min-width:0;
+    overflow-x:auto; white-space:nowrap; text-align:left; }
+  .dark .jx-cmd-code { color:#C8C8D0; }
+  .jx-cmd-code::-webkit-scrollbar { height:0; }
+  .jx-cmd-copy { color:#8a8a90; flex-shrink:0; transition:color .15s ease; }
+  .jx-cmd-copy:hover { color:#1D1D1F; }
+  .dark .jx-cmd-copy:hover { color:#fff; }
+
+  /* Escena: code window plano (sin tilt ni animación) con formas angulares detrás */
+  .jx-scene { position:relative; }
+  .jx-win-3d { position:relative; z-index:2; box-shadow:0 10px 30px rgba(0,0,0,.07); }
+  .dark .jx-win-3d { box-shadow:0 12px 34px rgba(0,0,0,.40); }
+
+  /* Altura fija del área de código: cambiar Controller/Model/Config no re-ajusta el window */
+  #jxHeroPane { height:520px; overflow-y:auto; }
+  @media (max-width:640px) { #jxHeroPane { height:400px; } }
+  .jx-code-pane { min-height:0; }
+
+  .jx-shape { position:absolute; z-index:1; will-change:transform;
+    animation:jxFloat 8s ease-in-out infinite; }
+  .jx-shape.s-lg { width:150px; height:150px; }
+  .jx-shape.s-md { width:108px; height:108px; }
+  .jx-shape.s-sm { width:72px;  height:72px;  }
+  .sh-tri     { clip-path:polygon(50% 3%, 97% 95%, 3% 95%); }
+  .sh-diamond { clip-path:polygon(50% 0, 100% 50%, 50% 100%, 0 50%); }
+  .sh-shard   { clip-path:polygon(50% 0, 100% 40%, 80% 100%, 20% 100%, 0 40%); }
+  .sh-arrow   { clip-path:polygon(0 0, 60% 0, 100% 50%, 60% 100%, 0 100%, 36% 50%); }
+  .jx-grad-or { background:linear-gradient(150deg,#FFB067,#FF6A00); filter:drop-shadow(0 14px 26px rgba(255,106,0,.36)); }
+  .jx-grad-ro { background:linear-gradient(150deg,#409CFF,#0071E3); filter:drop-shadow(0 14px 26px rgba(0,113,227,.36)); }
+  .jx-grad-vi { background:linear-gradient(150deg,#8E8CF0,#5E5CE6); filter:drop-shadow(0 14px 26px rgba(94,92,230,.36)); }
+  @keyframes jxFloat {
+    0%,100% { transform:translateY(0)    rotate(var(--r,0deg)); }
+    50%     { transform:translateY(-9px) rotate(var(--r,0deg)); }
+  }
+  @media (max-width:640px) { .jx-shape { display:none; } }
 </style>
 
-<%-- ── Hero split ─────────────────────────────────────────────────────── --%>
-<section class="relative overflow-hidden bg-[#F5F5F7] dark:bg-[#000000] border-b border-black/[0.06] dark:border-white/[0.04]">
-  <%-- Glow ambiental: SOLO en tema oscuro. En claro el hero queda limpio, sin difuminado. --%>
-  <div class="absolute inset-0 pointer-events-none hidden dark:block" aria-hidden="true">
-    <div class="absolute -top-48 left-[28%] w-[760px] h-[600px] rounded-full opacity-[0.16] blur-[100px]"
-         style="background:radial-gradient(ellipse,#087CFA 0%,transparent 66%)"></div>
-    <div class="absolute top-24 right-[4%] w-[440px] h-[440px] rounded-full opacity-[0.10] blur-[90px]"
-         style="background:radial-gradient(ellipse,#5A63D6 0%,transparent 65%)"></div>
+<%-- ── Hero: escena geométrica de marca ─────────────────────────────── --%>
+<section class="jx-hero bg-white dark:bg-black">
+  <div class="jx-hero-bg" aria-hidden="true">
+    <div class="jx-hero-glow g1"></div>
+    <div class="jx-hero-glow g2"></div>
   </div>
 
-  <div class="relative max-w-6xl mx-auto px-4 sm:px-6 py-14 sm:py-20">
-    <div class="flex flex-col lg:flex-row items-center gap-10 lg:gap-14">
+  <div class="jx-hero-wrap relative max-w-5xl mx-auto px-4 sm:px-6">
+    <div class="jx-hero-row flex flex-col lg:flex-row items-center">
 
       <%-- Left: headline --%>
-      <div class="lg:w-[44%] text-center lg:text-left jx-reveal jx-delay-1">
-        <h1 class="text-[clamp(2.6rem,6.5vw,4.2rem)] font-extrabold tracking-tight leading-[1.05] mb-5">
-          <span class="jx-grad">JxMVC</span><br>
-          <span class="text-ink dark:text-white text-[clamp(1.4rem,3.5vw,2.2rem)] font-bold tracking-tight">Lightning-X Framework</span>
+      <div class="jx-hero-left text-center lg:text-left jx-reveal jx-delay-1">
+        <h1 class="jx-hero-title">
+          <span class="jx-grad2">JxMVC</span><br>
+          <span class="jx-hero-sub">Lightning-X Framework</span>
         </h1>
 
-        <p class="text-[14.5px] text-muted dark:text-[#8E8E93] leading-relaxed mb-8 max-w-[400px] mx-auto lg:mx-0" data-i18n="hero.desc">
-          Framework MVC para Jakarta EE — 224 KB, cero dependencias, arranque en 1.2 s.
-          Pool, JSON, validación, WebSocket y OpenAPI incluidos.
+        <p class="jx-hero-desc mx-auto lg:mx-0" data-i18n="hero.desc">
+          Framework MVC para Jakarta EE. 237 KB, cero dependencias externas y arranque en 1.2 s.
         </p>
 
-        <div class="flex flex-wrap justify-center lg:justify-start gap-2.5 mb-8">
-          <% String[][] metrics = {{"224","KB","JAR"},{"0","deps","Runtime"},{"49","cls","Core"},{"1.2","s","Arranque"}}; %>
+        <div class="jx-hero-cta justify-center lg:justify-start">
+          <a href="${pageContext.request.contextPath}/downloads" class="jx-cta-primary" data-i18n="hero.dl">Descargar</a>
+          <a href="${pageContext.request.contextPath}/docs" class="jx-cta-ghost" data-i18n="hero.docs">Documentación →</a>
+        </div>
+
+        <div class="jx-stats">
+          <% String[][] metrics = {{"237","KB","JAR"},{"0","deps","Runtime"},{"52","cls","Core"},{"1.2","s","Arranque"}}; %>
           <% for (String[] m : metrics) { %>
-          <div class="bg-white dark:bg-[#1C1C1E] border border-black/[0.07] dark:border-white/[0.08] rounded-2xl px-4 py-3 shadow-card text-center min-w-[72px]">
-            <p class="text-lg font-bold text-ink dark:text-white leading-none">
-              <span class="jx-counter" data-target="<%= m[0].replace(".","") %>"><%= m[0] %></span><span class="text-apple text-[10px] font-semibold"> <%= m[1] %></span>
-            </p>
-            <p class="text-[9px] font-mono uppercase tracking-wider text-muted dark:text-[#8E8E93] mt-1"><%= m[2] %></p>
+          <div class="jx-stat">
+            <b><span class="jx-counter" data-target="<%= m[0].replace(".","") %>"><%= m[0] %></span><span class="u"> <%= m[1] %></span></b>
+            <span class="l"><%= m[2] %></span>
           </div>
           <% } %>
         </div>
 
-        <div class="flex flex-wrap justify-center lg:justify-start gap-3">
-          <a href="${pageContext.request.contextPath}/downloads"
-             class="px-6 py-2.5 bg-apple text-white text-sm font-semibold rounded-full hover:bg-[#0077ED] active:scale-[0.97] transition-all shadow-sm"
-             data-i18n="hero.dl">Descargar</a>
-          <a href="${pageContext.request.contextPath}/docs"
-             class="px-6 py-2.5 bg-black/[0.06] dark:bg-white/[0.09] text-ink dark:text-white border border-black/[0.09] dark:border-white/[0.09] text-sm font-semibold rounded-full hover:bg-black/[0.10] dark:hover:bg-white/[0.13] transition-colors"
-             data-i18n="hero.docs">Documentación →</a>
+        <div class="jx-cmd mx-auto lg:mx-0">
+          <span class="jx-cmd-prompt">$</span>
+          <code id="jxHeroCmd" class="jx-cmd-code">mvn install -f JxMVC.Core/pom.xml</code>
+          <button onclick="jxCopyCmd()" class="jx-cmd-copy" aria-label="Copiar comando">
+            <svg id="jxCmdIco" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+              <rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path>
+            </svg>
+          </button>
         </div>
       </div>
 
-      <%-- Right: code window --%>
-      <div class="lg:w-[56%] w-full jx-reveal jx-delay-2">
-        <div class="jx-win">
+      <%-- Right: escena con código real y formas angulares (paleta del logo) --%>
+      <div class="jx-hero-right w-full jx-reveal jx-delay-2">
+        <div class="jx-scene">
+          <span class="jx-shape s-lg jx-grad-or sh-tri"     style="top:-13%; right:14%;  --r:-6deg; animation-delay:-.4s"></span>
+          <span class="jx-shape s-md jx-grad-vi sh-arrow"   style="top:16%;  right:-13%; --r:0deg;  animation-delay:-2.1s"></span>
+          <span class="jx-shape s-sm jx-grad-vi sh-shard"   style="top:46%;  right:-14%; --r:10deg; animation-delay:-1.2s"></span>
+          <span class="jx-shape s-sm jx-grad-ro sh-diamond" style="top:74%;  right:-12%; --r:0deg;  animation-delay:-3.3s"></span>
+          <div class="jx-win jx-win-3d">
           <div class="jx-win-bar">
             <span class="jxd-r"></span><span class="jxd-y"></span><span class="jxd-g"></span>
             <div class="ml-3 flex gap-1">
@@ -173,19 +302,115 @@ jxmvc.log.level  = INFO</code></pre>
             </div>
           </div>
         </div>
-        <div class="mt-3 flex items-center gap-3 bg-white/70 dark:bg-white/[0.05] backdrop-blur border border-black/[0.07] dark:border-white/[0.07] rounded-full px-4 py-2.5 shadow-card">
-          <span class="text-apple font-mono text-sm font-bold shrink-0">$</span>
-          <code id="jxHeroCmd" class="font-mono text-[13px] text-ink dark:text-[#C8C8D0] flex-1">mvn install -f JxMVC.Core/pom.xml</code>
-          <button onclick="jxCopyCmd()" class="text-muted dark:text-[#8E8E93] hover:text-apple transition-colors shrink-0">
-            <svg id="jxCmdIco" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
-              <rect x="9" y="9" width="13" height="13" rx="2"></rect><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"></path>
-            </svg>
-          </button>
-        </div>
+        </div><%-- cierra .jx-scene --%>
       </div>
     </div>
   </div>
 </section>
+
+<%-- ── Instalación: estilo terminal (Docker-like) ─────────────────────── --%>
+<style>
+  /* Terminal theme-aware: por defecto clara; .dark la oscurece. Compartida con el panel del pipeline. */
+  .jx-term { --t-bg:#FBFCFE; --t-bar:#EEF2F8; --t-brd:rgba(0,0,0,.09); --t-bar-brd:rgba(0,0,0,.06);
+    --t-prompt:#0071E3; --t-cmd:#1D1D1F; --t-key:#0071E3; --t-dim:#AEB6C6; --t-ok:#16A34A; --t-mut:#5B6675;
+    --t-grid:rgba(0,113,227,.22); --t-shadow:0 20px 50px rgba(20,40,80,.13); }
+  .dark .jx-term { --t-bg:#0B1020; --t-bar:#12182B; --t-brd:rgba(255,255,255,.08); --t-bar-brd:rgba(255,255,255,.06);
+    --t-prompt:#5B8DEF; --t-cmd:#DCE3F2; --t-key:#7AA2F7; --t-dim:#3E4A66; --t-ok:#4ADE80; --t-mut:#8B9BB8;
+    --t-grid:rgba(91,141,239,.22); --t-shadow:0 24px 60px rgba(0,0,0,.6); }
+
+  .jx-inst-term { background:var(--t-bg); border:1px solid var(--t-brd); border-radius:16px;
+    overflow:hidden; box-shadow:var(--t-shadow); font-family:'SF Mono','Menlo','Consolas',monospace; }
+  .jx-inst-bar { display:flex; align-items:center; gap:7px; padding:12px 16px; background:var(--t-bar);
+    border-bottom:1px solid var(--t-bar-brd); }
+  .jx-inst-dot { width:12px; height:12px; border-radius:50%; }
+  .jx-inst-body { padding:22px 24px; font-size:12.5px; line-height:1.85; }
+  .jx-t-prompt { color:var(--t-prompt); } .jx-t-cmd { color:var(--t-cmd); } .jx-t-key { color:var(--t-key); }
+  .jx-t-dim { color:var(--t-dim); } .jx-t-ok { color:var(--t-ok); } .jx-t-mut { color:var(--t-mut); }
+  .jx-inst-grid { margin-top:16px; border:1px solid var(--t-grid); border-radius:12px;
+    display:grid; grid-template-columns:1fr 1fr; }
+  .jx-inst-cell { padding:16px 18px; }
+  .jx-inst-cell + .jx-inst-cell { border-left:1px solid var(--t-grid); }
+  @media (max-width:560px){ .jx-inst-grid { grid-template-columns:1fr; }
+    .jx-inst-cell + .jx-inst-cell { border-left:none; border-top:1px solid var(--t-grid); } }
+  .jx-inst-copy { display:inline-flex; align-items:center; gap:7px; padding:11px 22px; border-radius:999px;
+    font-size:13px; font-weight:600; color:#fff; background:#0071E3; border:none; cursor:pointer;
+    transition:transform .15s ease, box-shadow .15s ease, background .15s ease; box-shadow:0 8px 22px rgba(0,113,227,.32); }
+  .jx-inst-copy:hover { transform:translateY(-2px); background:#0077ED; box-shadow:0 12px 30px rgba(0,113,227,.42); }
+  .jx-inst-copy:active { transform:translateY(0); }
+</style>
+<section class="py-20 bg-white dark:bg-black" id="jxInstallSec">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6">
+    <div class="grid lg:grid-cols-2 gap-12 items-center">
+
+      <div>
+        <h2 class="text-4xl sm:text-5xl font-bold leading-[1.05] tracking-tight mb-5">
+          <span class="text-apple">Instálalo</span><span class="text-ink dark:text-white"> en segundos.</span>
+        </h2>
+        <p class="text-[15px] leading-relaxed text-muted dark:text-[#8E8E93] max-w-md mb-7">
+          Un solo <code class="font-mono text-ink dark:text-[#F5F5F7]">mvn install</code> y ya tienes el framework
+          en tu repositorio local. Sin CDNs, sin descargas transitivas, sin sorpresas: el JAR pesa
+          <b class="text-ink dark:text-white">237 KB</b> y arrastra <b class="text-ink dark:text-white">cero</b> dependencias.
+        </p>
+        <div class="flex flex-wrap items-center gap-3">
+          <button class="jx-inst-copy" onclick="jxCopyInstall(this)">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+            </svg>
+            <span id="jxInstCopyTxt">Copiar comando</span>
+          </button>
+          <a href="${pageContext.request.contextPath}/downloads" class="jx-cta-ghost">Generar proyecto →</a>
+        </div>
+      </div>
+
+      <div class="jx-term jx-inst-term">
+        <div class="jx-inst-bar">
+          <span class="jx-inst-dot" style="background:#FF5F57"></span>
+          <span class="jx-inst-dot" style="background:#FEBC2E"></span>
+          <span class="jx-inst-dot" style="background:#28C840"></span>
+          <span class="ml-2 text-[11px] jx-t-dim">jxmvc — install</span>
+        </div>
+        <div class="jx-inst-body">
+          <div><span class="jx-t-prompt">$</span> <span class="jx-t-cmd">mvn install -f</span> <span class="jx-t-key">JxMVC.Core/pom.xml</span></div>
+          <div class="jx-t-mut">[INFO] Building <span class="jx-t-key">jxmvc-core</span> 3.3.0</div>
+          <div class="jx-t-mut">[INFO] Tests run: <span class="jx-t-ok">305</span>, Failures: 0, Errors: 0</div>
+          <div class="jx-t-mut">[INFO] <span class="jx-t-ok">BUILD SUCCESS</span> <span class="jx-t-dim">·</span> 237 KB <span class="jx-t-dim">·</span> 0 deps externas</div>
+
+          <div class="jx-inst-grid">
+            <div class="jx-inst-cell">
+              <p class="jx-t-key text-[12px] mb-2.5">✓ jxmvc-core instalado</p>
+              <p class="jx-t-mut text-[11.5px] leading-relaxed">
+                groupId <span class="jx-t-cmd">jxmvc</span><br>
+                artifact <span class="jx-t-cmd">jxmvc-core</span><br>
+                <span class="jx-t-dim">~/.m2/repository</span>
+              </p>
+            </div>
+            <div class="jx-inst-cell">
+              <p class="jx-t-key text-[12px] mb-2.5">Empieza aquí</p>
+              <p class="jx-t-mut text-[11.5px] leading-relaxed">
+                Genera un starter en <span class="jx-t-cmd">/downloads</span><br>
+                y levántalo:<br>
+                <span class="jx-t-prompt">$</span> <span class="jx-t-cmd">mvn package cargo:run</span>
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+<script>
+function jxCopyInstall(btn) {
+  var cmd = 'mvn install -f JxMVC.Core/pom.xml';
+  var done = function() {
+    var t = document.getElementById('jxInstCopyTxt');
+    if (!t) return; var prev = t.textContent; t.textContent = '¡Copiado!';
+    setTimeout(function(){ t.textContent = prev; }, 1600);
+  };
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(cmd).then(done, done);
+  else { var ta=document.createElement('textarea'); ta.value=cmd; document.body.appendChild(ta); ta.select(); try{document.execCommand('copy');}catch(e){} document.body.removeChild(ta); done(); }
+}
+</script>
 
 <%-- ── Features bento ─────────────────────────────────────────────────── --%>
 <section class="py-20 bg-white dark:bg-[#000000]">
@@ -194,7 +419,7 @@ jxmvc.log.level  = INFO</code></pre>
     <div class="mb-12 jx-reveal jx-delay-1">
       <p class="text-[10px] font-mono uppercase tracking-[0.28em] text-muted dark:text-[#8E8E93] mb-3">Características</p>
       <h2 class="text-3xl sm:text-4xl font-bold text-ink dark:text-white leading-tight">Todo incluido.<br><span class="text-apple">Cero dependencias.</span></h2>
-      <p class="text-[14px] text-muted dark:text-[#8E8E93] mt-3 max-w-xl">Un único JAR de 224 KB con todo lo que necesita una aplicación Jakarta EE real. Sin Spring, sin Hibernate, sin Jackson.</p>
+      <p class="text-[14px] text-muted dark:text-[#8E8E93] mt-3 max-w-xl">Un único JAR de 237 KB con todo lo que necesita una aplicación Jakarta EE real. Sin Spring, sin Hibernate, sin Jackson.</p>
     </div>
 
     <%-- Bento grid --%>
@@ -264,7 +489,7 @@ jxmvc.log.level  = INFO</code></pre>
         <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style="background:#FF2D5520">
           <svg class="w-5 h-5" fill="none" stroke="#FF2D55" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg>
         </div>
-        <h3 class="text-[15px] font-semibold text-ink dark:text-white mb-2">224 KB. Cero dependencias en runtime.</h3>
+        <h3 class="text-[15px] font-semibold text-ink dark:text-white mb-2">237 KB. Cero dependencias en runtime.</h3>
         <p class="text-[12px] text-muted dark:text-[#8E8E93] leading-relaxed mb-4">21 anotaciones propias, scheduler cron, pool JDBC, JSON nativo, WebSocket, métricas y OpenAPI — todo en <strong class="text-ink dark:text-white">java.*</strong> puro.</p>
         <div class="flex gap-4 text-[11px]">
           <span class="flex items-center gap-1.5 text-muted dark:text-[#8E8E93]"><span class="w-1.5 h-1.5 rounded-full bg-[#30D158]"></span>Sin Jackson</span>
@@ -297,7 +522,7 @@ jxmvc.log.level  = INFO</code></pre>
 </section>
 
 <%-- ── Code playground ────────────────────────────────────────────────── --%>
-<section class="py-20 bg-[#F5F5F7] dark:bg-[#0A0A0A] border-y border-black/[0.06] dark:border-white/[0.04]">
+<section class="py-20 bg-white dark:bg-black">
   <div class="max-w-6xl mx-auto px-4 sm:px-6">
     <div class="mb-10 jx-reveal jx-delay-1">
       <p class="text-[10px] font-mono uppercase tracking-[0.28em] text-muted dark:text-[#8E8E93] mb-3">Casos de uso</p>
@@ -506,8 +731,11 @@ public class AdminController extends JxController {
   .jx-pipe-step:hover .jx-ps-box { transform:translateY(-3px); box-shadow:0 8px 24px rgba(0,0,0,0.12); }
   .dark .jx-pipe-step:hover .jx-ps-box { box-shadow:0 8px 24px rgba(0,0,0,0.4); }
   .jx-ps-box { transition:transform .2s ease, box-shadow .2s ease; }
-  .jx-pipe-detail { max-height:0; overflow:hidden; transition:max-height .35s ease; }
-  .jx-pipe-detail.open { max-height:120px; }
+  .jx-pipe-detail { display:grid; grid-template-rows:0fr; opacity:0;
+    transition:grid-template-rows .34s cubic-bezier(.16,1,.3,1), opacity .24s ease, margin-top .34s ease;
+    margin-top:0; }
+  .jx-pipe-detail > .jx-pipe-inner { overflow:hidden; min-height:0; }
+  .jx-pipe-detail.open { grid-template-rows:1fr; opacity:1; margin-top:24px; }
 </style>
 <section class="py-20 bg-white dark:bg-[#000000]" id="jxPipeSec">
   <div class="max-w-6xl mx-auto px-4 sm:px-6">
@@ -559,13 +787,30 @@ public class AdminController extends JxController {
       </div>
     </div>
 
-    <%-- Detail panel --%>
-    <div id="jxPipePanel" class="hidden md:block mt-6 bg-[#F5F5F7] dark:bg-[#1C1C1E] border border-black/[0.06] dark:border-white/[0.07] rounded-2xl px-6 py-4 shadow-card jx-pipe-detail">
-      <div class="flex items-center gap-3 mb-1">
-        <span id="jxPipeBadge" class="text-[10px] font-mono font-bold text-white px-2 py-0.5 rounded-md"></span>
-        <span id="jxPipeTitle" class="text-[13px] font-semibold text-ink dark:text-white"></span>
+    <%-- Detail panel — estilo terminal, colapsa por completo cuando cierra --%>
+    <div id="jxPipePanel" class="hidden md:grid jx-pipe-detail">
+      <div class="jx-pipe-inner">
+        <div class="jx-term rounded-2xl overflow-hidden border" id="jxPipeCard"
+             style="background:var(--t-bg); border-color:var(--t-brd); box-shadow:var(--t-shadow)">
+          <div class="flex items-center gap-2.5 px-4 py-2.5" style="background:var(--t-bar); border-bottom:1px solid var(--t-bar-brd)">
+            <span class="w-3 h-3 rounded-full" style="background:#FF5F57"></span>
+            <span class="w-3 h-3 rounded-full" style="background:#FEBC2E"></span>
+            <span class="w-3 h-3 rounded-full" style="background:#28C840"></span>
+            <span id="jxPipeTab" class="ml-2 text-[11px] font-mono jx-t-mut"></span>
+          </div>
+          <div class="px-6 py-5 font-mono">
+            <div class="flex items-center gap-3 mb-2.5">
+              <span id="jxPipeBadge" class="text-[10px] font-bold text-white px-2 py-0.5 rounded-md"></span>
+              <span id="jxPipeTitle" class="text-[13px] font-semibold jx-t-cmd"></span>
+              <span id="jxPipeStep" class="ml-auto text-[10px] jx-t-dim"></span>
+            </div>
+            <p class="text-[11px] mb-1.5 jx-t-dim">
+              <span class="jx-t-prompt">$</span> jxmvc --trace <span id="jxPipeSlug" class="jx-t-key"></span>
+            </p>
+            <p id="jxPipeDesc" class="text-[12.5px] leading-relaxed jx-t-mut"></p>
+          </div>
+        </div>
       </div>
-      <p id="jxPipeDesc" class="text-[12px] text-muted dark:text-[#8E8E93] leading-relaxed"></p>
     </div>
 
     <%-- Mobile: lista compacta --%>
@@ -602,13 +847,18 @@ function jxPipeToggle(idx) {
   document.getElementById('jxPipeBadge').style.background = d.color;
   document.getElementById('jxPipeTitle').textContent = d.name;
   document.getElementById('jxPipeDesc').textContent = d.desc;
+  document.getElementById('jxPipeTab').textContent = 'pipeline · etapa ' + d.num + '/14';
+  document.getElementById('jxPipeStep').textContent = '[' + d.num + '/14]';
+  document.getElementById('jxPipeSlug').textContent = d.name.toLowerCase().replace(/[^a-z0-9]+/g,'-');
+  var card = document.getElementById('jxPipeCard');
+  if (card) card.style.boxShadow = '0 18px 44px ' + d.color + '33';
   panel.classList.add('open');
   jxPipeOpen = idx;
 }
 </script>
 
 <%-- ── Comparativa columnas verticales ─────────────────────────────────── --%>
-<section class="py-20 bg-[#F5F5F7] dark:bg-[#0A0A0A] border-y border-black/[0.06] dark:border-white/[0.04]" id="jxChartSec">
+<section class="py-20 bg-white dark:bg-black" id="jxChartSec">
   <div class="max-w-5xl mx-auto px-4 sm:px-6">
 
     <div class="mb-4">
@@ -628,11 +878,14 @@ function jxPipeToggle(idx) {
       <button class="jx-chart-tab" onclick="jxChart('start',this)">Arranque JVM</button>
     </div>
 
-    <div class="bg-white dark:bg-[#1C1C1E] border border-black/[0.06] dark:border-white/[0.07] rounded-2xl p-8 shadow-card">
+    <div class="bg-white dark:bg-[#1C1C1E] border border-black/[0.06] dark:border-white/[0.07] rounded-2xl p-8 shadow-card" style="position:relative;">
       <p class="text-[10px] font-mono uppercase tracking-widest text-muted dark:text-[#636366] mb-6" id="jxChartUnit"></p>
 
       <%-- Canvas del gráfico --%>
       <canvas id="jxCanvas" height="240" style="width:100%;display:block;"></canvas>
+      <div id="jxChartTip" style="position:absolute; pointer-events:none; opacity:0; transition:opacity .13s ease-out;
+           background:rgba(29,29,31,.92); color:#F5F5F7; font:600 11px 'Space Grotesk',sans-serif;
+           padding:6px 10px; border-radius:8px; white-space:nowrap; z-index:5;"></div>
 
       <p class="text-[10px] text-muted dark:text-[#636366] mt-5 leading-relaxed" id="jxChartNote"></p>
     </div>
@@ -643,9 +896,9 @@ function jxPipeToggle(idx) {
 var jxChartData = {
   jar: {
     unit: 'Tamaño del artefacto de producción — menor es mejor',
-    note: 'JAR/WAR sin dependencias transitivas del servidor. JxMVC: 224 KB. Spring Boot uber-JAR incluye Tomcat embebido.',
+    note: 'JAR/WAR sin dependencias transitivas del servidor. JxMVC: 237 KB. Spring Boot uber-JAR incluye Tomcat embebido.',
     rows: [
-      {name:'JxMVC 3.1',   val:'224 KB', raw:0.224, jx:true},
+      {name:'JxMVC 3.3',   val:'237 KB', raw:0.237, jx:true},
       {name:'Javalin 6',   val:'1.5 MB', raw:1.5,   jx:false},
       {name:'Quarkus 3',   val:'18 MB',  raw:18,    jx:false},
       {name:'Spring Boot', val:'20 MB',  raw:20,    jx:false},
@@ -656,7 +909,7 @@ var jxChartData = {
     unit: 'Dependencias en runtime — menor es mejor',
     note: 'JxMVC solo necesita el servlet container. Sin JAR externo en classpath de producción.',
     rows: [
-      {name:'JxMVC 3.1',   val:'0',    raw:0,   jx:true},
+      {name:'JxMVC 3.3',   val:'0',    raw:0,   jx:true},
       {name:'Javalin 6',   val:'~10',  raw:10,  jx:false},
       {name:'Quarkus 3',   val:'~80',  raw:80,  jx:false},
       {name:'Spring Boot', val:'~210', raw:210, jx:false},
@@ -670,13 +923,23 @@ var jxChartData = {
       {name:'Quarkus 3',   val:'0.3 s', raw:0.3, jx:false},
       {name:'Micronaut 4', val:'0.4 s', raw:0.4, jx:false},
       {name:'Javalin 6',   val:'0.5 s', raw:0.5, jx:false},
-      {name:'JxMVC 3.1',   val:'1.2 s', raw:1.2, jx:true},
+      {name:'JxMVC 3.3',   val:'1.2 s', raw:1.2, jx:true},
       {name:'Spring Boot', val:'6.0 s', raw:6.0, jx:false},
     ]
   }
 };
 
 var jxAnimFrame = null;
+
+/* El color sigue al framework, no a la posición: mismo color en las 3 pestañas. */
+var jxFwPalette = {
+  light: {'JxMVC 3.3':'#0071E3','Javalin 6':'#FF9500','Quarkus 3':'#5E5CE6','Spring Boot':'#30D158','Micronaut 4':'#FF2D55'},
+  dark:  {'JxMVC 3.3':'#0071E3','Javalin 6':'#CC7A00','Quarkus 3':'#5E5CE6','Spring Boot':'#27A24C','Micronaut 4':'#FF2D55'}
+};
+
+function jxFwColor(name, isDark) {
+  return jxFwPalette[isDark ? 'dark' : 'light'][name] || (isDark ? '#48484A' : '#AEAEB2');
+}
 
 function jxChart(key, btn) {
   document.querySelectorAll('.jx-chart-tab').forEach(function(b){ b.classList.remove('active'); });
@@ -749,21 +1012,18 @@ function jxRenderChart(key) {
       var barH = fullH * ep;
       var y    = PAD_T + chartH - barH;
 
-      var color = row.jx ? '#0071E3' : (isDark ? '#3A3A3C' : '#C7C7CC');
+      var color = jxFwColor(row.name, isDark);
 
       if (row.jx) {
         var grd = ctx.createLinearGradient(0, y, 0, y + barH);
-        grd.addColorStop(0, '#34AADC');
+        grd.addColorStop(0, '#409CFF');
         grd.addColorStop(1, '#0071E3');
         ctx.fillStyle = grd;
-        ctx.shadowColor = 'rgba(0,113,227,0.45)';
-        ctx.shadowBlur  = 18;
       } else {
         ctx.fillStyle = color;
-        ctx.shadowBlur = 0;
       }
 
-      var r = Math.min(6, barW / 2);
+      var r = Math.min(4, barW / 2);
       ctx.beginPath();
       ctx.moveTo(x + r, y);
       ctx.lineTo(x + barW - r, y);
@@ -779,24 +1039,56 @@ function jxRenderChart(key) {
       if (progress > 0.6) {
         var valAlpha = Math.min((progress - 0.6) / 0.4, 1);
         ctx.globalAlpha = valAlpha;
-        ctx.fillStyle = row.jx ? '#0071E3' : (isDark ? '#8E8E93' : '#6E6E73');
+        ctx.fillStyle = isDark ? '#F5F5F7' : '#1D1D1F';
         ctx.font = 'bold 11px "Space Grotesk", monospace';
         ctx.textAlign = 'center';
         ctx.fillText(row.val, cx, y - 7);
         ctx.globalAlpha = 1;
       }
 
-      ctx.fillStyle = row.jx ? '#0071E3' : (isDark ? '#EBEBF599' : '#1D1D1F99');
+      ctx.fillStyle = isDark ? (row.jx ? '#F5F5F7' : '#EBEBF599') : (row.jx ? '#1D1D1F' : '#1D1D1F99');
       ctx.font = (row.jx ? 'bold' : 'normal') + ' 11px "Space Grotesk", sans-serif';
       ctx.textAlign = 'center';
       ctx.fillText(row.name, cx, H - 10);
+
+      jxBarRects[i] = {x:x, y:y, w:barW, h:barH, row:row};
     });
 
     if (progress < 1) jxAnimFrame = requestAnimationFrame(draw);
   }
 
-  jxAnimFrame = requestAnimationFrame(draw);
+  if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    draw(performance.now() + DURATION);
+  } else {
+    jxAnimFrame = requestAnimationFrame(draw);
+  }
 }
+
+var jxBarRects = [];
+
+document.addEventListener('DOMContentLoaded', function(){
+  var canvas = document.getElementById('jxCanvas');
+  var tip    = document.getElementById('jxChartTip');
+  if (!canvas || !tip) return;
+  canvas.addEventListener('mousemove', function(ev){
+    var rect = canvas.getBoundingClientRect();
+    var mx = ev.clientX - rect.left, my = ev.clientY - rect.top;
+    var hit = null;
+    jxBarRects.forEach(function(b){
+      if (b && mx >= b.x - 6 && mx <= b.x + b.w + 6 && my >= b.y - 10 && my <= b.y + b.h) hit = b;
+    });
+    if (hit) {
+      tip.textContent = hit.row.name + ' — ' + hit.row.val;
+      tip.style.opacity = '1';
+      tip.style.left = Math.min(mx + 14, rect.width - 130) + 'px';
+      tip.style.top  = (hit.y - 8) + 'px';
+      canvas.style.cursor = 'default';
+    } else {
+      tip.style.opacity = '0';
+    }
+  });
+  canvas.addEventListener('mouseleave', function(){ tip.style.opacity = '0'; });
+});
 
 document.addEventListener('DOMContentLoaded', function(){
   var fired = false;
@@ -816,6 +1108,122 @@ window.addEventListener('resize', function(){
     var key = active.getAttribute('onclick').match(/'(\w+)'/)[1];
     jxRenderChart(key);
   }
+});
+</script>
+
+<%-- ── El core por dentro: donut de módulos ───────────────────────────── --%>
+<section class="py-20 bg-white dark:bg-[#000000]" id="jxDonutSec">
+  <div class="max-w-5xl mx-auto px-4 sm:px-6">
+
+    <div class="mb-10">
+      <h2 class="text-3xl sm:text-4xl font-bold text-ink dark:text-white leading-tight">52 clases. 237 KB.<br><span class="text-apple">Todo el framework.</span></h2>
+      <p class="text-[14px] text-muted dark:text-[#8E8E93] mt-3 max-w-xl">Sin dependencias que auditar ni versiones que conciliar: cada módulo está escrito dentro del propio JAR.</p>
+    </div>
+
+    <div class="grid lg:grid-cols-2 gap-8 items-center">
+      <div class="flex justify-center" style="position:relative;">
+        <svg id="jxDonut" width="300" height="300" viewBox="0 0 300 300" role="img"
+             aria-label="Distribución de las 52 clases del core por módulo"></svg>
+        <div id="jxDonutTip" style="position:absolute; pointer-events:none; opacity:0; transition:opacity .13s ease-out;
+             background:rgba(29,29,31,.92); color:#F5F5F7; font:600 11px 'Space Grotesk',sans-serif;
+             padding:6px 10px; border-radius:8px; white-space:nowrap; z-index:5;"></div>
+      </div>
+
+      <div>
+        <ul id="jxDonutLegend" class="space-y-2.5"></ul>
+        <p class="text-[10px] text-muted dark:text-[#636366] mt-6 leading-relaxed">
+          Clases contadas en <code class="font-mono">jxmvc.core</code> de la v3.3.0.
+          Métricas en vivo del propio sitio en el <a href="${pageContext.request.contextPath}/home/panel" class="text-apple hover:underline">panel de observabilidad</a>.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+var jxDonutData = [
+  {name:'Infraestructura y config', n:15, c:null},
+  {name:'HTTP y routing',           n:12, c:0},
+  {name:'Datos y transacciones',    n:8,  c:1},
+  {name:'API, JSON y observabilidad',n:6, c:2},
+  {name:'Tiempo real y tareas',     n:6,  c:3},
+  {name:'Seguridad',                n:5,  c:4}
+];
+
+function jxDonutColors() {
+  var dark = document.documentElement.classList.contains('dark');
+  return {
+    serie: dark ? ['#0071E3','#CC7A00','#27A24C','#5E5CE6','#FF2D55']
+                : ['#0071E3','#FF9500','#30D158','#5E5CE6','#FF2D55'],
+    neutro: dark ? '#48484A' : '#C7C7CC',
+    gap:    dark ? '#000000' : '#FFFFFF',
+    ink:    dark ? '#F5F5F7' : '#1D1D1F',
+    sub:    dark ? '#8E8E93' : '#6E6E73'
+  };
+}
+
+function jxRenderDonut() {
+  var svg = document.getElementById('jxDonut');
+  if (!svg) return;
+  var col = jxDonutColors();
+  var total = 0;
+  jxDonutData.forEach(function(d){ total += d.n; });
+
+  var cx = 150, cy = 150, R = 118, r = 74, a0 = -Math.PI / 2;
+  var parts = [];
+  jxDonutData.forEach(function(d, i) {
+    var a1 = a0 + (d.n / total) * Math.PI * 2;
+    var color = d.c === null ? col.neutro : col.serie[d.c];
+    var large = (a1 - a0) > Math.PI ? 1 : 0;
+    var p = ['M', cx + R * Math.cos(a0), cy + R * Math.sin(a0),
+             'A', R, R, 0, large, 1, cx + R * Math.cos(a1), cy + R * Math.sin(a1),
+             'L', cx + r * Math.cos(a1), cy + r * Math.sin(a1),
+             'A', r, r, 0, large, 0, cx + r * Math.cos(a0), cy + r * Math.sin(a0),
+             'Z'].join(' ');
+    var mid = (a0 + a1) / 2;
+    parts.push('<path d="' + p + '" fill="' + color + '" stroke="' + col.gap + '" stroke-width="2" '
+             + 'data-i="' + i + '" data-mx="' + (cx + (R + r) / 2 * Math.cos(mid)) + '" data-my="' + (cy + (R + r) / 2 * Math.sin(mid)) + '" '
+             + 'style="transition:opacity .13s ease-out;"></path>');
+    a0 = a1;
+  });
+  parts.push('<text x="150" y="143" text-anchor="middle" fill="' + col.ink + '" style="font:700 30px \'Space Grotesk\',sans-serif;">' + total + '</text>');
+  parts.push('<text x="150" y="166" text-anchor="middle" fill="' + col.sub + '" style="font:500 12px \'Space Grotesk\',sans-serif;">clases · 237 KB</text>');
+  svg.innerHTML = parts.join('');
+
+  var legend = document.getElementById('jxDonutLegend');
+  legend.innerHTML = jxDonutData.map(function(d) {
+    var color = d.c === null ? col.neutro : col.serie[d.c];
+    var pct = Math.round(d.n / total * 100);
+    return '<li class="flex items-center gap-3">'
+         + '<span style="width:10px;height:10px;border-radius:3px;background:' + color + ';flex-shrink:0;"></span>'
+         + '<span class="text-[13px] font-medium text-ink dark:text-[#F5F5F7] flex-1">' + d.name + '</span>'
+         + '<span class="text-[13px] font-semibold text-ink dark:text-[#F5F5F7]" style="font-variant-numeric:tabular-nums;">' + d.n + '</span>'
+         + '<span class="text-[11px] text-muted dark:text-[#8E8E93]" style="width:34px;text-align:right;font-variant-numeric:tabular-nums;">' + pct + '%</span>'
+         + '</li>';
+  }).join('');
+
+  var tip = document.getElementById('jxDonutTip');
+  svg.querySelectorAll('path').forEach(function(seg) {
+    seg.addEventListener('mouseenter', function() {
+      var d = jxDonutData[+seg.getAttribute('data-i')];
+      svg.querySelectorAll('path').forEach(function(o){ o.style.opacity = o === seg ? '1' : '.45'; });
+      tip.textContent = d.name + ' — ' + d.n + ' clases';
+      var host = svg.parentElement.getBoundingClientRect();
+      var box  = svg.getBoundingClientRect();
+      tip.style.left = (box.left - host.left + (+seg.getAttribute('data-mx')) / 300 * box.width + 10) + 'px';
+      tip.style.top  = (box.top - host.top + (+seg.getAttribute('data-my')) / 300 * box.height - 24) + 'px';
+      tip.style.opacity = '1';
+    });
+    seg.addEventListener('mouseleave', function() {
+      svg.querySelectorAll('path').forEach(function(o){ o.style.opacity = '1'; });
+      tip.style.opacity = '0';
+    });
+  });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  jxRenderDonut();
+  new MutationObserver(jxRenderDonut).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
 });
 </script>
 
@@ -868,7 +1276,7 @@ window.addEventListener('resize', function(){
         <div id="jxEpPane" class="jx-code-pane overflow-auto" style="min-height:240px">
 <pre><code id="jxEpCode" class="language-json">{
   "status": "UP",
-  "version": "3.2.0",
+  "version": "3.3.0",
   "uptime": "00:04:12",
   "pool": {
     "active": 2,
@@ -895,11 +1303,11 @@ window.addEventListener('resize', function(){
 var jxEpSamples = {
   health: {
     label: 'GET /jx/health',
-    code: '{\n  "status": "UP",\n  "version": "3.2.0",\n  "uptime": "00:04:12",\n  "pool": {\n    "active": 2,\n    "idle": 8,\n    "total": 10\n  },\n  "threads": {\n    "active": 4,\n    "virtual": true\n  },\n  "memory": {\n    "usedMB": 48,\n    "maxMB": 512\n  }\n}'
+    code: '{\n  "status": "UP",\n  "version": "3.3.0",\n  "uptime": "00:04:12",\n  "pool": {\n    "active": 2,\n    "idle": 8,\n    "total": 10\n  },\n  "threads": {\n    "active": 4,\n    "virtual": true\n  },\n  "memory": {\n    "usedMB": 48,\n    "maxMB": 512\n  }\n}'
   },
   info: {
     label: 'GET /jx/info',
-    code: '{\n  "framework": "JxMVC",\n  "version": "3.2.0",\n  "profile": "prod",\n  "java": "21.0.3",\n  "server": "Apache Tomcat/10.1.20",\n  "startedAt": "2026-06-07T08:00:00Z",\n  "controllers": 6,\n  "routes": 24\n}'
+    code: '{\n  "framework": "JxMVC",\n  "version": "3.3.0",\n  "profile": "prod",\n  "java": "21.0.3",\n  "server": "Apache Tomcat/10.1.20",\n  "startedAt": "2026-06-07T08:00:00Z",\n  "controllers": 6,\n  "routes": 24\n}'
   },
   metrics: {
     label: 'GET /jx/metrics',
@@ -907,7 +1315,7 @@ var jxEpSamples = {
   },
   openapi: {
     label: 'GET /jx/openapi',
-    code: '{\n  "openapi": "3.0.1",\n  "info": {\n    "title": "JxMVC API",\n    "version": "3.2.0"\n  },\n  "paths": {\n    "/api/persona/{id}": {\n      "get": {\n        "summary": "Obtener persona",\n        "parameters": [{\n          "name": "id",\n          "in": "path",\n          "required": true\n        }]\n      }\n    }\n  }\n}'
+    code: '{\n  "openapi": "3.0.1",\n  "info": {\n    "title": "JxMVC API",\n    "version": "3.3.0"\n  },\n  "paths": {\n    "/api/persona/{id}": {\n      "get": {\n        "summary": "Obtener persona",\n        "parameters": [{\n          "name": "id",\n          "in": "path",\n          "required": true\n        }]\n      }\n    }\n  }\n}'
   }
 };
 
@@ -1015,5 +1423,33 @@ document.querySelectorAll('.jx-pipe-node, .jx-bar, .jx-counter').forEach(functio
   io.observe(el);
 });
 </script>
+
+<%-- ── Banda Strands (efecto WebGL vanilla, colores de marca) ────────── --%>
+<section class="jx-strands">
+  <canvas id="jxStrands"></canvas>
+  <div class="jx-strands-veil"></div>
+  <div class="jx-strands-inner">
+    <h2>Del cero al deploy en minutos</h2>
+    <p>Genera tu proyecto Lux, compílalo con Maven y despliégalo en Tomcat. Un solo JAR, sin dependencias externas.</p>
+    <div class="jx-strands-cta">
+      <a href="${pageContext.request.contextPath}/downloads" class="jx-cta-primary">Descargar</a>
+      <a href="${pageContext.request.contextPath}/docs" class="jx-cta-light">Ver documentación</a>
+    </div>
+  </div>
+</section>
+<style>
+  .jx-strands { position:relative; overflow:hidden; background:#07080D; min-height:460px; }
+  .jx-strands #jxStrands { position:absolute; inset:0; width:100%; height:100%; z-index:0; display:block; }
+  .jx-strands-veil { position:absolute; inset:0; z-index:1; pointer-events:none;
+    background:radial-gradient(ellipse at center, transparent 34%, rgba(7,8,13,.62) 100%); }
+  .jx-strands-inner { position:relative; z-index:2; max-width:52rem; margin:0 auto; padding:120px 24px; text-align:center; }
+  .jx-strands-inner h2 { font-size:clamp(2rem,5vw,3.2rem); font-weight:800; letter-spacing:-.03em; color:#fff; line-height:1.06; }
+  .jx-strands-inner p { margin:16px auto 0; font-size:16px; line-height:1.6; color:rgba(255,255,255,.72); max-width:34rem; }
+  .jx-strands-cta { margin-top:32px; display:flex; gap:12px; justify-content:center; flex-wrap:wrap; }
+  .jx-cta-light { display:inline-block; padding:12px 24px; border-radius:999px; font-size:14px; font-weight:600;
+    color:#fff; border:1px solid rgba(255,255,255,.25); transition:background .15s ease, border-color .15s ease; }
+  .jx-cta-light:hover { background:rgba(255,255,255,.08); border-color:rgba(255,255,255,.42); }
+</style>
+<script src="${pageContext.request.contextPath}/assets/js/strands.js"></script>
 
 <%@ include file="/WEB-INF/views/shared/footer.jspf" %>

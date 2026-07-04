@@ -7,6 +7,27 @@
     <short-name>jx</short-name>
     <uri>http://jxmvc/tags</uri>
 
+    <function>
+        <description>Escapa texto para salida HTML segura (previene XSS)</description>
+        <name>esc</name>
+        <function-class>jxmvc.core.JxHtml</function-class>
+        <function-signature>java.lang.String escape(java.lang.Object)</function-signature>
+    </function>
+
+    <function>
+        <description>Campo oculto _csrf listo para insertar en un form (protección CSRF)</description>
+        <name>csrf</name>
+        <function-class>jxmvc.core.JxCsrf</function-class>
+        <function-signature>java.lang.String field(jakarta.servlet.http.HttpServletRequest)</function-signature>
+    </function>
+
+    <function>
+        <description>Token CSRF de la sesión, para enviarlo en la cabecera X-CSRF-Token</description>
+        <name>csrfToken</name>
+        <function-class>jxmvc.core.JxCsrf</function-class>
+        <function-signature>java.lang.String token(jakarta.servlet.http.HttpServletRequest)</function-signature>
+    </function>
+
     <tag>
         <name>if</name>
         <tag-class>jxmvc.core.JxTagIf</tag-class>

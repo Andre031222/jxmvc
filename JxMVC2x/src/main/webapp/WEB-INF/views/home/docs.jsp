@@ -121,7 +121,7 @@
     <p class="text-xs font-mono uppercase tracking-[0.25em] text-muted dark:text-[#86868b] mb-2">Reference</p>
     <h1 class="text-4xl font-bold tracking-tight text-ink dark:text-[#f5f5f7]">JxMVC <span class="text-apple">3.1</span> Docs</h1>
     <p class="text-sm text-muted dark:text-[#86868b] mt-2 max-w-xl">
-      Jakarta EE 11 · Java 17+ · Cero dependencias en runtime · WAR ~224 KB
+      Jakarta EE 11 · Java 17+ · Cero dependencias en runtime · WAR ~237 KB
     </p>
   </div>
   <a href="${pageContext.request.contextPath}/downloads"
@@ -141,16 +141,16 @@
       <nav id="jxDocNav" class="space-y-0.5">
       <%
       String[][] sideNav = {
-          {"routing",       "Routing",          "#087CFA", "01"},
-          {"controladores", "Controladores",    "#087CFA", "02"},
-          {"base-de-datos", "Base de datos",    "#5A63D6", "03"},
+          {"routing",       "Routing",          "#0071E3", "01"},
+          {"controladores", "Controladores",    "#0071E3", "02"},
+          {"base-de-datos", "Base de datos",    "#5E5CE6", "03"},
           {"validacion",    "Validación · 21",  "#FC801D", "04"},
           {"seguridad",     "Seguridad",        "#FE2857", "05"},
-          {"filtros",       "Filtros",          "#5A63D6", "06"},
+          {"filtros",       "Filtros",          "#5E5CE6", "06"},
           {"cron-async",    "Cron & Async",     "#FC801D", "07"},
-          {"di",            "Inyección DI",     "#087CFA", "08"},
-          {"config",        "Configuración",    "#5A63D6", "09"},
-          {"sistema",       "Endpoints",        "#087CFA", "10"},
+          {"di",            "Inyección DI",     "#0071E3", "08"},
+          {"config",        "Configuración",    "#5E5CE6", "09"},
+          {"sistema",       "Endpoints",        "#0071E3", "10"},
       };
       for (String[] n : sideNav) {
       %>
@@ -199,16 +199,16 @@
                     rounded-2xl overflow-hidden">
             <%
             String[][] mobNav = {
-                {"routing",       "Routing",          "#087CFA", "01"},
-                {"controladores", "Controladores",    "#087CFA", "02"},
-                {"base-de-datos", "Base de datos",    "#5A63D6", "03"},
+                {"routing",       "Routing",          "#0071E3", "01"},
+                {"controladores", "Controladores",    "#0071E3", "02"},
+                {"base-de-datos", "Base de datos",    "#5E5CE6", "03"},
                 {"validacion",    "Validación · 21",  "#FC801D", "04"},
                 {"seguridad",     "Seguridad",        "#FE2857", "05"},
-                {"filtros",       "Filtros",          "#5A63D6", "06"},
+                {"filtros",       "Filtros",          "#5E5CE6", "06"},
                 {"cron-async",    "Cron & Async",     "#FC801D", "07"},
-                {"di",            "Inyección DI",     "#087CFA", "08"},
-                {"config",        "Configuración",    "#5A63D6", "09"},
-                {"sistema",       "Endpoints",        "#087CFA", "10"},
+                {"di",            "Inyección DI",     "#0071E3", "08"},
+                {"config",        "Configuración",    "#5E5CE6", "09"},
+                {"sistema",       "Endpoints",        "#0071E3", "10"},
             };
             for (String[] mn : mobNav) {
             %>
@@ -233,9 +233,9 @@
 ════════════════════════════════════════════════════════════════════ --%>
 <section id="routing" class="jx-section">
   <div class="flex items-center gap-3 mb-6">
-    <span class="w-7 h-7 rounded-xl flex items-center justify-center text-[10px] font-mono font-bold text-white shrink-0" style="background:#087CFA">01</span>
+    <span class="w-7 h-7 rounded-xl flex items-center justify-center text-[10px] font-mono font-bold text-white shrink-0" style="background:#0071E3">01</span>
     <h2 class="text-lg font-semibold text-ink dark:text-[#f5f5f7]">Routing</h2>
-    <div class="jx-sec-line" style="background:#087CFA"></div>
+    <div class="jx-sec-line" style="background:#0071E3"></div>
   </div>
   <div class="grid md:grid-cols-2 gap-4">
 
@@ -347,9 +347,9 @@ public ActionResult status() {
 ════════════════════════════════════════════════════════════════════ --%>
 <section id="controladores" class="jx-section">
   <div class="flex items-center gap-3 mb-6">
-    <span class="w-7 h-7 rounded-xl flex items-center justify-center text-[10px] font-mono font-bold text-white shrink-0" style="background:#087CFA">02</span>
+    <span class="w-7 h-7 rounded-xl flex items-center justify-center text-[10px] font-mono font-bold text-white shrink-0" style="background:#0071E3">02</span>
     <h2 class="text-lg font-semibold text-ink dark:text-[#f5f5f7]">Controladores</h2>
-    <div class="jx-sec-line" style="background:#087CFA"></div>
+    <div class="jx-sec-line" style="background:#0071E3"></div>
   </div>
   <div class="grid md:grid-cols-2 gap-4">
 
@@ -433,7 +433,7 @@ public class AdminController extends JxController {
 
     @JxModelAttr
     public void commonAttrs() {
-        model.setVar("appVersion", "3.2.0");
+        model.setVar("appVersion", "3.3.0");
         model.setVar("usuario", sessionGet("user"));
     }
 
@@ -482,9 +482,9 @@ public class GlobalAdvice {
 ════════════════════════════════════════════════════════════════════ --%>
 <section id="base-de-datos" class="jx-section">
   <div class="flex items-center gap-3 mb-6">
-    <span class="w-7 h-7 rounded-xl flex items-center justify-center text-[10px] font-mono font-bold text-white shrink-0" style="background:#5A63D6">03</span>
+    <span class="w-7 h-7 rounded-xl flex items-center justify-center text-[10px] font-mono font-bold text-white shrink-0" style="background:#5E5CE6">03</span>
     <h2 class="text-lg font-semibold text-ink dark:text-[#f5f5f7]">Base de datos</h2>
-    <div class="jx-sec-line" style="background:#5A63D6"></div>
+    <div class="jx-sec-line" style="background:#5E5CE6"></div>
   </div>
   <div class="grid md:grid-cols-2 gap-4">
 
@@ -791,9 +791,9 @@ jxmvc.security.hsts.maxage   = 31536000</code></pre>
 ════════════════════════════════════════════════════════════════════ --%>
 <section id="filtros" class="jx-section">
   <div class="flex items-center gap-3 mb-6">
-    <span class="w-7 h-7 rounded-xl flex items-center justify-center text-[10px] font-mono font-bold text-white shrink-0" style="background:#5A63D6">06</span>
+    <span class="w-7 h-7 rounded-xl flex items-center justify-center text-[10px] font-mono font-bold text-white shrink-0" style="background:#5E5CE6">06</span>
     <h2 class="text-lg font-semibold text-ink dark:text-[#f5f5f7]">Filtros globales</h2>
-    <div class="jx-sec-line" style="background:#5A63D6"></div>
+    <div class="jx-sec-line" style="background:#5E5CE6"></div>
   </div>
   <div class="grid md:grid-cols-2 gap-4">
 
@@ -1065,9 +1065,9 @@ public ActionResult report() {
 ════════════════════════════════════════════════════════════════════ --%>
 <section id="di" class="jx-section">
   <div class="flex items-center gap-3 mb-6">
-    <span class="w-7 h-7 rounded-xl flex items-center justify-center text-[10px] font-mono font-bold text-white shrink-0" style="background:#087CFA">08</span>
+    <span class="w-7 h-7 rounded-xl flex items-center justify-center text-[10px] font-mono font-bold text-white shrink-0" style="background:#0071E3">08</span>
     <h2 class="text-lg font-semibold text-ink dark:text-[#f5f5f7]">Inyección de dependencias</h2>
-    <div class="jx-sec-line" style="background:#087CFA"></div>
+    <div class="jx-sec-line" style="background:#0071E3"></div>
   </div>
   <div class="grid md:grid-cols-2 gap-4">
 
@@ -1132,9 +1132,9 @@ JxServiceRegistry.register(new MockEmailService());
 ════════════════════════════════════════════════════════════════════ --%>
 <section id="config" class="jx-section">
   <div class="flex items-center gap-3 mb-6">
-    <span class="w-7 h-7 rounded-xl flex items-center justify-center text-[10px] font-mono font-bold text-white shrink-0" style="background:#5A63D6">09</span>
+    <span class="w-7 h-7 rounded-xl flex items-center justify-center text-[10px] font-mono font-bold text-white shrink-0" style="background:#5E5CE6">09</span>
     <h2 class="text-lg font-semibold text-ink dark:text-[#f5f5f7]">Configuración completa</h2>
-    <div class="jx-sec-line" style="background:#5A63D6"></div>
+    <div class="jx-sec-line" style="background:#5E5CE6"></div>
   </div>
   <div class="code-block">
     <div class="code-label">src/main/resources/application.properties</div>
@@ -1168,9 +1168,9 @@ jxmvc.security.hsts.maxage   = 31536000   # 1 año en segundos</code></pre>
 ════════════════════════════════════════════════════════════════════ --%>
 <section id="sistema" class="jx-section">
   <div class="flex items-center gap-3 mb-6">
-    <span class="w-7 h-7 rounded-xl flex items-center justify-center text-[10px] font-mono font-bold text-white shrink-0" style="background:#087CFA">10</span>
+    <span class="w-7 h-7 rounded-xl flex items-center justify-center text-[10px] font-mono font-bold text-white shrink-0" style="background:#0071E3">10</span>
     <h2 class="text-lg font-semibold text-ink dark:text-[#f5f5f7]">Endpoints del sistema</h2>
-    <div class="jx-sec-line" style="background:#087CFA"></div>
+    <div class="jx-sec-line" style="background:#0071E3"></div>
   </div>
   <div class="divide-y divide-black/[0.05] dark:divide-white/[0.05] border border-black/[0.06] dark:border-white/[0.06] rounded-2xl overflow-hidden">
 
@@ -1271,7 +1271,7 @@ hljs.highlightAll();
             l.classList.toggle('active', isActive);
             var dot = l.querySelector('.jx-dot');
             if (isActive) {
-                var c = l.dataset.color || '#087CFA';
+                var c = l.dataset.color || '#0071E3';
                 l.style.color = c;
                 var r = parseInt(c.slice(1,3),16), g = parseInt(c.slice(3,5),16), b = parseInt(c.slice(5,7),16);
                 l.style.background = 'rgba('+r+','+g+','+b+',0.08)';

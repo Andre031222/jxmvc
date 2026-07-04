@@ -15,8 +15,8 @@ public class HomeController extends BaseController {
 
     @JxGetMapping({"/about", "about"})
     public ActionResult about() {
-        model.setVar("title",     "About · JxMVC 3.2.0");
-        model.setVar("framework", "Lightning-X MVC 3.2.0 (JxMVC)");
+        model.setVar("title",     "About · JxMVC 3.3.0");
+        model.setVar("framework", "Lightning-X MVC 3.3.0 (JxMVC)");
         return view("home/about");
     }
 
@@ -27,25 +27,40 @@ public class HomeController extends BaseController {
 
     @JxGetMapping({"docs", "/docs"})
     public ActionResult docs() {
-        model.setVar("title", "Docs · JxMVC 3.2.0");
+        model.setVar("title", "Docs · JxMVC 3.3.0");
         return view("home/docs");
     }
 
     @JxGetMapping({"errors", "/errors"})
     public ActionResult errors() {
-        model.setVar("title", "Pruebas de errores · JxMVC 3.2.0");
+        model.setVar("title", "Pruebas de errores · JxMVC 3.3.0");
         return view("home/errors");
     }
 
     @JxGetMapping({"downloads", "/downloads"})
     public ActionResult downloads() {
-        model.setVar("title", "Descargas · JxMVC 3.2.0");
+        model.setVar("title", "Descargas · JxMVC 3.3.0");
         return view("home/downloads");
+    }
+
+    private static final long PANEL_START = System.currentTimeMillis();
+
+    @JxGetMapping({"panel", "/panel"})
+    public ActionResult panel() {
+        model.setVar("title", "Panel en vivo · JxMVC");
+        return view("home/panel");
+    }
+
+    @JxGetMapping("panel-data")
+    public ActionResult panelData() {
+        String metrics = JxMetrics.toJson();
+        long uptime = System.currentTimeMillis() - PANEL_START;
+        return json("{\"uptimeMs\":" + uptime + ",\"metrics\":" + metrics + "}");
     }
 
     @JxGetMapping({"bd", "/bd"})
     public ActionResult bd() {
-        model.setVar("title", "BD · JxMVC 3.2.0");
+        model.setVar("title", "BD · JxMVC 3.3.0");
 
         try (JxDB db = db()) {
             String connState = db.isConnected() ? "Conectado" : "Sin conexión";
@@ -76,7 +91,7 @@ public class HomeController extends BaseController {
 
     @JxGetMapping("grabar")
     public ActionResult grabar() {
-        String valor = model.argRaw(0);
+        String valor = model.arg(0);
         model.setVar("route",     model.path());
         model.setVar("value",     valor != null ? valor : "sin argumento");
         model.setVar("argsCount", model.argsCount());
@@ -95,7 +110,7 @@ public class HomeController extends BaseController {
 
     @JxGetMapping("test")
     public ActionResult test() {
-        return text("test0:" + model.argRaw(0));
+        return text("test0:" + model.arg(0));
     }
 
     // Demo REST (GET absoluto y POST)

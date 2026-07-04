@@ -15,7 +15,7 @@
     <div class="bg-white dark:bg-white/[0.05] border border-black/[0.06] dark:border-white/[0.06] rounded-2xl overflow-hidden">
         <div class="px-5 py-3.5 border-b border-black/[0.06] dark:border-white/[0.06]">
             <p class="text-xs font-mono text-muted dark:text-[#86868b]">Estado conexión:
-                <span class="text-ink dark:text-[#f5f5f7] font-medium">${connState}</span>
+                <span class="text-ink dark:text-[#f5f5f7] font-medium">${jx:esc(connState)}</span>
             </p>
         </div>
         <jx:if test="${hasRows}">
@@ -32,9 +32,9 @@
                     <tbody class="divide-y divide-black/[0.05] dark:divide-white/[0.05]">
                         <jx:for var="row" items="${tbl.Result()}" maxCount="10">
                             <tr class="hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors">
-                                <td class="py-3 px-5 font-semibold text-ink dark:text-[#f5f5f7]">${row.get("id")}</td>
-                                <td class="py-3 px-5 text-ink dark:text-[#f5f5f7]">${row.get("numDoc")}</td>
-                                <td class="py-3 px-5 text-ink dark:text-[#f5f5f7]">${row.get("Correo")}</td>
+                                <td class="py-3 px-5 font-semibold text-ink dark:text-[#f5f5f7]">${jx:esc(row.get("id"))}</td>
+                                <td class="py-3 px-5 text-ink dark:text-[#f5f5f7]">${jx:esc(row.get("numDoc"))}</td>
+                                <td class="py-3 px-5 text-ink dark:text-[#f5f5f7]">${jx:esc(row.get("Correo"))}</td>
                                 <td class="py-3 px-5 text-muted dark:text-[#86868b]">Activo</td>
                             </tr>
                         </jx:for>
