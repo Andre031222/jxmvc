@@ -19,7 +19,8 @@ public class JxTestSuite {
         "jxmvc.core.GzipTest",
         "jxmvc.core.WebSocketTest",
         "jxmvc.core.SecurityTest",
-        "jxmvc.core.HardeningV33Test"
+        "jxmvc.core.HardeningV33Test",
+        "jxmvc.core.OAuthTest"
     );
 
     public static void main(String[] args) throws Exception {

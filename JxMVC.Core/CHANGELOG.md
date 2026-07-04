@@ -1,5 +1,18 @@
 # Changelog — JxMVC Core
 
+## 3.4.0 — 2026-07-04
+
+Autenticación de fábrica: inicio de sesión con **Google** (OAuth 2.0 + PKCE) y hashing de contraseñas, ambos sin dependencias externas. API pública intacta; todo lo nuevo es opt-in.
+
+### Nuevo
+
+- **JxOAuth**: flujo *Authorization Code* con PKCE (S256) para OpenID Connect, con preset de **Google** listo para usar. Construye la URL de consentimiento, intercambia el código y recupera los claims del usuario apoyándose en `JxHttp` y `JxJson` — cero dependencias. Se configura con `jxmvc.oauth.google.client-id` / `client-secret` / `redirect-uri` (o variables de entorno equivalentes).
+- **JxPasswords**: hashing de contraseñas PBKDF2-SHA256 con salt aleatorio, número de iteraciones embebido en el propio hash, verificación en tiempo constante y `needsRehash` para reforzar hashes antiguos.
+
+### Tests
+
+- **28 verificaciones nuevas** (`OAuthTest`): vector PKCE del RFC 7636, construcción de la URL de autorización, tokens URL-safe y roundtrip de PBKDF2. Total: **333** en verde.
+
 ## 3.3.0 — 2026-07-04
 
 Routing endurecido, capas de seguridad nuevas (CSRF, límites, anti open-redirect) y métricas más ricas. API pública intacta; todo lo nuevo es opt-in o corrección de comportamiento incorrecto.

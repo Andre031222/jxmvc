@@ -33,7 +33,7 @@ grande, un solo acento.
 
 ## Design Principles
 
-1. **El dato es el discurso** — números reales medibles (237 KB, 1.2 s, 305 tests) presentados como visualizaciones honestas, nunca decoración.
+1. **El dato es el discurso** — números reales medibles (237 KB, 1.2 s, 333 tests) presentados como visualizaciones honestas, nunca decoración.
 2. **Predicar con el ejemplo** — el sitio corre sobre JxMVC sin dependencias JS pesadas: nada de chart libs externas; canvas/SVG a mano.
 3. **Un acento, dos fondos** — azul #0071E3 sobre blanco o negro puros; los acentos secundarios (índigo, naranja, rojo, verde) aparecen solo con rol semántico.
 4. **Compacto y directo** — cada sección responde una pregunta del visitante; si no la responde, se corta.

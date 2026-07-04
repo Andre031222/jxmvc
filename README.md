@@ -16,7 +16,7 @@
 
 <p>
   <a href="https://jxmvc.ginit.dev"><img src="https://img.shields.io/badge/Sitio-jxmvc.ginit.dev-0F62FE?style=for-the-badge&logo=googlechrome&logoColor=white"></a>
-  <img src="https://img.shields.io/badge/Versión-3.3.0-1565C0?style=for-the-badge">
+  <img src="https://img.shields.io/badge/Versión-3.4.0-1565C0?style=for-the-badge">
   <img src="https://img.shields.io/badge/Estado-Producción-2E7D32?style=for-the-badge">
   <img src="https://img.shields.io/badge/Licencia-MIT-555555?style=for-the-badge">
 </p>
@@ -27,11 +27,11 @@
   <img alt="Tomcat"     src="https://img.shields.io/badge/Tomcat-10.1%2B-F8DC75?style=flat-square&logo=apachetomcat&logoColor=black">
   <img alt="Maven"      src="https://img.shields.io/badge/Maven-build-C71A36?style=flat-square&logo=apachemaven&logoColor=white">
   <img alt="Deps"       src="https://img.shields.io/badge/Dependencias-0-2E7D32?style=flat-square">
-  <img alt="Tests"      src="https://img.shields.io/badge/Tests-305%20passing-C21325?style=flat-square&logo=junit5&logoColor=white">
+  <img alt="Tests"      src="https://img.shields.io/badge/Tests-333%20passing-C21325?style=flat-square&logo=junit5&logoColor=white">
 </p>
 
 <p align="center">
-  <img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=600&size=18&duration=2800&pause=900&color=0F62FE&center=true&vCenter=true&width=860&lines=%24+jxmvc+--jar+-%3E+237+KB+%C2%B7+0+dependencias+externas;%24+jxmvc+--start+-%3E+1.2+s+sobre+Tomcat+10+%28Jakarta+EE+10%29;%24+jxmvc+--stack+-%3E+Routing+%7C+JxDB+%7C+Pool+%7C+JSON+%7C+WebSocket+%7C+Scheduler;%24+jxmvc+--tests+-%3E+305+verificaciones+en+verde">
+  <img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=600&size=18&duration=2800&pause=900&color=0F62FE&center=true&vCenter=true&width=860&lines=%24+jxmvc+--jar+-%3E+237+KB+%C2%B7+0+dependencias+externas;%24+jxmvc+--start+-%3E+1.2+s+sobre+Tomcat+10+%28Jakarta+EE+10%29;%24+jxmvc+--stack+-%3E+Routing+%7C+JxDB+%7C+Pool+%7C+JSON+%7C+WebSocket+%7C+Scheduler;%24+jxmvc+--tests+-%3E+333+verificaciones+en+verde">
 </p>
 
 </div>
@@ -152,7 +152,7 @@ en la BD. **Cero POJOs, cero Lombok, cero mapeo por reflexión.**
 <dependency>
     <groupId>jxmvc</groupId>
     <artifactId>jxmvc-core</artifactId>
-    <version>3.3.0</version>
+    <version>3.4.0</version>
 </dependency>
 ```
 
@@ -235,7 +235,7 @@ El detalle clase por clase está en [`JxMVC.Core/STATUS.md`](JxMVC.Core/STATUS.m
 19.Soft_JXMVC/
 ├── JxMVC.Core/          Framework — JAR de 237 KB, 52 clases, 0 deps externas
 │   ├── src/main/java/jxmvc/core/     núcleo (routing, JxDB, pool, JSON, ws…)
-│   ├── src/test/java/jxmvc/core/     305 verificaciones sin framework externo
+│   ├── src/test/java/jxmvc/core/     333 verificaciones sin framework externo
 │   ├── CHANGELOG.md · STATUS.md · build.sh · pom.xml
 │
 └── JxMVC2x/             Sitio oficial + generador de proyectos (jxmvc.ginit.dev)
@@ -256,10 +256,10 @@ El detalle clase por clase está en [`JxMVC.Core/STATUS.md`](JxMVC.Core/STATUS.m
 ## Compilación
 
 ```bash
-# Framework core (genera el JAR y corre las 305 verificaciones)
+# Framework core (genera el JAR y corre las 333 verificaciones)
 cd JxMVC.Core
 mvn clean package
-# → target/jxmvc-core-3.3.0.jar
+# → target/jxmvc-core-3.4.0.jar
 
 # Sitio oficial / generador (genera el WAR)
 cd ../JxMVC2x
@@ -281,7 +281,7 @@ jxmvc.profile = dev        # dev | prod | test
 # También por variables de entorno: DB_URL, DB_USER, DB_PASS
 ```
 
-Propiedades de *hardening* para producción (v3.3.0):
+Propiedades de *hardening* para producción (v3.4.0):
 
 ```properties
 jxmvc.pool.validationInterval = 30       # seg sin revalidar la conexión (0 = siempre)
@@ -301,7 +301,7 @@ jxmvc.ws.maxConnections       = 0        # tope global de conexiones WebSocket
 ## Endpoints internos
 
 ```
-GET /jx/health    → {"status":"UP","version":"3.3.0","pool":{…},"ws":{…}}
+GET /jx/health    → {"status":"UP","version":"3.4.0","pool":{…},"ws":{…}}
 GET /jx/info      → {"framework":"JxMVC","java":"17","server":"Tomcat/10.1"}
 GET /jx/metrics   → métricas por ruta
 GET /jx/openapi   → spec OpenAPI 3.0 generada automáticamente
@@ -315,7 +315,7 @@ GET /jx/openapi   → spec OpenAPI 3.0 generada automáticamente
 
 ## Comparativa
 
-| | **JxMVC 3.3.0** | Spring Boot 3 | Micronaut 4 | Quarkus 3 | Javalin 6 |
+| | **JxMVC 3.4.0** | Spring Boot 3 | Micronaut 4 | Quarkus 3 | Javalin 6 |
 |---|---|---|---|---|---|
 | JAR runtime | **237 KB** | ~20 MB | ~25 MB | ~15 MB | ~1.5 MB |
 | Deps externas | **0** | 200+ | 50+ | 80+ | 10+ |
@@ -328,7 +328,7 @@ GET /jx/openapi   → spec OpenAPI 3.0 generada automáticamente
 
 ## Pruebas y calidad
 
-- **305 verificaciones** en `JxMVC.Core/src/test/`, escritas **sin framework de testing externo**.
+- **333 verificaciones** en `JxMVC.Core/src/test/`, escritas **sin framework de testing externo**.
 - Cobertura de los caminos críticos de producción: pool bajo concurrencia (50 threads),
   gzip con *passthrough*, *stampede* de caché, *broadcast* WebSocket concurrente,
   escape de errores JSON, *path traversal* y *mass assignment*.
@@ -345,8 +345,8 @@ El historial de auditorías de producción está en [`JxMVC.Core/CHANGELOG.md`](
 ## Versionado
 
 Este proyecto sigue **[SemVer](https://semver.org/lang/es/)**. La versión actual es
-**3.3.0** (routing endurecido, CSRF, límite de body, anti open-redirect y métricas con
-mín/máx por ruta, con la API pública intacta). Ver el
+**3.4.0** (inicio de sesión con **Google** vía OAuth 2.0 + PKCE y hashing de contraseñas
+PBKDF2 integrados en el core, ambos sin dependencias externas; API pública intacta). Ver el
 [CHANGELOG](JxMVC.Core/CHANGELOG.md) para el detalle.
 
 ---

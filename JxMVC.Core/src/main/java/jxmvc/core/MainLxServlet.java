@@ -43,7 +43,7 @@ import java.util.concurrent.Executors;
 @MultipartConfig(maxFileSize = 20_971_520, maxRequestSize = 41_943_040)
 public class MainLxServlet extends HttpServlet {
 
-    public static final String VERSION = "3.3.0";
+    public static final String VERSION = "3.4.0";
 
     /** Confiar en X-Forwarded-For/X-Real-IP solo si la app está detrás de un proxy de confianza. */
     private static final boolean TRUST_PROXY = BaseDbResolver.propertyBool("jxmvc.trustProxy", false);
