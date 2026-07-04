@@ -732,6 +732,46 @@ public class AdminController extends JxController { ... }</code></pre>
     </div>
 
     <div>
+      <p class="text-xs font-semibold text-muted dark:text-[#86868b] uppercase tracking-wider mb-2">Login con Google — OAuth 2.0 + PKCE</p>
+      <div class="code-block">
+        <div class="code-label">JxOAuth · cero dependencias</div>
+        <pre><code class="language-java">// 1) Redirigir al consentimiento de Google
+JxOAuth.Flow flow = JxOAuth.google().start();
+sessionSet("oauth.state",    flow.state());
+sessionSet("oauth.verifier", flow.codeVerifier());
+view.status(302);
+view.header("Location", flow.url());
+return text("");
+
+// 2) Callback: valida state, canjea el código, crea sesión
+if (!param("state").equals(sessionGet("oauth.state")))
+    throw JxException.forbidden("state inválido");
+JxOAuth.User u = JxOAuth.google()
+    .login(param("code"), (String) sessionGet("oauth.verifier"));
+sessionSet("user", u);   // u.email(), u.name(), u.picture()</code></pre>
+      </div>
+    </div>
+
+    <div>
+      <p class="text-xs font-semibold text-muted dark:text-[#86868b] uppercase tracking-wider mb-2">Contraseñas — hashing PBKDF2</p>
+      <div class="code-block">
+        <div class="code-label">JxPasswords</div>
+        <pre><code class="language-java">// Al registrar: guarda el hash, nunca la contraseña en claro
+String stored = JxPasswords.hash("s3cr3t!");
+// pbkdf2$sha256$210000$&lt;salt&gt;$&lt;hash&gt;  (autocontenido)
+
+// Al iniciar sesión: verificación en tiempo constante
+if (JxPasswords.verify(input, stored)) {
+    sessionSet("user", user);
+}
+
+// Reforzar hashes antiguos tras un login válido
+if (JxPasswords.needsRehash(stored))
+    stored = JxPasswords.hash(input);</code></pre>
+      </div>
+    </div>
+
+    <div>
       <p class="text-xs font-semibold text-muted dark:text-[#86868b] uppercase tracking-wider mb-2">Rate limiting</p>
       <div class="code-block">
         <div class="code-label">@JxRateLimit</div>
