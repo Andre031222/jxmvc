@@ -8,7 +8,7 @@
 
 <div align="center">
 
-<img src="JxMVC2x/src/main/webapp/assets/jxlogo-mark.png" width="96" alt="JxMVC" />
+<img src="docs/jxmvc-logo.png" width="112" alt="JxMVC" />
 
 # JxMVC — Lux Framework
 
