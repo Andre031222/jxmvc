@@ -35,8 +35,7 @@
         <cookie-config>
             <!-- HttpOnly: la cookie no es accesible desde JavaScript (proteccion XSS) -->
             <http-only>true</http-only>
-            <!-- Secure: cookie solo se envía sobre HTTPS -->
-            <secure>true</secure>
+            <!-- Secure: se activa por perfil en AppBootstrap (true en prod, false en dev/http) -->
         </cookie-config>
         <tracking-mode>COOKIE</tracking-mode>
     </session-config>

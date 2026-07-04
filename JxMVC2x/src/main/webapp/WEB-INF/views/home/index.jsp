@@ -371,8 +371,8 @@ jxmvc.log.level  = INFO</code></pre>
         </div>
         <div class="jx-inst-body">
           <div><span class="jx-t-prompt">$</span> <span class="jx-t-cmd">mvn install -f</span> <span class="jx-t-key">JxMVC.Core/pom.xml</span></div>
-          <div class="jx-t-mut">[INFO] Building <span class="jx-t-key">jxmvc-core</span> 3.3.0</div>
-          <div class="jx-t-mut">[INFO] Tests run: <span class="jx-t-ok">305</span>, Failures: 0, Errors: 0</div>
+          <div class="jx-t-mut">[INFO] Building <span class="jx-t-key">jxmvc-core</span> 3.4.0</div>
+          <div class="jx-t-mut">[INFO] Tests run: <span class="jx-t-ok">333</span>, Failures: 0, Errors: 0</div>
           <div class="jx-t-mut">[INFO] <span class="jx-t-ok">BUILD SUCCESS</span> <span class="jx-t-dim">·</span> 237 KB <span class="jx-t-dim">·</span> 0 deps externas</div>
 
           <div class="jx-inst-grid">
@@ -1135,7 +1135,7 @@ new MutationObserver(jxRedrawActiveChart).observe(document.documentElement, { at
       <div>
         <ul id="jxDonutLegend" class="space-y-2.5"></ul>
         <p class="text-[10px] text-muted dark:text-[#636366] mt-6 leading-relaxed">
-          Clases contadas en <code class="font-mono">jxmvc.core</code> de la v3.3.0.
+          Clases contadas en <code class="font-mono">jxmvc.core</code> de la v3.4.0.
           Métricas en vivo del propio sitio en el <a href="${pageContext.request.contextPath}/home/panel" class="text-apple hover:underline">panel de observabilidad</a>.
         </p>
       </div>
@@ -1279,7 +1279,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <div id="jxEpPane" class="jx-code-pane overflow-auto" style="min-height:240px">
 <pre><code id="jxEpCode" class="language-json">{
   "status": "UP",
-  "version": "3.3.0",
+  "version": "3.4.0",
   "uptime": "00:04:12",
   "pool": {
     "active": 2,
@@ -1306,11 +1306,11 @@ document.addEventListener('DOMContentLoaded', function() {
 var jxEpSamples = {
   health: {
     label: 'GET /jx/health',
-    code: '{\n  "status": "UP",\n  "version": "3.3.0",\n  "uptime": "00:04:12",\n  "pool": {\n    "active": 2,\n    "idle": 8,\n    "total": 10\n  },\n  "threads": {\n    "active": 4,\n    "virtual": true\n  },\n  "memory": {\n    "usedMB": 48,\n    "maxMB": 512\n  }\n}'
+    code: '{\n  "status": "UP",\n  "version": "3.4.0",\n  "uptime": "00:04:12",\n  "pool": {\n    "active": 2,\n    "idle": 8,\n    "total": 10\n  },\n  "threads": {\n    "active": 4,\n    "virtual": true\n  },\n  "memory": {\n    "usedMB": 48,\n    "maxMB": 512\n  }\n}'
   },
   info: {
     label: 'GET /jx/info',
-    code: '{\n  "framework": "JxMVC",\n  "version": "3.3.0",\n  "profile": "prod",\n  "java": "21.0.3",\n  "server": "Apache Tomcat/10.1.20",\n  "startedAt": "2026-06-07T08:00:00Z",\n  "controllers": 6,\n  "routes": 24\n}'
+    code: '{\n  "framework": "JxMVC",\n  "version": "3.4.0",\n  "profile": "prod",\n  "java": "21.0.3",\n  "server": "Apache Tomcat/10.1.20",\n  "startedAt": "2026-06-07T08:00:00Z",\n  "controllers": 6,\n  "routes": 24\n}'
   },
   metrics: {
     label: 'GET /jx/metrics',
@@ -1318,7 +1318,7 @@ var jxEpSamples = {
   },
   openapi: {
     label: 'GET /jx/openapi',
-    code: '{\n  "openapi": "3.0.1",\n  "info": {\n    "title": "JxMVC API",\n    "version": "3.3.0"\n  },\n  "paths": {\n    "/api/persona/{id}": {\n      "get": {\n        "summary": "Obtener persona",\n        "parameters": [{\n          "name": "id",\n          "in": "path",\n          "required": true\n        }]\n      }\n    }\n  }\n}'
+    code: '{\n  "openapi": "3.0.1",\n  "info": {\n    "title": "JxMVC API",\n    "version": "3.4.0"\n  },\n  "paths": {\n    "/api/persona/{id}": {\n      "get": {\n        "summary": "Obtener persona",\n        "parameters": [{\n          "name": "id",\n          "in": "path",\n          "required": true\n        }]\n      }\n    }\n  }\n}'
   }
 };
 

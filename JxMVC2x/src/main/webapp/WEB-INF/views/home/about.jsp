@@ -7,7 +7,7 @@
 <div class="mb-12 jx-reveal jx-delay-1">
     <p class="text-[10px] font-mono uppercase tracking-[0.28em] text-muted dark:text-[#8E8E93] mb-3" data-i18n="about.tag">About</p>
     <h1 class="text-4xl sm:text-5xl font-bold tracking-tight mb-4 text-ink dark:text-white">
-        Lightning-X MVC <span class="text-apple">3.3.0</span>
+        Lightning-X MVC <span class="text-apple">3.4.0</span>
     </h1>
     <p class="text-base text-muted dark:text-[#8E8E93] max-w-2xl leading-relaxed" data-i18n="about.desc">
         Framework MVC para Jakarta EE construido desde cero — sin Spring, sin Hibernate,

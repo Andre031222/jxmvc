@@ -152,7 +152,7 @@
     const JX_T = {
       es:{
         'nav.home':'Inicio','nav.about':'Acerca de','nav.docs':'Documentación',
-        'nav.downloads':'Descargas','nav.errors':'Errores','nav.panel':'Panel',
+        'nav.downloads':'Descargas','nav.errors':'Errores','nav.panel':'Panel','nav.login':'Entrar',
         'hero.tag':'Lightning-X Web Framework',
         'hero.desc':'Framework MVC para Jakarta EE. 237 KB, cero dependencias externas y arranque en 1.2 s.',
         'hero.dl':'Descargar','hero.docs':'Documentación','hero.errors':'Probar errores',
@@ -176,7 +176,7 @@
       },
       en:{
         'nav.home':'Home','nav.about':'About','nav.docs':'Docs',
-        'nav.downloads':'Downloads','nav.errors':'Errors','nav.panel':'Live panel',
+        'nav.downloads':'Downloads','nav.errors':'Errors','nav.panel':'Live panel','nav.login':'Sign in',
         'hero.tag':'Lightning-X Web Framework',
         'hero.desc':'MVC Framework for Jakarta EE — 237 KB, zero dependencies, 1.2 s startup. Pool, JSON, validation, WebSocket and OpenAPI included.',
         'hero.dl':'Download','hero.docs':'Documentation','hero.errors':'Test errors',
@@ -200,7 +200,7 @@
       },
       pt:{
         'nav.home':'Início','nav.about':'Sobre','nav.docs':'Documentação',
-        'nav.downloads':'Downloads','nav.errors':'Erros','nav.panel':'Painel',
+        'nav.downloads':'Downloads','nav.errors':'Erros','nav.panel':'Painel','nav.login':'Entrar',
         'hero.tag':'Lightning-X Web Framework',
         'hero.desc':'Framework MVC para Jakarta EE — 237 KB, zero dependências, inicialização em 1.2 s. Pool, JSON, validação, WebSocket e OpenAPI incluídos.',
         'hero.dl':'Baixar','hero.docs':'Documentação','hero.errors':'Testar erros',
@@ -224,7 +224,7 @@
       },
       ru:{
         'nav.home':'Главная','nav.about':'О нас','nav.docs':'Документация',
-        'nav.downloads':'Загрузки','nav.errors':'Ошибки','nav.panel':'Панель',
+        'nav.downloads':'Загрузки','nav.errors':'Ошибки','nav.panel':'Панель','nav.login':'Войти',
         'hero.tag':'Lightning-X Web Framework',
         'hero.desc':'MVC-фреймворк для Jakarta EE — 237 КБ, нет зависимостей, запуск за 1.2 с. Пул, JSON, валидация, WebSocket и OpenAPI включены.',
         'hero.dl':'Скачать','hero.docs':'Документация','hero.errors':'Тест ошибок',
@@ -248,7 +248,7 @@
       },
       fr:{
         'nav.home':'Accueil','nav.about':'À propos','nav.docs':'Docs',
-        'nav.downloads':'Téléchargements','nav.errors':'Erreurs','nav.panel':'Panneau',
+        'nav.downloads':'Téléchargements','nav.errors':'Erreurs','nav.panel':'Panneau','nav.login':'Connexion',
         'hero.tag':'Lightning-X Web Framework',
         'hero.desc':'Framework MVC pour Jakarta EE — 237 Ko, zéro dépendance, démarrage en 1.2 s. Pool, JSON, validation, WebSocket et OpenAPI inclus.',
         'hero.dl':'Télécharger','hero.docs':'Documentation','hero.errors':'Tester les erreurs',
@@ -363,6 +363,9 @@
             <a href="${pageContext.request.contextPath}/home/panel"
                class="nav-link px-3.5 py-1.5 rounded-lg text-[13.5px] text-muted dark:text-[#8E8E93] hover:text-ink dark:hover:text-[#F5F5F7] transition-colors font-[450]"
                data-i18n="nav.panel">Panel</a>
+            <a href="${pageContext.request.contextPath}/auth/login"
+               class="nav-link px-3.5 py-1.5 rounded-lg text-[13.5px] text-muted dark:text-[#8E8E93] hover:text-ink dark:hover:text-[#F5F5F7] transition-colors font-[450]"
+               data-i18n="nav.login">Entrar</a>
         </nav>
 
         <div class="flex items-center gap-1 shrink-0">
@@ -448,6 +451,7 @@
             <a href="${pageContext.request.contextPath}/downloads" class="flex px-3.5 py-2.5 rounded-xl text-[13.5px] font-[450] text-muted dark:text-[#8E8E93] hover:text-ink dark:hover:text-[#F5F5F7] hover:bg-[#F5F5F7] dark:hover:bg-white/[0.06] transition-colors" data-i18n="nav.downloads">Descargas</a>
             <a href="${pageContext.request.contextPath}/errors"   class="flex px-3.5 py-2.5 rounded-xl text-[13.5px] font-[450] text-muted dark:text-[#8E8E93] hover:text-ink dark:hover:text-[#F5F5F7] hover:bg-[#F5F5F7] dark:hover:bg-white/[0.06] transition-colors" data-i18n="nav.errors">Errores</a>
             <a href="${pageContext.request.contextPath}/home/panel" class="flex px-3.5 py-2.5 rounded-xl text-[13.5px] font-[450] text-muted dark:text-[#8E8E93] hover:text-ink dark:hover:text-[#F5F5F7] hover:bg-[#F5F5F7] dark:hover:bg-white/[0.06] transition-colors" data-i18n="nav.panel">Panel</a>
+            <a href="${pageContext.request.contextPath}/auth/login" class="flex px-3.5 py-2.5 rounded-xl text-[13.5px] font-[450] text-muted dark:text-[#8E8E93] hover:text-ink dark:hover:text-[#F5F5F7] hover:bg-[#F5F5F7] dark:hover:bg-white/[0.06] transition-colors" data-i18n="nav.login">Entrar</a>
             <div class="pt-3 mt-2 border-t border-black/[0.06] dark:border-white/[0.06]">
                 <p class="text-[10px] font-mono uppercase tracking-[0.22em] text-muted/60 dark:text-[#48484A] mb-2 px-1">Idioma</p>
                 <div class="grid grid-cols-5 gap-1.5">

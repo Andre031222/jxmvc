@@ -433,7 +433,7 @@ public class AdminController extends JxController {
 
     @JxModelAttr
     public void commonAttrs() {
-        model.setVar("appVersion", "3.3.0");
+        model.setVar("appVersion", "3.4.0");
         model.setVar("usuario", sessionGet("user"));
     }
 
