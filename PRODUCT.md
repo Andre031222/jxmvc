@@ -16,7 +16,7 @@ descargar/generar un proyecto de arranque.
 jxmvc.ginit.dev es el sitio oficial del framework JxMVC (Lux Framework): documenta,
 demuestra y genera proyectos. El sitio corre SOBRE el propio framework — es su mejor
 demo. Éxito = el visitante entiende en 10 segundos la propuesta (potencia de Spring
-sin su peso: 237 KB, 0 dependencias, arranque 1.2 s) y descarga o genera un proyecto.
+sin su peso: 253 KB, 0 dependencias, arranque 1.2 s) y descarga o genera un proyecto.
 
 ## Brand Personality
 
@@ -33,7 +33,7 @@ grande, un solo acento.
 
 ## Design Principles
 
-1. **El dato es el discurso** — números reales medibles (237 KB, 1.2 s, 333 tests) presentados como visualizaciones honestas, nunca decoración.
+1. **El dato es el discurso** — números reales medibles (253 KB, 1.2 s, 347 tests) presentados como visualizaciones honestas, nunca decoración.
 2. **Predicar con el ejemplo** — el sitio corre sobre JxMVC sin dependencias JS pesadas: nada de chart libs externas; canvas/SVG a mano.
 3. **Un acento, dos fondos** — azul #0071E3 sobre blanco o negro puros; los acentos secundarios (índigo, naranja, rojo, verde) aparecen solo con rol semántico.
 4. **Compacto y directo** — cada sección responde una pregunta del visitante; si no la responde, se corta.

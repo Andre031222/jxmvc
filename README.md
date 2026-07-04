@@ -12,7 +12,7 @@
 
 # JxMVC — Lux Framework
 
-### Framework MVC para Jakarta EE · JAR de 237 KB · **cero** dependencias externas en runtime
+### Framework MVC para Jakarta EE · JAR de 253 KB · **cero** dependencias externas en runtime
 
 <p>
   <a href="https://jxmvc.ginit.dev"><img src="https://img.shields.io/badge/Sitio-jxmvc.ginit.dev-0F62FE?style=for-the-badge&logo=googlechrome&logoColor=white"></a>
@@ -27,11 +27,11 @@
   <img alt="Tomcat"     src="https://img.shields.io/badge/Tomcat-10.1%2B-F8DC75?style=flat-square&logo=apachetomcat&logoColor=black">
   <img alt="Maven"      src="https://img.shields.io/badge/Maven-build-C71A36?style=flat-square&logo=apachemaven&logoColor=white">
   <img alt="Deps"       src="https://img.shields.io/badge/Dependencias-0-2E7D32?style=flat-square">
-  <img alt="Tests"      src="https://img.shields.io/badge/Tests-333%20passing-C21325?style=flat-square&logo=junit5&logoColor=white">
+  <img alt="Tests"      src="https://img.shields.io/badge/Tests-347%20passing-C21325?style=flat-square&logo=junit5&logoColor=white">
 </p>
 
 <p align="center">
-  <img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=600&size=18&duration=2800&pause=900&color=0F62FE&center=true&vCenter=true&width=860&lines=%24+jxmvc+--jar+-%3E+237+KB+%C2%B7+0+dependencias+externas;%24+jxmvc+--start+-%3E+1.2+s+sobre+Tomcat+10+%28Jakarta+EE+10%29;%24+jxmvc+--stack+-%3E+Routing+%7C+JxDB+%7C+Pool+%7C+JSON+%7C+WebSocket+%7C+Scheduler;%24+jxmvc+--auth+-%3E+Google+OAuth+2.0+%2B+PKCE+%C2%B7+PBKDF2%2C+sin+librerias;%24+jxmvc+--tests+-%3E+333+verificaciones+en+verde">
+  <img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=600&size=18&duration=2800&pause=900&color=0F62FE&center=true&vCenter=true&width=860&lines=%24+jxmvc+--jar+-%3E+253+KB+%C2%B7+0+dependencias+externas;%24+jxmvc+--start+-%3E+1.2+s+sobre+Tomcat+10+%28Jakarta+EE+10%29;%24+jxmvc+--stack+-%3E+Routing+%7C+JxDB+%7C+Pool+%7C+JSON+%7C+WebSocket+%7C+Scheduler;%24+jxmvc+--auth+-%3E+Google+OAuth+2.0+%2B+PKCE+%C2%B7+PBKDF2%2C+sin+librerias;%24+jxmvc+--tests+-%3E+347+verificaciones+en+verde">
 </p>
 
 </div>
@@ -76,7 +76,7 @@ de datos en uso.
 
 </div>
 
-El resultado es un **JAR de 237 KB** (frente a los ~20 MB de Spring Boot) que **arranca en
+El resultado es un **JAR de 253 KB** (frente a los ~20 MB de Spring Boot) que **arranca en
 ~1.2 s** y expone una API sencilla y explícita. El producto y el código están en **español**.
 
 ---
@@ -93,7 +93,7 @@ arma un proyecto de arranque listo para descargar.
 ## Por qué JxMVC
 
 ```
-JAR:      237 KB    vs  Spring Boot 20 MB   →  ~100x más ligero
+JAR:      253 KB    vs  Spring Boot 20 MB   →  ~100x más ligero
 Arranque: 1.2 s     vs  Spring Boot 4–8 s   →  ~5x más rápido
 Deps:     0         vs  cualquier otro      →  único en su clase
 ```
@@ -121,7 +121,7 @@ en la BD. **Cero POJOs, cero Lombok, cero mapeo por reflexión.**
 
 | Módulo | Descripción |
 |--------|-------------|
-| **Routing** | Por convención y anotaciones, variables de ruta `{id}`, pipeline de 14 etapas |
+| **Routing** | Por convención y anotaciones, variables de ruta `{id}`, pipeline de 15 etapas |
 | **JxDB** | JDBC directo — PostgreSQL, MySQL, SQL Server — *named params* `:name` |
 | **JxPool** | Pool de conexiones propio — sin HikariCP, sin DBCP |
 | **JxRepository** | CRUD genérico con *soft delete*, paginación y `@JxQuery` |
@@ -210,7 +210,7 @@ public class PersonaModel extends JxDB {
 
 ## Arquitectura
 
-Pipeline de petición del núcleo (`MainLxServlet`), de 14 etapas:
+Pipeline de petición del núcleo (`MainLxServlet`), de 15 etapas:
 
 ```
 Request
@@ -236,9 +236,9 @@ El detalle clase por clase está en [`JxMVC.Core/STATUS.md`](JxMVC.Core/STATUS.m
 
 ```
 19.Soft_JXMVC/
-├── JxMVC.Core/          Framework — JAR de 237 KB, 52 clases, 0 deps externas
+├── JxMVC.Core/          Framework — JAR de 253 KB, 54 clases, 0 deps externas
 │   ├── src/main/java/jxmvc/core/     núcleo (routing, JxDB, pool, JSON, ws…)
-│   ├── src/test/java/jxmvc/core/     333 verificaciones sin framework externo
+│   ├── src/test/java/jxmvc/core/     347 verificaciones sin framework externo
 │   ├── CHANGELOG.md · STATUS.md · build.sh · pom.xml
 │
 └── JxMVC2x/             Sitio oficial + generador de proyectos (jxmvc.ginit.dev)
@@ -259,7 +259,7 @@ El detalle clase por clase está en [`JxMVC.Core/STATUS.md`](JxMVC.Core/STATUS.m
 ## Compilación
 
 ```bash
-# Framework core (genera el JAR y corre las 333 verificaciones)
+# Framework core (genera el JAR y corre las 347 verificaciones)
 cd JxMVC.Core
 mvn clean package
 # → target/jxmvc-core-3.4.0.jar
@@ -380,18 +380,24 @@ GET /jx/openapi   → spec OpenAPI 3.0 generada automáticamente
 
 | | **JxMVC 3.4.0** | Spring Boot 3 | Micronaut 4 | Quarkus 3 | Javalin 6 |
 |---|---|---|---|---|---|
-| JAR runtime | **237 KB** | ~20 MB | ~25 MB | ~15 MB | ~1.5 MB |
+| JAR runtime | **253 KB** | ~20 MB | ~25 MB | ~15 MB | ~1.5 MB |
 | Deps externas | **0** | 200+ | 50+ | 80+ | 10+ |
 | Arranque | **1.2 s** | 4–8 s | 0.3 s | 0.3 s | 0.5 s |
 | JSON propio | **Sí** | No | No | No | No |
 | Pool propio | **Sí** | No | No | No | No |
 | Scheduler propio | **Sí** | No | No | No | No |
 
+> **Nota honesta sobre el tamaño.** Los 253 KB son el **JAR del framework** (sin dependencias
+> empaquetadas): en despliegue corre sobre un servlet container (Tomcat/Jakarta EE, ~15 MB) que
+> queda fuera del artefacto por ser `provided`. Los ~20 MB de Spring Boot son un *uber-JAR* que
+> **incluye** su servidor embebido. La comparación justa "framework + servidor" y las cifras de
+> arranque/latencia/memoria se reportan con metodología reproducible en [`benchmarks/`](benchmarks/).
+
 ---
 
 ## Pruebas y calidad
 
-- **333 verificaciones** en `JxMVC.Core/src/test/`, escritas **sin framework de testing externo**.
+- **347 verificaciones** en `JxMVC.Core/src/test/`, escritas **sin framework de testing externo**.
 - Cobertura de los caminos críticos de producción: pool bajo concurrencia (50 threads),
   gzip con *passthrough*, *stampede* de caché, *broadcast* WebSocket concurrente,
   escape de errores JSON, *path traversal* y *mass assignment*.

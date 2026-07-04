@@ -184,7 +184,7 @@
         </h1>
 
         <p class="jx-hero-desc mx-auto lg:mx-0" data-i18n="hero.desc">
-          Framework MVC para Jakarta EE. 237 KB, cero dependencias externas y arranque en 1.2 s.
+          Framework MVC para Jakarta EE. 253 KB, cero dependencias externas y arranque en 1.2 s.
         </p>
 
         <div class="jx-hero-cta justify-center lg:justify-start">
@@ -193,7 +193,7 @@
         </div>
 
         <div class="jx-stats">
-          <% String[][] metrics = {{"237","KB","JAR"},{"0","deps","Runtime"},{"52","cls","Core"},{"1.2","s","Arranque"}}; %>
+          <% String[][] metrics = {{"253","KB","Core"},{"0","deps","Runtime"},{"54","cls","Core"},{"1.2","s","Arranque"}}; %>
           <% for (String[] m : metrics) { %>
           <div class="jx-stat">
             <b><span class="jx-counter" data-target="<%= m[0].replace(".","") %>"><%= m[0] %></span><span class="u"> <%= m[1] %></span></b>
@@ -349,7 +349,7 @@ jxmvc.log.level  = INFO</code></pre>
         <p class="text-[15px] leading-relaxed text-muted dark:text-[#8E8E93] max-w-md mb-7">
           Un solo <code class="font-mono text-ink dark:text-[#F5F5F7]">mvn install</code> y ya tienes el framework
           en tu repositorio local. Sin CDNs, sin descargas transitivas, sin sorpresas: el JAR pesa
-          <b class="text-ink dark:text-white">237 KB</b> y arrastra <b class="text-ink dark:text-white">cero</b> dependencias.
+          <b class="text-ink dark:text-white">253 KB</b> y arrastra <b class="text-ink dark:text-white">cero</b> dependencias.
         </p>
         <div class="flex flex-wrap items-center gap-3">
           <button class="jx-inst-copy" onclick="jxCopyInstall(this)">
@@ -372,8 +372,8 @@ jxmvc.log.level  = INFO</code></pre>
         <div class="jx-inst-body">
           <div><span class="jx-t-prompt">$</span> <span class="jx-t-cmd">mvn install -f</span> <span class="jx-t-key">JxMVC.Core/pom.xml</span></div>
           <div class="jx-t-mut">[INFO] Building <span class="jx-t-key">jxmvc-core</span> 3.4.0</div>
-          <div class="jx-t-mut">[INFO] Tests run: <span class="jx-t-ok">333</span>, Failures: 0, Errors: 0</div>
-          <div class="jx-t-mut">[INFO] <span class="jx-t-ok">BUILD SUCCESS</span> <span class="jx-t-dim">·</span> 237 KB <span class="jx-t-dim">·</span> 0 deps externas</div>
+          <div class="jx-t-mut">[INFO] Tests run: <span class="jx-t-ok">347</span>, Failures: 0, Errors: 0</div>
+          <div class="jx-t-mut">[INFO] <span class="jx-t-ok">BUILD SUCCESS</span> <span class="jx-t-dim">·</span> 253 KB <span class="jx-t-dim">·</span> 0 deps externas</div>
 
           <div class="jx-inst-grid">
             <div class="jx-inst-cell">
@@ -419,7 +419,7 @@ function jxCopyInstall(btn) {
     <div class="mb-12 jx-reveal jx-delay-1">
       <p class="text-[10px] font-mono uppercase tracking-[0.28em] text-muted dark:text-[#8E8E93] mb-3">Características</p>
       <h2 class="text-3xl sm:text-4xl font-bold text-ink dark:text-white leading-tight">Todo incluido.<br><span class="text-apple">Cero dependencias.</span></h2>
-      <p class="text-[14px] text-muted dark:text-[#8E8E93] mt-3 max-w-xl">Un único JAR de 237 KB con todo lo que necesita una aplicación Jakarta EE real. Sin Spring, sin Hibernate, sin Jackson.</p>
+      <p class="text-[14px] text-muted dark:text-[#8E8E93] mt-3 max-w-xl">Un único JAR de 253 KB con todo lo que necesita una aplicación Jakarta EE real. Sin Spring, sin Hibernate, sin Jackson.</p>
     </div>
 
     <%-- Bento grid --%>
@@ -489,7 +489,7 @@ function jxCopyInstall(btn) {
         <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style="background:#FF2D5520">
           <svg class="w-5 h-5" fill="none" stroke="#FF2D55" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg>
         </div>
-        <h3 class="text-[15px] font-semibold text-ink dark:text-white mb-2">237 KB. Cero dependencias en runtime.</h3>
+        <h3 class="text-[15px] font-semibold text-ink dark:text-white mb-2">253 KB. Cero dependencias en runtime.</h3>
         <p class="text-[12px] text-muted dark:text-[#8E8E93] leading-relaxed mb-4">21 anotaciones propias, scheduler cron, pool JDBC, JSON nativo, WebSocket, métricas y OpenAPI — todo en <strong class="text-ink dark:text-white">java.*</strong> puro.</p>
         <div class="flex gap-4 text-[11px]">
           <span class="flex items-center gap-1.5 text-muted dark:text-[#8E8E93]"><span class="w-1.5 h-1.5 rounded-full bg-[#30D158]"></span>Sin Jackson</span>
@@ -742,7 +742,7 @@ public class AdminController extends JxController {
 
     <div class="mb-12">
       <p class="text-[10px] font-mono uppercase tracking-[0.28em] text-muted dark:text-[#8E8E93] mb-3">Arquitectura</p>
-      <h2 class="text-3xl sm:text-4xl font-bold text-ink dark:text-white leading-tight">14 etapas por cada request</h2>
+      <h2 class="text-3xl sm:text-4xl font-bold text-ink dark:text-white leading-tight">15 etapas por cada request</h2>
       <p class="text-[14px] text-muted dark:text-[#8E8E93] mt-3 max-w-xl">Cada petición HTTP pasa por un pipeline controlado — sin magia, predecible y trazable. Haz clic en cualquier etapa para ver el detalle.</p>
     </div>
 
@@ -896,9 +896,9 @@ function jxPipeToggle(idx) {
 var jxChartData = {
   jar: {
     unit: 'Tamaño del artefacto de producción — menor es mejor',
-    note: 'JAR/WAR sin dependencias transitivas del servidor. JxMVC: 237 KB. Spring Boot uber-JAR incluye Tomcat embebido.',
+    note: 'JAR/WAR sin dependencias transitivas del servidor. JxMVC: 253 KB. Spring Boot uber-JAR incluye Tomcat embebido.',
     rows: [
-      {name:'JxMVC 3.3',   val:'237 KB', raw:0.237, jx:true},
+      {name:'JxMVC 3.4',   val:'253 KB', raw:0.253, jx:true},
       {name:'Javalin 6',   val:'1.5 MB', raw:1.5,   jx:false},
       {name:'Quarkus 3',   val:'18 MB',  raw:18,    jx:false},
       {name:'Spring Boot', val:'20 MB',  raw:20,    jx:false},
@@ -1119,7 +1119,7 @@ new MutationObserver(jxRedrawActiveChart).observe(document.documentElement, { at
   <div class="max-w-5xl mx-auto px-4 sm:px-6">
 
     <div class="mb-10">
-      <h2 class="text-3xl sm:text-4xl font-bold text-ink dark:text-white leading-tight">52 clases. 237 KB.<br><span class="text-apple">Todo el framework.</span></h2>
+      <h2 class="text-3xl sm:text-4xl font-bold text-ink dark:text-white leading-tight">52 clases. 253 KB.<br><span class="text-apple">Todo el framework.</span></h2>
       <p class="text-[14px] text-muted dark:text-[#8E8E93] mt-3 max-w-xl">Sin dependencias que auditar ni versiones que conciliar: cada módulo está escrito dentro del propio JAR.</p>
     </div>
 
@@ -1190,7 +1190,7 @@ function jxRenderDonut() {
     a0 = a1;
   });
   parts.push('<text x="150" y="143" text-anchor="middle" fill="' + col.ink + '" style="font:700 30px \'Space Grotesk\',sans-serif;">' + total + '</text>');
-  parts.push('<text x="150" y="166" text-anchor="middle" fill="' + col.sub + '" style="font:500 12px \'Space Grotesk\',sans-serif;">clases · 237 KB</text>');
+  parts.push('<text x="150" y="166" text-anchor="middle" fill="' + col.sub + '" style="font:500 12px \'Space Grotesk\',sans-serif;">clases · 253 KB</text>');
   svg.innerHTML = parts.join('');
 
   var legend = document.getElementById('jxDonutLegend');

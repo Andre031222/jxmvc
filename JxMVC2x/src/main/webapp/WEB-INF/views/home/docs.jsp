@@ -119,9 +119,9 @@
 <div class="flex items-start justify-between mb-10 jx-reveal jx-delay-1">
   <div>
     <p class="text-xs font-mono uppercase tracking-[0.25em] text-muted dark:text-[#86868b] mb-2">Reference</p>
-    <h1 class="text-4xl font-bold tracking-tight text-ink dark:text-[#f5f5f7]">JxMVC <span class="text-apple">3.1</span> Docs</h1>
+    <h1 class="text-4xl font-bold tracking-tight text-ink dark:text-[#f5f5f7]">JxMVC <span class="text-apple">3.4.0</span> Docs</h1>
     <p class="text-sm text-muted dark:text-[#86868b] mt-2 max-w-xl">
-      Jakarta EE 11 · Java 17+ · Cero dependencias en runtime · WAR ~237 KB
+      Jakarta EE 11 · Java 17+ · Cero dependencias en runtime · WAR ~253 KB
     </p>
   </div>
   <a href="${pageContext.request.contextPath}/downloads"

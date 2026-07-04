@@ -11,7 +11,7 @@
     </h1>
     <p class="text-base text-muted dark:text-[#8E8E93] max-w-2xl leading-relaxed" data-i18n="about.desc">
         Framework MVC para Jakarta EE construido desde cero — sin Spring, sin Hibernate,
-        sin dependencias en runtime. Un JAR de 237 KB con routing, pool de conexiones,
+        sin dependencias en runtime. Un JAR de 253 KB con routing, pool de conexiones,
         validación, JSON, WebSocket, métricas y OpenAPI integrados. Virtual Threads
         detectados automáticamente en Java 21+.
     </p>
@@ -20,24 +20,24 @@
 <%-- ── Métricas clave ──────────────────────────────────────────────── --%>
 <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-12 jx-reveal jx-delay-2">
     <div class="bg-white dark:bg-[#1C1C1E] border border-black/[0.06] dark:border-white/[0.07] rounded-2xl px-5 py-5 shadow-card">
-        <p class="text-2xl font-bold text-ink dark:text-white">224<span class="text-apple text-sm font-semibold"> KB</span></p>
-        <p class="text-[11px] text-muted dark:text-[#8E8E93] mt-1">Tamaño del JAR</p>
+        <p class="text-2xl font-bold text-ink dark:text-white">253<span class="text-apple text-sm font-semibold"> KB</span></p>
+        <p class="text-[11px] text-muted dark:text-[#8E8E93] mt-1">Tamaño del core</p>
     </div>
     <div class="bg-white dark:bg-[#1C1C1E] border border-black/[0.06] dark:border-white/[0.07] rounded-2xl px-5 py-5 shadow-card">
         <p class="text-2xl font-bold text-ink dark:text-white">0<span class="text-apple text-sm font-semibold"> deps</span></p>
         <p class="text-[11px] text-muted dark:text-[#8E8E93] mt-1">Dependencias runtime</p>
     </div>
     <div class="bg-white dark:bg-[#1C1C1E] border border-black/[0.06] dark:border-white/[0.07] rounded-2xl px-5 py-5 shadow-card">
-        <p class="text-2xl font-bold text-ink dark:text-white">14</p>
+        <p class="text-2xl font-bold text-ink dark:text-white">15</p>
         <p class="text-[11px] text-muted dark:text-[#8E8E93] mt-1">Etapas del pipeline</p>
     </div>
     <div class="bg-white dark:bg-[#1C1C1E] border border-black/[0.06] dark:border-white/[0.07] rounded-2xl px-5 py-5 shadow-card">
-        <p class="text-2xl font-bold text-ink dark:text-white">49</p>
+        <p class="text-2xl font-bold text-ink dark:text-white">54</p>
         <p class="text-[11px] text-muted dark:text-[#8E8E93] mt-1">Clases en el core</p>
     </div>
 </div>
 
-<%-- ── Pipeline 14 etapas ─────────────────────────────────────────── --%>
+<%-- ── Pipeline por request (orden real de MainLxServlet) ──────────── --%>
 <div class="mb-12 jx-reveal jx-delay-3">
     <p class="text-[10px] font-mono uppercase tracking-[0.28em] text-muted dark:text-[#8E8E93] mb-5" data-i18n="about.pipeline">Pipeline de cada request</p>
     <div class="bg-white dark:bg-[#1C1C1E] border border-black/[0.06] dark:border-white/[0.07] rounded-2xl overflow-hidden divide-y divide-black/[0.05] dark:divide-white/[0.05] shadow-card">
@@ -45,18 +45,19 @@
         String[][] steps = {
             {"01","Endpoints internos",    "/jx/health · /jx/info · /jx/metrics · /jx/openapi"},
             {"02","Métricas — inicio",     "Timer de latencia por ruta"},
-            {"03","Rate limiting",          "@JxRateLimit — ventana deslizante por IP + ruta"},
-            {"04","Resolución de ruta",     "Convención / anotaciones / plantillas {var}"},
-            {"05","Perfil de ejecución",    "@JxProfile — activa/desactiva por entorno"},
-            {"06","Autenticación",          "@JxRequireAuth / @JxRequireRole"},
+            {"03","Resolución de ruta",     "Convención / anotaciones / plantillas {var}"},
+            {"04","Rate limiting",          "@JxRateLimit — ventana deslizante, clave por acción"},
+            {"05","Autenticación",          "@JxRequireAuth / @JxRequireRole — fail-closed"},
+            {"06","CSRF",                   "Token de sesión en verbos mutadores · @JxCsrfExempt"},
             {"07","CORS",                   "@JxCors global o por controlador/acción"},
-            {"08","Filtros before",         "@JxFilter · JxFilters.before()"},
-            {"09","Instancia + DI",         "Controlador instanciado, @JxInject resuelto"},
-            {"10","@JxBeforeAction",        "Interceptores pre-acción por método"},
-            {"11","@JxModelAttr",           "Atributos comunes inyectados al modelo"},
-            {"12","Invocación",             "@JxAsync (background) o @JxRetry (reintentos)"},
-            {"13","@JxAfterAction + after", "Interceptores post-acción y filtros after"},
-            {"14","Render + métricas",      "Negociación de contenido · JSP / JSON / raw · registro final"},
+            {"08","Contexto",               "JxRequest / JxResponse construidos"},
+            {"09","Filtros before",         "@JxFilter · JxFilters.before()"},
+            {"10","Instancia + DI",         "Controlador instanciado, @JxInject resuelto"},
+            {"11","@JxBeforeAction",        "Interceptores pre-acción por método"},
+            {"12","@JxModelAttr",           "Atributos comunes inyectados al modelo"},
+            {"13","Invocación",             "@JxAsync / @JxRetry · @JxCacheable · @JxTransactional"},
+            {"14","@JxAfterAction + after", "Interceptores post-acción y filtros after"},
+            {"15","Render + métricas",      "Negociación de contenido · JSP / JSON / raw · registro final"},
         };
         for (String[] step : steps) {
         %>
@@ -79,7 +80,7 @@
             <thead>
                 <tr class="border-b border-black/[0.06] dark:border-white/[0.06] bg-[#F5F5F7] dark:bg-white/[0.04]">
                     <th class="text-left px-5 py-3 font-semibold text-muted dark:text-[#8E8E93] uppercase tracking-wider">Aspecto</th>
-                    <th class="text-center px-4 py-3 font-semibold text-apple">JxMVC 3.1</th>
+                    <th class="text-center px-4 py-3 font-semibold text-apple">JxMVC 3.4.0</th>
                     <th class="text-center px-4 py-3 font-semibold text-muted dark:text-[#8E8E93]">Spring Boot 3</th>
                     <th class="text-center px-4 py-3 font-semibold text-muted dark:text-[#8E8E93]">Jakarta EE raw</th>
                 </tr>
@@ -87,7 +88,7 @@
             <tbody class="divide-y divide-black/[0.05] dark:divide-white/[0.05]">
                 <%
                 String[][] rows = {
-                    {"WAR / JAR mínimo",    "237 KB",   "~18 MB",     "~50 KB"},
+                    {"WAR / JAR mínimo",    "253 KB",   "~18 MB",     "~50 KB"},
                     {"Dependencias runtime", "0",        "~50-150+",   "0"},
                     {"Routing",             "Conv+Ann",  "Ann",        "Manual"},
                     {"Pool de conexiones",  "propio",    "HikariCP",   "ninguno"},

@@ -226,7 +226,7 @@ cd mi-app && mvn package cargo:run</pre>
             <div class="bg-white dark:bg-white/[0.05] border border-black/[0.06] dark:border-white/[0.06] rounded-2xl p-5 hover:border-apple/30 transition-colors">
                 <p class="text-xs font-mono uppercase tracking-[0.25em] text-muted dark:text-[#86868b] mb-2">JAR del framework</p>
                 <h3 class="text-base font-semibold text-ink dark:text-[#f5f5f7] mb-1">jxmvc-core-3.4.0.jar</h3>
-                <p class="text-xs text-muted dark:text-[#86868b] mb-3">237 KB — cero dependencias en runtime</p>
+                <p class="text-xs text-muted dark:text-[#86868b] mb-3">253 KB — cero dependencias en runtime</p>
                 <div class="jx-code">
                     <pre>mvn install -f JxMVC.Core/pom.xml</pre>
                 </div>
