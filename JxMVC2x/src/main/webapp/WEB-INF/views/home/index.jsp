@@ -167,7 +167,7 @@
 </style>
 
 <%-- ── Hero: escena geométrica de marca ─────────────────────────────── --%>
-<section class="jx-hero bg-white dark:bg-black">
+<section class="jx-hero bg-white dark:bg-[#000000]">
   <div class="jx-hero-bg" aria-hidden="true">
     <div class="jx-hero-glow g1"></div>
     <div class="jx-hero-glow g2"></div>
@@ -338,7 +338,7 @@ jxmvc.log.level  = INFO</code></pre>
   .jx-inst-copy:hover { transform:translateY(-2px); background:#0077ED; box-shadow:0 12px 30px rgba(0,113,227,.42); }
   .jx-inst-copy:active { transform:translateY(0); }
 </style>
-<section class="py-20 bg-white dark:bg-black" id="jxInstallSec">
+<section class="py-20 bg-white dark:bg-[#000000]" id="jxInstallSec">
   <div class="max-w-6xl mx-auto px-4 sm:px-6">
     <div class="grid lg:grid-cols-2 gap-12 items-center">
 
@@ -522,7 +522,7 @@ function jxCopyInstall(btn) {
 </section>
 
 <%-- ── Code playground ────────────────────────────────────────────────── --%>
-<section class="py-20 bg-white dark:bg-black">
+<section class="py-20 bg-white dark:bg-[#000000]">
   <div class="max-w-6xl mx-auto px-4 sm:px-6">
     <div class="mb-10 jx-reveal jx-delay-1">
       <p class="text-[10px] font-mono uppercase tracking-[0.28em] text-muted dark:text-[#8E8E93] mb-3">Casos de uso</p>
@@ -858,7 +858,7 @@ function jxPipeToggle(idx) {
 </script>
 
 <%-- ── Comparativa columnas verticales ─────────────────────────────────── --%>
-<section class="py-20 bg-white dark:bg-black" id="jxChartSec">
+<section class="py-20 bg-white dark:bg-[#000000]" id="jxChartSec">
   <div class="max-w-5xl mx-auto px-4 sm:px-6">
 
     <div class="mb-4">
@@ -1102,13 +1102,16 @@ document.addEventListener('DOMContentLoaded', function(){
   if (sec) io2.observe(sec);
 });
 
-window.addEventListener('resize', function(){
+function jxRedrawActiveChart(){
   var active = document.querySelector('.jx-chart-tab.active');
   if (active && document.getElementById('jxChartSec')) {
     var key = active.getAttribute('onclick').match(/'(\w+)'/)[1];
     jxRenderChart(key);
   }
-});
+}
+window.addEventListener('resize', jxRedrawActiveChart);
+// Redibujar el canvas al cambiar de tema (el canvas no hereda CSS del tema).
+new MutationObserver(jxRedrawActiveChart).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
 </script>
 
 <%-- ── El core por dentro: donut de módulos ───────────────────────────── --%>
