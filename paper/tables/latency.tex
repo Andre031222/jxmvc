@@ -1,0 +1,26 @@
+% Latency table — median across reps of per-rep mean and p99 (ms).
+% Source: benchmarks/results/raw-docker.csv (cols meanMs, p99).
+% Requires: booktabs, siunitx.
+\begin{table}[t]
+  \centering
+  \caption{Per-request latency (milliseconds): mean and 99th
+    percentile, median across repetitions, at 64 concurrent
+    connections. All JVM frameworks fall within a narrow band.}
+  \label{tab:latency}
+  \small
+  \begin{tabular}{@{}l S[table-format=1.2] S[table-format=1.2] S[table-format=1.2] S[table-format=1.2]@{}}
+    \toprule
+    & \multicolumn{2}{c}{\texttt{/plaintext}} & \multicolumn{2}{c}{\texttt{/json}} \\
+    \cmidrule(lr){2-3}\cmidrule(lr){4-5}
+    Framework & {mean} & {$p_{99}$} & {mean} & {$p_{99}$} \\
+    \midrule
+    JxMVC          & 1.30 & 3.64 & 1.31 & 3.59 \\
+    Spring Boot    & 1.29 & 3.31 & 1.28 & 3.29 \\
+    Quarkus        & 1.16 & 3.19 & 1.18 & 3.12 \\
+    Micronaut      & 1.25 & 3.16 & 1.26 & 3.56 \\
+    Javalin        & 1.18 & 3.31 & 1.19 & 3.40 \\
+    \midrule
+    Quarkus-native & 1.21 & 3.64 & 1.28 & 3.85 \\
+    \bottomrule
+  \end{tabular}
+\end{table}

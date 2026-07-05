@@ -25,9 +25,16 @@ pedagógica) y su **evaluación empírica honesta**.
 
 ### 1. Abstract
 Problema (peso/dependencias/complejidad de los frameworks actuales) → propuesta (JxMVC, 253 KB,
-0 deps, secure-by-default) → método (evaluación dockerizada vs 4 frameworks) → resultado clave
-(competitivo: mejor arranque que casi todos, imagen menor, throughput sobre Spring/Micronaut,
-con mayor memoria como contrapartida) → disponibilidad (open source + DOI).
+0 deps, secure-by-default) → método (evaluación dockerizada vs 4 frameworks + fila GraalVM nativo)
+→ resultado clave (competitivo: **imagen JVM más pequeña** de las cinco, **arranque más rápido que
+Spring y Micronaut**, throughput **a la par de Spring y ~1–11% por debajo del resto**, latencia p99
+indistinguible, **0 errores en 92.8M requests**; contrapartida: **mayor RSS** por Tomcat) →
+disponibilidad (open source + DOI).
+
+> ⚠️ **Corrección basada en datos (corrida nativa en Linux, jul-2026):** el claim previo de
+> "throughput *sobre* Spring/Micronaut" **no se sostiene** en bare-metal: JxMVC queda ~1% bajo Spring
+> y ~4% bajo Micronaut. La fortaleza real es **imagen mínima + arranque + latencia parejas**, no el pico
+> de rps. Redactado honestamente en `sections/06-evaluation.tex`.
 
 ### 2. Introduction
 - El coste oculto de los frameworks "de baterías incluidas": tamaño, deps transitivas, superficie
@@ -106,8 +113,8 @@ con mayor memoria como contrapartida) → disponibilidad (open source + DOI).
 ---
 
 ## Checklist antes de enviar
-- [ ] Re-correr `bench.sh` en Linux nativo (VPS Debian) + fila GraalVM nativo.
-- [ ] Figura del pipeline; tabla comparativa cualitativa; tabla de resultados con [min,max].
+- [x] Re-correr `bench.sh` en Linux nativo (i5-12500H bare-metal) + fila GraalVM nativo. **Hecho jul-2026.**
+- [ ] Figura del pipeline; tabla comparativa cualitativa; ~~tabla de resultados con [min,max]~~ **hecha** (`tables/results.tex`, `tables/latency.tex`).
 - [ ] Related work con 15–25 referencias (frameworks, microframeworks, seguridad-por-defecto, OSP).
 - [ ] Subir v3.4.0 a Zenodo → DOI; enlazar en el paper.
 - [ ] Plantilla LaTeX de Wiley/SPE; carta de presentación (cover letter).
