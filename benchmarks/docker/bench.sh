@@ -44,17 +44,22 @@ wait_up() {  # espera 200 en /plaintext, imprime ms de arranque
 for fw in "${APPS[@]}"; do
   echo "──────────── $fw ────────────"
   img="bench-$fw"
+  blog="/tmp/bench-build-$fw.log"
+  bok=1
   if [ "$fw" = "jxmvc" ]; then
-    docker build -q -t "$img" -f "$HERE/apps/jxmvc/Dockerfile" "$REPO" >/dev/null
+    docker build -t "$img" -f "$HERE/apps/jxmvc/Dockerfile" "$REPO" >"$blog" 2>&1 || bok=0
   else
-    docker build -q -t "$img" "$HERE/apps/$fw" >/dev/null
+    docker build -t "$img" "$HERE/apps/$fw" >"$blog" 2>&1 || bok=0
+  fi
+  if [ "$bok" = 0 ]; then
+    echo "  $fw: BUILD FALLÓ — últimas líneas:"; tail -25 "$blog"; echo "  (log completo: $blog)"; continue
   fi
   image_mb=$(docker image inspect "$img" --format '{{.Size}}' | awk '{printf "%.1f", $1/1048576}')
 
   docker rm -f "bench_$fw" >/dev/null 2>&1 || true
   docker run -d --name "bench_$fw" --cpus="$CPUS" --memory="$MEM" -p "$PORT:8080" "$img" >/dev/null
 
-  startup_ms=$(wait_up || echo -1)
+  startup_ms=$(wait_up) || startup_ms=-1
   if [ "$startup_ms" = "-1" ]; then
     echo "  $fw NO arrancó — logs:"; docker logs --tail 20 "bench_$fw" || true
     docker rm -f "bench_$fw" >/dev/null 2>&1 || true

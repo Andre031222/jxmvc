@@ -5,12 +5,12 @@ import jxmvc.core.JxController;
 import jxmvc.core.JxMapping.*;
 
 @JxControllerMain
-@JxControllerMapping("")
+@JxControllerMapping("bench")
 public class BenchController extends JxController {
 
-    @JxGetMapping("plaintext")
+    @JxGetMapping("/plaintext")
     public ActionResult plaintext() { return text("OK"); }
 
-    @JxGetMapping("json")
+    @JxGetMapping("/json")
     public ActionResult json() { return json("{\"message\":\"hello\",\"n\":42}"); }
 }
