@@ -1,12 +1,14 @@
 # Resultados dockerizados
 
-Entorno: `docker --cpus=2 --memory=1g`, misma base JRE. conns=64, dur=15s, reps=3.
-Generado por `bench.sh`. Números relativos comparables; ver README §8 (validez).
+Entorno: `docker --cpus=4 --memory=2g --cpuset-cpus=0-3`, misma base JRE. conns=64, dur=30s, reps=5.
+Cliente aislado (taskset 4-7). Generado por `bench.sh`; ver README §8 (validez).
+Arranque/RSS/rps son **mediana** de las 5 repeticiones. `⚠` = errores/no-2xx: cifra NO válida.
 
 | Framework | Imagen (MB) | Arranque (ms) | RSS (MB) | rps /plaintext (mediana) | rps /json (mediana) |
 |---|---|---|---|---|---|
-| jxmvc | 104.0 | 1225 | 157.5 | 12216.5 | 12917.3 |
-| spring | 121.4 | 2375 | 172.6 | 11078.6 | 11641.9 |
-| quarkus | 117.3 | 1515 | 94.7 | 15957.2 | 17195.3 |
-| micronaut | 114.7 | 1382 | 95.77 | 10871.4 | 11627.6 |
-| javalin | 109.3 | 499 | 89.65 | 13867.6 | 13424.5 |
+| jxmvc | 271.7 | 822 | 448.5 | 49061.8 | 48720.4 |
+| spring | 299.9 | 1945 | 375.6 | 49462.0 | 49896.2 |
+| quarkus | 295.9 | 606 | 431.2 | 55087.3 | 54208.6 |
+| micronaut | 292.5 | 1154 | 331.4 | 50973.9 | 50652.3 |
+| javalin | 286.4 | 369 | 424.6 | 54168.8 | 53613.9 |
+| quarkus-native | 72.8 | 12 | 25.12 | 52699.1 | 50072.9 |

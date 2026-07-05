@@ -6,7 +6,9 @@ RUN curl -sL https://archive.apache.org/dist/maven/maven-3/3.9.9/binaries/apache
       | tar xz -C /opt && ln -s /opt/apache-maven-3.9.9/bin/mvn /usr/local/bin/mvn
 COPY pom.xml .
 COPY src ./src
-RUN mvn -q -DskipTests package -Dnative -Dquarkus.native.native-image-xmx=5g \
+# -Dquarkus.native.enabled=true activa el build nativo directamente (este pom no define el
+# profile `native`, así que el atajo -Dnative se ignoraría). -B (no -q) para ver errores reales.
+RUN mvn -B -DskipTests package -Dquarkus.native.enabled=true -Dquarkus.native.native-image-xmx=5g \
     && cp target/*-runner /work-runner
 
 FROM quay.io/quarkus/quarkus-micro-image:2.0
