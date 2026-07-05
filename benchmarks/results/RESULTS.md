@@ -51,10 +51,19 @@ Volumen total: **5.5M+ peticiones, 0 errores y 0 respuestas no-2xx** en los cinc
 pequeña, throughput por encima de Spring y Micronaut — con un mayor uso de memoria como
 contrapartida del stack servlet. Es una historia sólida y creíble, no un "somos los más rápidos".
 
+## Modo nativo (GraalVM) — parcial
+
+Se compiló **Quarkus a binario nativo** (GraalVM/Mandrel, `docker/apps/quarkus/Dockerfile.native`;
+toggle `BENCH_NATIVE=1 ./bench.sh`). Dato verificado: **imagen nativa = 41 MB** (vs 117 MB en JVM,
+~3× menor). Las cifras de arranque (esperado ~decenas de ms) y RSS del nativo se completan al
+correr en **Linux bare-metal** (Arch) — ver `../RUN-ON-LINUX.md` — donde el toolchain de
+native-image dispone de recursos plenos. En Docker Desktop (WSL2) la compilación native-image es
+lenta/inestable; el binario y su tamaño quedaron verificados.
+
 ## Notas para el paper
 
 - **Modo nativo**: Quarkus y Micronaut compilados con GraalVM cambian radicalmente arranque
-  (~decenas de ms) y RSS. Añadir una fila nativa aparte para no subrepresentarlos sería lo justo.
+  (~decenas de ms) y RSS. Añadir la fila nativa (ya soportada por el harness) para no subrepresentarlos.
 - **Warmup**: la 1ª repetición de cada framework rinde menos (JIT frío); la mediana de 3 la
   descarta. Para el paper, subir a N≥5 y reportar mediana + [min,max].
 - **Barrido de concurrencia**: repetir en 1/8/32/64/128/256 conexiones para la curva completa.
