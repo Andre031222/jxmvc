@@ -423,7 +423,7 @@ PBKDF2 integrados en el core, ambos sin dependencias externas; API pública inta
 ## Autores
 
 - **Dr. Ramiro Pedro Laura Murillo** — Diseño y arquitectura principal
-- **R. Andre Vilca Solorzano** — Contribuciones v3.x · [andre.net.pe](https://andre.net.pe) · [night.fury.oi.ma@gmail.com](mailto:night.fury.oi.ma@gmail.com)
+- **R. Andre Vilca Solorzano** — Contribuciones v3.x ·
 
 <sub>Proyecto independiente de código abierto · 2024–2026</sub>
 
