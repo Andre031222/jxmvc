@@ -1,0 +1,109 @@
+% =====================================================================
+% Section 3 — Design and Architecture
+% =====================================================================
+\section{Design and Architecture}\label{sec:design}
+
+\subsection{Principles}
+
+Three principles govern the design of JxMVC and explain most of its
+concrete decisions.
+
+\begin{description}
+  \item[Zero runtime dependencies.] Every capability is implemented on
+    top of the JDK and the Jakarta Servlet API. No third-party library
+    is required at runtime; the only additional production artifact is
+    the JDBC driver of the target database. This bounds the artifact
+    size (a \SI{253}{\kilo\byte} JAR of 54 classes) and eliminates the
+    transitive-dependency supply-chain surface.
+  \item[Security-by-default.] Protections are properties of the request
+    pipeline, not of individual routes. A newly written controller is
+    hardened before its author adds a single security annotation;
+    relaxing a protection is explicit and local.
+  \item[Explicit, readable API.] The framework favours direct,
+    inspectable control flow over ``magic''. Data access reads columns
+    directly from a result row rather than mapping to reflection-bound
+    POJOs, and the entire core is small enough to be read and audited
+    end to end---a property we treat as a first-class feature for
+    teaching and for security review.
+\end{description}
+
+\subsection{The request pipeline}
+\label{sec:pipeline}
+
+The heart of JxMVC is a fixed, ordered request pipeline implemented in
+the core servlet (\texttt{MainLxServlet}). Every request traverses the
+same fifteen-stage sequence, so cross-cutting concerns---sanitisation,
+CORS, rate limiting, authentication, validation, compression,
+metrics---are applied uniformly and by construction. The principal
+stages, in order, are:
+
+\begin{enumerate}
+  \item \textbf{Sanitiser} (\texttt{BaseSanitizer}) --- XSS-oriented
+    cleaning of request parameters and arguments.
+  \item \textbf{CORS resolver} (\texttt{BaseCorsResolver}) ---
+    declarative, annotation-driven CORS policy.
+  \item \textbf{Dispatcher} (\texttt{BaseDispatcher}) --- routing by
+    annotations, path templates \texttt{\{var\}}, and the
+    \texttt{/controller/action/args} convention, with correct
+    \texttt{405} handling and \texttt{HEAD}$\rightarrow$\texttt{GET}.
+  \item \textbf{Rate limiter} (\texttt{JxRateLimiter}) --- per-client
+    rate limiting keyed by action.
+  \item \textbf{Security} (\texttt{JxSecurity}) --- authentication and
+    role checks via a pluggable \texttt{JxAuthProvider}, fail-closed
+    when no provider is registered.
+  \item \textbf{Filters} (\texttt{JxFilters}) --- global
+    before/after hooks.
+  \item \textbf{Controller} --- the developer's action, with access to
+    data via \texttt{JxDB}, \texttt{JxRepository}, and
+    \texttt{JxTransaction}.
+  \item \textbf{Validation} (\texttt{JxValidation}) --- constraint
+    checking of bound request bodies.
+  \item \textbf{Result} (\texttt{ActionResult}) --- a
+    \textsc{view}/\textsc{text}/\textsc{json}/\textsc{redirect}
+    outcome.
+  \item \textbf{Compression} (\texttt{JxGzip}) --- gzip with a
+    threshold-based passthrough.
+  \item \textbf{Metrics} (\texttt{JxMetrics}) --- per-route counters
+    and timing.
+\end{enumerate}
+
+Because the security-relevant stages (sanitisation, rate limiting,
+authentication, validation, body caps) precede and enclose the
+developer's controller, the ``secure-by-default'' property is
+structural rather than advisory.
+
+\subsection{Subsystems}
+
+All subsystems are built in-framework. Data access (\texttt{JxDB})
+issues JDBC directly with named parameters and returns row objects
+whose columns are read explicitly, avoiding reflection-based mapping.
+\texttt{JxPool} is a custom connection pool with configurable
+revalidation; \texttt{JxRepository} adds generic CRUD with soft delete
+and pagination; \texttt{JxTransaction} provides thread-local JDBC
+transactions. \texttt{JxJson} is a from-scratch JSON parser and
+serialiser with input limits, complemented by a variadic JSON builder
+(\texttt{GenApi}). \texttt{JxCache} is an in-memory cache with TTL and
+an entry cap; \texttt{JxScheduler} runs cron, fixed-rate, fixed-delay,
+and one-shot tasks; \texttt{JxEventBus} is a synchronous event bus.
+\texttt{JxMetrics} exposes per-route statistics, \texttt{JxOpenApi}
+generates an OpenAPI~3.0 specification automatically, and
+\texttt{JxWebSocket} provides WebSocket endpoints with rooms and
+broadcast. On Java~21 and later, the framework detects virtual threads
+for asynchronous work.
+
+\subsection{Security by default}
+
+Beyond the pipeline ordering, v3.4.0 ships a set of hardening measures
+that are on (or fail-closed) by default and tunable through
+configuration properties: security headers, fail-closed authentication
+in the absence of a provider, per-action rate limiting (so an attacker
+cannot evade limits by rotating a path variable), session-token CSRF
+protection, request-body and JSON size caps that return \texttt{413}
+when exceeded, anti open-redirect enforcement, HTML output encoding for
+XSS defence at render time, and PBKDF2-SHA256 password hashing with
+constant-time verification. Internal introspection endpoints
+(\texttt{/jx/info}, \texttt{/jx/metrics}, \texttt{/jx/openapi}) return
+\texttt{404} under the production profile unless explicitly exposed,
+and the health endpoint omits sensitive fields. The implementation of
+the most security-critical of these---rate limiting and the OIDC
+client---is described in Section~\ref{sec:impl}.

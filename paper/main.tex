@@ -18,6 +18,8 @@
 
 % Marcador de secciones por redactar (quitar al finalizar el borrador).
 \providecommand{\TODO}[1]{\par\medskip\noindent\fbox{\textbf{TODO}}\quad\emph{#1}\par\medskip}
+% Nº de verificaciones de la suite de tests (verificado corriendo JxTestSuite: pass=347).
+\newcommand{\NTESTS}{347}
 
 \articletype{Research Article}%
 \articledoi{10.1002/spe.0000}% placeholder hasta asignación de la revista
@@ -66,76 +68,13 @@
 
 \maketitle
 
-% =====================================================================
-\section{Introduction}\label{sec:intro}
-\TODO{El coste oculto de los frameworks ``de baterías incluidas'': tamaño,
-deps transitivas, superficie de ataque, arranque. Nichos: recursos
-limitados, edge, docencia, auditabilidad. Vacío: casi ningún MVC serio es
-dependencia-cero \emph{y} secure-by-default. Cerrar con las contribuciones.}
-
-Our contributions are:
-\begin{enumerate}
-  \item \textbf{JxMVC}, a zero-dependency (253\,KB) full-stack MVC framework
-    for Jakarta EE covering routing, DI, connection pooling, caching,
-    scheduling, WebSocket, OpenAPI, validation, metrics, and OIDC.
-  \item A \textbf{security-by-default pipeline design} (not opt-in) and its
-    library-free implementation.
-  \item A \textbf{complete OIDC client} (OAuth 2.0 + PKCE + id\_token
-    signature verification) built with the JDK alone.
-  \item A \textbf{reproducible, honest empirical evaluation} against four
-    mainstream frameworks plus a GraalVM native build, with a one-command
-    Docker harness as a reusable artifact.
-  \item An \textbf{open-source artifact} verified by a 347-check
-    dependency-free test suite, archived with a DOI.
-\end{enumerate}
-
-% =====================================================================
-\section{Background and Related Work}\label{sec:related}
-\TODO{Panorama Spring/Quarkus/Micronaut/Javalin/Jakarta ``crudo'': modelo de
-deps, tamaño, filosofía runtime vs compile-time/AOT. Trabajo previo sobre
-microframeworks y seguridad-por-defecto (15--25 refs).}
-Table~\ref{tab:qualitative} summarises the design axes on which the
-frameworks differ.
-\input{tables/qualitative}
-
-% =====================================================================
-\section{Design and Architecture}\label{sec:design}
-\TODO{Principios (cero deps, secure-by-default, API legible). Pipeline de 15
-etapas por request (figura). Subsistemas desde cero sobre JDK+Jakarta.
-Seguridad por defecto: cabeceras, auth fail-closed, rate-limit sliding-window,
-CSRF, caps de body/JSON, anti open-redirect. OIDC: OAuth 2.0 + PKCE (S256) y
-verificación RS256 del id\_token contra JWKS con criptografía del JDK.}
-
-% =====================================================================
-\section{Implementation}\label{sec:impl}
-\TODO{Router determinista (especificidad; 405; HEAD$\to$GET). Rate limiter
-sliding-window (prev$\cdot(1-t/W)$+actual). Verificación de id\_token solo con
-\texttt{java.security}. Cache de métodos anotados por clase. Suite de tests
-propia sin JUnit (347 verificaciones).}
-
-% =====================================================================
+\input{sections/01-introduction}
+\input{sections/02-related}
+\input{sections/03-design}
+\input{sections/04-implementation}
 \input{sections/06-evaluation}
-
-% =====================================================================
-\section{Discussion and Threats to Validity}\label{sec:threats}
-\TODO{Validez: VM de Docker (números relativos), warmup/JIT, paridad de
-endpoints, core-vs-stack. Limitaciones honestas: mayor RSS (Tomcat); reflexión
-en binding/JSON; \texttt{@JxQuery} vía stack-trace; SQL por concatenación (con
-mitigaciones); scanners de classpath; cron 5 campos; event bus síncrono;
-madurez/adopción. Amenaza ``¿otro framework más?'': nicho + cifras + valor
-pedagógico.}
-
-% =====================================================================
-\section{Conclusion and Future Work}\label{sec:conclusion}
-\TODO{Recap de la contribución y la evidencia. Futuro: reducir RSS, cachear
-metadata de binding, soporte GraalVM native-image, más proveedores OIDC,
-HTTP/2, SSE.}
-
-% =====================================================================
-\section*{Availability}
-The source code is available at \url{https://github.com/Andre031222/jxmvc}
-(MIT license); release v3.4.0 is archived with a DOI (to be created), and the
-reproducible benchmark harness is included under \texttt{benchmarks/}.
+\input{sections/07-discussion}
+\input{sections/08-conclusion}
 
 % =====================================================================
 % Bibliografía numerada (estilo SPE). Para pasar a BibTeX con el .bst de

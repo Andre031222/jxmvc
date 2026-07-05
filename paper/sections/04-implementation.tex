@@ -1,0 +1,99 @@
+% =====================================================================
+% Section 4 — Implementation
+% Facts verified against the codebase (JxMVC.Core, v3.4.0):
+%   pipeline: MainLxServlet; rate limiter: JxRateLimiter.estimatedUsage;
+%   OIDC: JxOAuth.verifyJwtClaims; tests: JxTestSuite (custom, no JUnit).
+% =====================================================================
+\section{Implementation}\label{sec:impl}
+
+This section highlights the implementation techniques that are most
+relevant to the framework's claims of being small, secure-by-default,
+and dependency-free. All code paths described here are in the core
+module (\texttt{JxMVC.Core}, v3.4.0), which comprises 54 classes and
+compiles against a single \texttt{provided}-scope dependency, the
+Jakarta~EE~10 API.
+
+\subsection{Front controller and routing}
+
+The entire pipeline of Section~\ref{sec:pipeline} is implemented in a
+single front-controller servlet (\texttt{MainLxServlet}) whose
+\texttt{service} method applies the security headers and conditional
+gzip that must wrap \emph{every} response, and whose internal dispatch
+runs the ordered stages. Routing (\texttt{BaseDispatcher}) resolves a
+request through three mechanisms in decreasing specificity: explicit
+annotated routes (\texttt{@JxGetMapping} and siblings), path templates
+with \texttt{\{var\}} capture, and a
+\texttt{/controller/action/arg} convention. The router returns the
+correct \texttt{405 Method Not Allowed} when a path matches but the
+verb does not, and treats \texttt{HEAD} as \texttt{GET}. To keep
+reflection off the hot path, annotated-method metadata is resolved once
+per controller class and reused across requests.
+
+\subsection{Rate limiting: a sliding-window counter}
+
+Rate limiting (\texttt{JxRateLimiter}) is keyed by
+\texttt{VERB:controller\#action} rather than by URL, so an attacker
+cannot dilute a limit by rotating a path variable. It uses a
+sliding-window \emph{counter} (two time-aligned buckets, current and
+previous) rather than a per-request timestamp log, trading exactness
+for $O(1)$ memory per client. The estimated request count over the
+window is
+\[
+  \hat{n} \;=\; c_{\text{prev}} \cdot \Bigl(1 - \tfrac{t}{W}\Bigr) \;+\; c_{\text{cur}},
+\]
+where $W$ is the window length, $t$ the elapsed time into the current
+window, and $c_{\text{prev}}, c_{\text{cur}}$ the previous and current
+bucket counts. This is the standard sliding-window approximation, here
+implemented with the JDK alone.
+
+\subsection{OIDC without libraries}
+
+The OAuth~2.0/OpenID~Connect client (\texttt{JxOAuth}) implements the
+authorization-code flow with PKCE using only \texttt{java.security},
+\texttt{java.math}, and \texttt{java.util.Base64}. It generates an
+anti-CSRF \texttt{state} and a PKCE verifier, sends the S256 challenge
+$\text{code\_challenge} = \text{BASE64URL}(\text{SHA-256}(\text{verifier}))$,
+and exchanges the code for tokens. Crucially, it does not merely decode
+the \texttt{id\_token}: it \textbf{verifies the RS256 signature}
+against the provider's JWKS. The JWKS is fetched and cached (one-hour
+TTL); the RSA public key is reconstructed from its modulus and exponent
+via \texttt{KeyFactory}/\texttt{RSAPublicKeySpec}; and the signature is
+checked with \texttt{Signature.getInstance("SHA256withRSA")}. The
+verifier then validates the \texttt{iss}, \texttt{aud}, and \texttt{exp}
+claims (with a 60-second clock skew) and \textbf{accepts only
+\texttt{RS256}}---any other algorithm, including \texttt{none}, is
+rejected with \texttt{401}. Implementing token verification, rather
+than trusting decoded claims, closes a well-known class of OIDC
+vulnerabilities, and doing so with the JDK alone demonstrates that a
+zero-dependency posture is compatible with correct, modern
+authentication.
+
+\subsection{Defence-in-depth details}
+
+Several protections are worth noting as concrete implementations rather
+than configuration switches. Password hashing (\texttt{JxPasswords})
+uses \texttt{PBKDF2WithHmacSHA256} with a 16-byte random salt and a
+self-describing encoding (\texttt{pbkdf2\$sha256\$iters\$salt\$hash}),
+verified in constant time. File uploads reject a fixed blocklist of
+dangerous extensions (e.g.\ \texttt{.jsp}, \texttt{.class},
+\texttt{.war}, \texttt{.sh}, \texttt{.exe}, \texttt{.php}) \emph{even
+when} a wildlist is configured, and normalise paths to prevent
+traversal. The JSON parser (\texttt{JxJson}) caps input at
+\SI{10}{\mega\byte} and nesting depth at 64, returning \texttt{400}
+rather than exhausting memory on adversarial input. Redirects to
+external hosts are blocked unless explicitly enabled.
+
+\subsection{A dependency-free test suite}
+
+Consistent with the zero-dependency principle, the framework is tested
+\emph{without} JUnit or any external testing library. A custom runner
+(\texttt{JxTestSuite}) executes fifteen test classes via reflection,
+aggregating pass/fail counts and exiting non-zero on any failure, and a
+lightweight helper constructs mock request/response objects so
+controllers can be tested without a servlet container. The suite
+comprises \NTESTS{} checks and deliberately targets the critical
+production paths---connection pooling under concurrency, gzip
+passthrough, cache stampede, concurrent WebSocket broadcast, JSON error
+escaping, path traversal, and mass assignment---rather than trivial
+getters, so that ``dependency-free'' extends even to how the framework
+proves its own correctness.

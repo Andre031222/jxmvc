@@ -1,0 +1,67 @@
+% =====================================================================
+% Section 7 — Discussion and Threats to Validity
+% =====================================================================
+\section{Discussion and Threats to Validity}\label{sec:threats}
+
+\subsection{Threats to validity}
+
+\paragraph{Measurement environment.} All frameworks were measured under
+identical container limits on a single bare-metal host, with the load
+generator pinned to cores disjoint from the server under test, the CPU
+governor fixed to \texttt{performance}, and Turbo Boost disabled to
+remove frequency variance. This isolates the comparison from
+client--server contention and thermal drift, but the results remain
+\emph{relative}: absolute numbers would differ on other hardware, and a
+containerised single-host set-up does not model network latency or
+multi-node deployment. We mitigate run-to-run noise with five
+repetitions, a warm-up phase that lets the JIT reach steady state, and
+by reporting medians with observed ranges rather than single points.
+
+\paragraph{Endpoint parity.} The two endpoints (\texttt{/plaintext} and
+\texttt{/json}) are deliberately minimal and functionally equivalent
+across frameworks, which isolates framework overhead but does not
+exercise persistence, templating, or business logic. The throughput
+figures should therefore be read as a measure of baseline request
+handling, not of application-level performance.
+
+\paragraph{Artifact-size comparison.} JxMVC's \SI{253}{\kilo\byte} is
+the framework JAR with the servlet container excluded (it is a
+\texttt{provided} dependency, \(\approx\)\SI{15}{\mega\byte} for
+Tomcat/Jakarta~EE), whereas an über-JAR such as Spring Boot's bundles
+its embedded server. We therefore report deployable \emph{image} size
+in the evaluation for a like-for-like ``framework~+~server''
+comparison, and are explicit that the \SI{253}{\kilo\byte} figure
+refers to the auditable framework core, not to a self-contained
+deployable.
+
+\subsection{Limitations}
+
+We state the design's limitations plainly. The most visible is
+\textbf{resident memory}: JxMVC's RSS is the highest of the JVM stacks,
+a direct consequence of running on an embedded Tomcat servlet
+container; reducing it is future work. The framework uses
+\textbf{reflection} in request binding and JSON handling, which trades
+some hot-path cost and native-image friendliness for API simplicity
+(partially mitigated by caching annotated-method metadata per class).
+Convenience features carry caveats: \texttt{@JxQuery} derives context
+from the call stack; SQL is composed by concatenation with
+parameterised mitigations rather than a full query DSL; classpath
+scanning must handle both \texttt{file:} and \texttt{jar:} layouts; the
+scheduler uses five-field cron; and the event bus is synchronous. These
+are conscious simplicity/functionality trade-offs, not oversights.
+Finally, JxMVC is a young project with a single principal architect and
+limited adoption relative to the incumbents; maturity and community are
+themselves risks for production use.
+
+\subsection{Why another framework?}
+
+The natural objection to any new framework is that the space is
+crowded. Our answer is neither performance supremacy nor feature
+parity---the evaluation shows JxMVC does not lead on throughput and
+carries a memory cost. Rather, JxMVC occupies an under-served
+\emph{niche}: a full-stack, secure-by-default MVC framework small
+enough to audit in full and to teach from, with zero runtime
+dependencies. Its value is the combination of that design point, the
+empirical evidence that it remains competitive on latency and start-up,
+and its use as a readable reference implementation of web-framework
+internals.
