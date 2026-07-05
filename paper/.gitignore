@@ -1,0 +1,13 @@
+# Plantilla oficial de Wiley (copyright, se descarga aparte — ver README)
+wiley-template/
+
+# Artefactos de compilación LaTeX
+*.aux
+*.log
+*.out
+*.bbl
+*.blg
+*.synctex.gz
+*.toc
+*.pag
+main.pdf

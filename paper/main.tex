@@ -1,0 +1,153 @@
+%% =====================================================================
+%% JxMVC — Software: Practice and Experience (Wiley)
+%% Plantilla OFICIAL de Wiley: clase USG (New Journal Design unificada),
+%% descargada de https://authors.wiley.com/asset/WileyDesign.zip
+%% Archivos de clase en: wiley-template/Optimal-Design-layout/
+%% Compilar desde paper/:
+%%   TEXINPUTS=".//:wiley-template/Optimal-Design-layout//:" pdflatex main
+%% (o usa el script build.sh incluido). Opción [AMA] = referencias numeradas,
+%% el estilo de Software: Practice and Experience.
+%% =====================================================================
+\documentclass[AMA]{USG}
+
+\usepackage{booktabs}
+\usepackage{siunitx}
+\DeclareSIUnit\byte{B}
+\DeclareSIUnit\req{req}
+\sisetup{detect-weight=true, detect-family=true}
+
+% Marcador de secciones por redactar (quitar al finalizar el borrador).
+\providecommand{\TODO}[1]{\par\medskip\noindent\fbox{\textbf{TODO}}\quad\emph{#1}\par\medskip}
+
+\articletype{Research Article}%
+\articledoi{10.1002/spe.0000}% placeholder hasta asignación de la revista
+\received{XX Month 2026}
+\revised{XX Month 2026}
+\accepted{XX Month 2026}
+
+\journal{Software: Practice and Experience}
+
+\title{JxMVC: a zero-dependency, security-hardened MVC framework for
+  Jakarta EE in 253\,KB --- design, implementation and empirical
+  evaluation}
+
+\author[1]{Ramiro Pedro Laura Murillo}
+\author[2]{R. Andre Vilca Sol\'orzano}
+
+\address[1]{\orgdiv{Departamento de Ingenier\'ia}, \orgname{Institution Name},
+  \orgaddress{\state{}, \country{Peru}}}
+\address[2]{\orgdiv{Departamento de Ingenier\'ia}, \orgname{Institution Name},
+  \orgaddress{\state{}, \country{Peru}}}
+
+\corres{R. Andre Vilca Sol\'orzano. \email{night.fury.oi.ma@gmail.com}}
+
+\keywords{web framework | Jakarta EE | zero-dependency | security-by-default |
+  performance evaluation | GraalVM native image}
+
+\abstract[Abstract]{Modern ``batteries-included'' web frameworks trade a
+  large runtime footprint, deep transitive-dependency trees, and a broad
+  attack surface for developer convenience. We present \textbf{JxMVC}, a
+  full-stack MVC framework for Jakarta EE that fits in \textbf{253\,KB with
+  zero runtime dependencies} and applies \textbf{security-by-default at the
+  request-pipeline level} rather than as opt-in configuration. We evaluate
+  JxMVC against Spring Boot, Quarkus, Micronaut, and Javalin---plus a GraalVM
+  native-image build---using a reproducible, containerised, single-command
+  harness under pinned-core isolation on bare-metal Linux. JxMVC produces the
+  \emph{smallest JVM-mode deployable image} of the group, starts faster than
+  Spring Boot and Micronaut, and sustains competitive throughput with
+  indistinguishable tail latency, serving \textbf{92.8 million requests with
+  zero errors}; its one clear trade-off is higher resident memory from the
+  embedded servlet container. The contribution is not a new technique but a
+  \emph{design point}---minimalism, hardening-by-default, and pedagogical
+  readability---backed by an honest empirical evaluation and a reusable
+  open-source artifact.}
+
+\begin{document}
+
+\maketitle
+
+% =====================================================================
+\section{Introduction}\label{sec:intro}
+\TODO{El coste oculto de los frameworks ``de baterías incluidas'': tamaño,
+deps transitivas, superficie de ataque, arranque. Nichos: recursos
+limitados, edge, docencia, auditabilidad. Vacío: casi ningún MVC serio es
+dependencia-cero \emph{y} secure-by-default. Cerrar con las contribuciones.}
+
+Our contributions are:
+\begin{enumerate}
+  \item \textbf{JxMVC}, a zero-dependency (253\,KB) full-stack MVC framework
+    for Jakarta EE covering routing, DI, connection pooling, caching,
+    scheduling, WebSocket, OpenAPI, validation, metrics, and OIDC.
+  \item A \textbf{security-by-default pipeline design} (not opt-in) and its
+    library-free implementation.
+  \item A \textbf{complete OIDC client} (OAuth 2.0 + PKCE + id\_token
+    signature verification) built with the JDK alone.
+  \item A \textbf{reproducible, honest empirical evaluation} against four
+    mainstream frameworks plus a GraalVM native build, with a one-command
+    Docker harness as a reusable artifact.
+  \item An \textbf{open-source artifact} verified by a 347-check
+    dependency-free test suite, archived with a DOI.
+\end{enumerate}
+
+% =====================================================================
+\section{Background and Related Work}\label{sec:related}
+\TODO{Panorama Spring/Quarkus/Micronaut/Javalin/Jakarta ``crudo'': modelo de
+deps, tamaño, filosofía runtime vs compile-time/AOT. Trabajo previo sobre
+microframeworks y seguridad-por-defecto (15--25 refs).}
+Table~\ref{tab:qualitative} summarises the design axes on which the
+frameworks differ.
+\input{tables/qualitative}
+
+% =====================================================================
+\section{Design and Architecture}\label{sec:design}
+\TODO{Principios (cero deps, secure-by-default, API legible). Pipeline de 15
+etapas por request (figura). Subsistemas desde cero sobre JDK+Jakarta.
+Seguridad por defecto: cabeceras, auth fail-closed, rate-limit sliding-window,
+CSRF, caps de body/JSON, anti open-redirect. OIDC: OAuth 2.0 + PKCE (S256) y
+verificación RS256 del id\_token contra JWKS con criptografía del JDK.}
+
+% =====================================================================
+\section{Implementation}\label{sec:impl}
+\TODO{Router determinista (especificidad; 405; HEAD$\to$GET). Rate limiter
+sliding-window (prev$\cdot(1-t/W)$+actual). Verificación de id\_token solo con
+\texttt{java.security}. Cache de métodos anotados por clase. Suite de tests
+propia sin JUnit (347 verificaciones).}
+
+% =====================================================================
+\input{sections/06-evaluation}
+
+% =====================================================================
+\section{Discussion and Threats to Validity}\label{sec:threats}
+\TODO{Validez: VM de Docker (números relativos), warmup/JIT, paridad de
+endpoints, core-vs-stack. Limitaciones honestas: mayor RSS (Tomcat); reflexión
+en binding/JSON; \texttt{@JxQuery} vía stack-trace; SQL por concatenación (con
+mitigaciones); scanners de classpath; cron 5 campos; event bus síncrono;
+madurez/adopción. Amenaza ``¿otro framework más?'': nicho + cifras + valor
+pedagógico.}
+
+% =====================================================================
+\section{Conclusion and Future Work}\label{sec:conclusion}
+\TODO{Recap de la contribución y la evidencia. Futuro: reducir RSS, cachear
+metadata de binding, soporte GraalVM native-image, más proveedores OIDC,
+HTTP/2, SSE.}
+
+% =====================================================================
+\section*{Availability}
+The source code is available at \url{https://github.com/Andre031222/jxmvc}
+(MIT license); release v3.4.0 is archived with a DOI (to be created), and the
+reproducible benchmark harness is included under \texttt{benchmarks/}.
+
+% =====================================================================
+% Bibliografía numerada (estilo SPE). Para pasar a BibTeX con el .bst de
+% Wiley: \bibliographystyle{wileyNJD-AMA}\bibliography{references}
+\begin{thebibliography}{9}
+\bibitem{springboot} VMware. Spring Boot. \url{https://spring.io/projects/spring-boot}, 2024.
+\bibitem{quarkus} Red Hat. Quarkus: Supersonic Subatomic Java. \url{https://quarkus.io}, 2024.
+\bibitem{micronaut} Micronaut Foundation. Micronaut Framework. \url{https://micronaut.io}, 2024.
+\bibitem{javalin} Javalin. A simple web framework for Java and Kotlin. \url{https://javalin.io}, 2024.
+\bibitem{graalvm} Oracle. GraalVM Native Image. \url{https://www.graalvm.org/native-image/}, 2024.
+\bibitem{jakartaservlet} Eclipse Foundation. Jakarta Servlet Specification. \url{https://jakarta.ee/specifications/servlet/}, 2024.
+\bibitem{owasp} OWASP Foundation. OWASP Top 10 Web Application Security Risks. 2021.
+\end{thebibliography}
+
+\end{document}

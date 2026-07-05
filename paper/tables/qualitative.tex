@@ -1,0 +1,27 @@
+% Qualitative comparison (Section 3). Defensible, high-level claims only.
+% Requires: booktabs. Keep textual (no pifont) for portability.
+\begin{table*}[t]
+  \centering
+  \caption{Qualitative comparison of the evaluated frameworks. ``Own''
+    means the capability is implemented in-framework without a
+    third-party runtime library; ``Lib'' means it is delegated to a
+    bundled external library. Security-by-default denotes whether the
+    request pipeline applies protections (headers, CSRF, rate limiting,
+    body caps) without opt-in configuration.}
+  \label{tab:qualitative}
+  \small
+  \begin{tabular}{@{}lccccc@{}}
+    \toprule
+    & \textbf{JxMVC} & \textbf{Spring Boot} & \textbf{Quarkus} & \textbf{Micronaut} & \textbf{Javalin} \\
+    \midrule
+    Runtime dependencies   & \textbf{0}        & many        & many        & moderate    & few \\
+    JSON                   & Own               & Lib (Jackson)& Lib        & Lib (Jackson)& Lib (Jackson) \\
+    Connection pool        & Own (CAS)         & Lib (Hikari)& Lib (Agroal)& Lib (Hikari)& external \\
+    Dependency injection   & Own (reflection)  & runtime     & compile-time& compile-time& none \\
+    Security-by-default    & \textbf{Yes (pipeline)} & opt-in & opt-in     & opt-in      & manual \\
+    OIDC (JDK-only)        & \textbf{Yes}      & Lib         & Lib         & Lib         & manual \\
+    GraalVM native         & not yet           & partial (AOT)& first-class& first-class & limited \\
+    Core artifact size     & \textbf{253\,KB}  & MB-scale    & MB-scale    & MB-scale    & MB-scale \\
+    \bottomrule
+  \end{tabular}
+\end{table*}
