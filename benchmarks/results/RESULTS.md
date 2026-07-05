@@ -1,79 +1,56 @@
-# Resultados del benchmark
+# Resultados del benchmark — corrida OFICIAL (bare-metal)
 
-Corrida **dockerizada** de un comando (`../docker/bench.sh`). Cada framework se ejecuta como
-imagen con la **misma base JRE** y **mismos límites** (`--cpus=2 --memory=1g`), exponiendo los
-mismos endpoints `/plaintext` y `/json`. Metodología en [`../README.md`](../README.md).
+Cifras oficiales para el paper. Fuente auto-generada: [`RESULTS-docker.md`](RESULTS-docker.md)
+(tabla), [`STATS.md`](STATS.md) (mediana + [min–max]), [`ENV.md`](ENV.md) (entorno),
+[`raw-docker.csv`](raw-docker.csv) (60 filas crudas). Metodología: [`../README.md`](../README.md).
 
-## Entorno de esta corrida
+> Una corrida preliminar previa en Docker Desktop (WSL2, `--cpus=2`) quedó en el historial de git
+> (commit `e8d49ac`); **esta corrida bare-metal la reemplaza** para efectos de publicación.
+
+## Entorno
 
 ```
-Motor:    Docker Desktop (WSL2) · límites --cpus=2 --memory=1g · misma base eclipse-temurin:17-jre
-Carga:    LoadClient (JDK), 64 conexiones, 15 s de medición + 5 s warmup, 3 repeticiones
-Reporte:  mediana de las 3 repeticiones (la 1ª, con JIT frío, queda descartada por la mediana)
-Fecha:    2026-07-05 · Modo: JVM (Quarkus/Micronaut NO nativo — ver nota)
+CPU:        12th Gen Intel Core i5-12500H (4 P-cores @2.5GHz + 8 E-cores @1.8GHz, 16 hilos)
+RAM:        30 GiB · Kernel 7.0.14-arch1-1 (Arch) · JDK 25 (host) · Docker 29.6.1
+Aislamiento: contenedor --cpuset-cpus=0-3 --cpus=4 --memory=2g · cliente taskset 4-7 (disjuntos)
+CPU:        governor performance · Turbo OFF · carga conns=64 dur=30s reps=5 (mediana) warmup=5s
+Endpoints:  /plaintext y /json idénticos en los 6 · misma base JRE
 ```
 
-> ⚠️ Números **relativos** comparables (idénticas condiciones). Los **absolutos** dependen de la
-> VM de Docker Desktop; para cifras finales de publicación, correr el mismo `bench.sh` en un
-> **Linux nativo** (p. ej. el VPS Debian). Se reportan tal cual, con el entorno declarado.
+## Tabla (mediana de 5 repeticiones)
 
-## Tabla (mediana de 3 repeticiones)
+| Framework | Imagen (MB) | Arranque (ms) | RSS (MB) | rps /plaintext | rps /json | errores |
+|---|---|---|---|---|---|---|
+| **JxMVC 3.4.0** | **271.7** | 822 | 448.5 | 49 062 | 48 720 | **0** |
+| Spring Boot 3.3 | 299.9 | 1945 | 375.6 | 49 462 | 49 896 | 0 |
+| Quarkus 3.11 (JVM) | 295.9 | 606 | 431.2 | 55 087 | 54 209 | 0 |
+| Micronaut 4.10 | 292.5 | 1154 | 331.4 | 50 974 | 50 652 | 0 |
+| Javalin 6 (Jetty) | 286.4 | 369 | 424.6 | 54 169 | 53 614 | 0 |
+| **Quarkus nativo (GraalVM)** | **72.8** | **12** | **25.1** | 52 699 | 50 073 | 0 |
 
-| Framework | Imagen (MB) | Arranque frío (ms) | RSS (MB) | rps /plaintext | rps /json | p95 /json (ms) | errores |
-|---|---|---|---|---|---|---|---|
-| **JxMVC 3.4.0** | **104.0** | **1225** | ~150 | 12 217 | 12 917 | 11.8 | **0** |
-| Spring Boot 3.3 | 121.4 | 2375 | ~181 | 11 079 | 11 642 | 24.7 | 0 |
-| Quarkus 3.11 (JVM) | 117.3 | 1515 | ~96 | 15 957 | 17 195 | 6.8 | 0 |
-| Micronaut 4.10 | 114.7 | 1382 | ~96 | 10 871 | 11 628 | 11.8 | 0 |
-| Javalin 6 (Jetty) | 109.3 | 499 | ~94 | 13 868 | 13 424 | 9.0 | 0 |
+Dispersión (min–max de rps) en [`STATS.md`](STATS.md). Volumen total: **92.76M peticiones,
+0 errores y 0 respuestas no-2xx** en 60 corridas (6 frameworks × 2 endpoints × 5 reps).
 
-Volumen total: **5.5M+ peticiones, 0 errores y 0 respuestas no-2xx** en los cinco.
+## Lectura honesta
 
-## Lectura honesta (dónde gana y dónde no JxMVC)
-
-**Fortalezas medidas:**
-- **Imagen más pequeña (104 MB)** — el WAR de 253 KB sobre Tomcat/JRE pesa menos que los
-  uber-JAR/fast-jar de los demás. (Aun así, el JRE base domina: todos caen en 104–121 MB;
-  la ventaja del artefacto de 253 KB casi se diluye a nivel de contenedor — dato honesto.)
-- **2º arranque más rápido (1.2 s)** — bate a Spring (2×), a Quarkus-JVM y a Micronaut; solo
-  Javalin (Jetty mínimo) arranca antes. Muy bueno para un framework sobre Tomcat.
-- **Throughput competitivo (~12–13k rps)**: 3º lugar, **por encima de Spring y de Micronaut**,
-  detrás de Quarkus y Javalin. Respetable para un framework de dependencia-cero.
-- **Corrección bajo carga: 0 errores** en millones de peticiones.
+**Fortalezas medidas de JxMVC:**
+- **Imagen JVM más pequeña** (271.7 MB) de las cinco.
+- **Arranque 822 ms** — más rápido que **Micronaut** (1154) y **Spring** (1945); detrás de
+  Quarkus (606) y Javalin (369).
+- **Latencia p99 indistinguible** del resto bajo la misma carga.
+- **0 errores** en 92.76M peticiones.
 
 **Debilidad honesta:**
-- **Memoria (RSS ~150 MB)**: 2ª más alta, solo mejor que Spring; los stacks Netty
-  (Quarkus/Micronaut) y Jetty (Javalin) rondan ~95 MB. Es el coste del contenedor servlet
-  (Tomcat). Es la métrica a mejorar y NO se debe ocultar en el paper.
+- **RSS 448 MB — el más alto** de los JVM (coste del contenedor servlet Tomcat).
+- **Throughput 49k rps — el más bajo** de los JVM, aunque **~par con Spring** (~1% por debajo) y
+  a ~11% del líder (Quarkus). El claim previo de "por encima de Spring/Micronaut" **no se sostuvo**
+  en bare-metal y fue corregido en el paper.
+
+**GraalVM nativo (Quarkus):** confirma la ventaja del AOT — **arranque 12 ms** y **RSS 25 MB**
+(vs cientos en JVM), con throughput a la par. Es el argumento de por qué el modo nativo va en fila
+aparte y no debe compararse de igual a igual con los JVM.
 
 **Conclusión defendible:** para un framework de **253 KB y cero dependencias**, JxMVC es
-**competitivo con Spring/Quarkus/Micronaut/Javalin** — mejor arranque que casi todos, imagen más
-pequeña, throughput por encima de Spring y Micronaut — con un mayor uso de memoria como
-contrapartida del stack servlet. Es una historia sólida y creíble, no un "somos los más rápidos".
-
-## Modo nativo (GraalVM) — parcial
-
-Se compiló **Quarkus a binario nativo** (GraalVM/Mandrel, `docker/apps/quarkus/Dockerfile.native`;
-toggle `BENCH_NATIVE=1 ./bench.sh`). Dato verificado: **imagen nativa = 41 MB** (vs 117 MB en JVM,
-~3× menor). Las cifras de arranque (esperado ~decenas de ms) y RSS del nativo se completan al
-correr en **Linux bare-metal** (Arch) — ver `../RUN-ON-LINUX.md` — donde el toolchain de
-native-image dispone de recursos plenos. En Docker Desktop (WSL2) la compilación native-image es
-lenta/inestable; el binario y su tamaño quedaron verificados.
-
-## Notas para el paper
-
-- **Modo nativo**: Quarkus y Micronaut compilados con GraalVM cambian radicalmente arranque
-  (~decenas de ms) y RSS. Añadir la fila nativa (ya soportada por el harness) para no subrepresentarlos.
-- **Warmup**: la 1ª repetición de cada framework rinde menos (JIT frío); la mediana de 3 la
-  descarta. Para el paper, subir a N≥5 y reportar mediana + [min,max].
-- **Barrido de concurrencia**: repetir en 1/8/32/64/128/256 conexiones para la curva completa.
-- Reproducir: `cd benchmarks/docker && ./bench.sh 64 15 3` → `results/RESULTS-docker.md`.
-
-## Datos verificados del artefacto (sin correr nada)
-
-```
-JxMVC core JAR: 258 897 bytes (253 KB) · 0 dependencias runtime (jakarta-api provided)
-54 clases fuente · ~10 400 LOC · 347 verificaciones (suite propia, sin JUnit)
-```
-
-El CSV crudo por repetición está en [`raw-docker.csv`](raw-docker.csv).
+**competitivo** — imagen JVM mínima, arranque mejor que Spring/Micronaut, latencia y corrección
+a la par — con **mayor memoria** como contrapartida clara del stack servlet. Historia creíble y
+honesta, no "el más rápido".
