@@ -5,10 +5,11 @@
 
 \subsection{The JVM web-framework landscape}
 
-Server-side Java web development is dominated by a small number of
-mature frameworks that occupy distinct points along two axes: how much
-they bundle, and when they do their work (at runtime versus at
-compile/build time).
+Server-side Java web development, structured almost universally around
+the Model--View--Controller pattern~\cite{krasner1988}, is dominated by
+a small number of mature frameworks that occupy distinct points along
+two axes: how much they bundle, and when they do their work (at runtime
+versus at compile/build time).
 
 \emph{Spring Boot}~\cite{springboot} is the reference
 ``batteries-included'' stack: extensive auto-configuration, a vast
@@ -18,7 +19,7 @@ artifact size and start-up cost. \emph{Quarkus}~\cite{quarkus} and
 \emph{Micronaut}~\cite{micronaut} were designed to reduce exactly those
 costs by moving dependency injection and metadata processing to
 \emph{compile time}, which shrinks reflection at runtime and makes both
-frameworks first-class targets for GraalVM native-image~\cite{graalvm}
+frameworks first-class targets for GraalVM native-image~\cite{graalvm,wimmer2019}
 ahead-of-time compilation. \emph{Javalin}~\cite{javalin} takes the
 opposite, minimalist route: a thin, explicit API over an embedded
 Jetty server, with relatively few dependencies but delegation of most
@@ -28,8 +29,12 @@ developer.
 What unites all four is that non-trivial capabilities---JSON
 serialisation, connection pooling, scheduling, and above all
 security---are provided by \emph{third-party libraries}, whether
-bundled by default or added by the developer. Security in particular is
-predominantly \emph{opt-in}: a separate module (e.g.\ a security
+bundled by default or added by the developer. This convenience carries
+a cost that has become increasingly visible: transitive-dependency
+trees are frequently bloated~\cite{sotovalero2021}, and the open-source
+supply chain they form is itself an attack surface, as a growing body
+of documented incidents attests~\cite{ohm2020}. Security in particular
+is predominantly \emph{opt-in}: a separate module (e.g.\ a security
 starter) that must be added and configured before protections apply.
 
 \subsection{Micro-frameworks and zero-dependency designs}
@@ -47,8 +52,10 @@ to audit in full.
 
 The principle of \emph{secure defaults}---systems should be safe out of
 the box, with the burden on relaxing rather than adding
-protections---is long established in security engineering and codified
-in practitioner guidance such as the OWASP Top~10~\cite{owasp}. In
+protections---dates back to the classic design principles of Saltzer
+and Schroeder~\cite{saltzer1975} (``fail-safe defaults'') and is
+reaffirmed in modern practitioner guidance such as the OWASP
+Top~10~\cite{owasp}. In
 mainstream frameworks, however, defaults are typically permissive for
 convenience, and hardening (security headers, CSRF tokens, rate
 limiting, body-size caps, anti open-redirect) is assembled by the

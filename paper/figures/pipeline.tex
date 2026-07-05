@@ -1,0 +1,44 @@
+% Figura del pipeline de 15 etapas (orden real de MainLxServlet.serviceInternal).
+% Requiere: \usepackage{tikz}\usetikzlibrary{positioning,arrows.meta} (en main.tex).
+\begin{figure}[tb]
+  \centering
+  \small
+  \begin{tikzpicture}[
+    node distance=1.9mm,
+    stage/.style={draw, rounded corners=1.5pt, minimum width=62mm,
+      minimum height=4.9mm, inner sep=1pt, align=center, font=\footnotesize, fill=black!3},
+    sec/.style={stage, fill=red!7, draw=red!55, very thick},
+    arr/.style={-{Latex[length=1.4mm]}, gray!70}
+  ]
+    \node[stage] (s1)  {\textbf{1}\quad Internal endpoints \texttt{/jx/*}};
+    \node[stage, below=of s1]  (s2)  {\textbf{2}\quad Metrics timer start};
+    \node[stage, below=of s2]  (s3)  {\textbf{3}\quad Route resolution (\texttt{BaseDispatcher})};
+    \node[sec,   below=of s3]  (s4)  {\textbf{4}\quad Rate limiting (per resolved action)};
+    \node[sec,   below=of s4]  (s5)  {\textbf{5}\quad Authentication (fail-closed)};
+    \node[sec,   below=of s5]  (s6)  {\textbf{6}\quad CSRF token (mutating verbs)};
+    \node[sec,   below=of s6]  (s7)  {\textbf{7}\quad CORS policy};
+    \node[stage, below=of s7]  (s8)  {\textbf{8}\quad Build context (\texttt{JxRequest}/\texttt{JxResponse})};
+    \node[stage, below=of s8]  (s9)  {\textbf{9}\quad \texttt{before} filters};
+    \node[stage, below=of s9]  (s10) {\textbf{10}\quad Controller instantiation + DI};
+    \node[stage, below=of s10] (s11) {\textbf{11}\quad \texttt{@JxBeforeAction}};
+    \node[stage, below=of s11] (s12) {\textbf{12}\quad \texttt{@JxModelAttr}};
+    \node[stage, below=of s12] (s13) {\textbf{13}\quad Invoke (async/retry, cache, tx)};
+    \node[stage, below=of s13] (s14) {\textbf{14}\quad \texttt{@JxAfterAction} + \texttt{after} filters};
+    \node[stage, below=of s14] (s15) {\textbf{15}\quad Render + metrics};
+
+    \foreach \a/\b in {s1/s2,s2/s3,s3/s4,s4/s5,s5/s6,s6/s7,s7/s8,s8/s9,
+                       s9/s10,s10/s11,s11/s12,s12/s13,s13/s14,s14/s15}
+      \draw[arr] (\a) -- (\b);
+
+    \node[above=1.2mm of s1, font=\footnotesize\itshape] {request};
+    \node[below=1.2mm of s15, font=\footnotesize\itshape] {response};
+  \end{tikzpicture}
+  \caption{The fixed fifteen-stage request pipeline of
+    \texttt{MainLxServlet} (real execution order). Cross-cutting to every
+    response, and applied outside this sequence, are the security headers
+    and conditional gzip set in \texttt{service}. The shaded stages
+    (4--7) form the security gate that precedes and encloses the
+    developer's controller, which is what makes the ``secure-by-default''
+    property structural rather than advisory.}
+  \label{fig:pipeline}
+\end{figure}

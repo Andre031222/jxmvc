@@ -48,14 +48,16 @@ implemented with the JDK alone.
 
 \subsection{OIDC without libraries}
 
-The OAuth~2.0/OpenID~Connect client (\texttt{JxOAuth}) implements the
-authorization-code flow with PKCE using only \texttt{java.security},
+The OAuth~2.0~\cite{rfc6749}/OpenID~Connect~\cite{oidc} client
+(\texttt{JxOAuth}) implements the authorization-code flow with
+PKCE~\cite{rfc7636} using only \texttt{java.security},
 \texttt{java.math}, and \texttt{java.util.Base64}. It generates an
 anti-CSRF \texttt{state} and a PKCE verifier, sends the S256 challenge
 $\text{code\_challenge} = \text{BASE64URL}(\text{SHA-256}(\text{verifier}))$,
 and exchanges the code for tokens. Crucially, it does not merely decode
-the \texttt{id\_token}: it \textbf{verifies the RS256 signature}
-against the provider's JWKS. The JWKS is fetched and cached (one-hour
+the \texttt{id\_token} (a JWT~\cite{rfc7519}): it \textbf{verifies the
+RS256 signature} against the provider's JSON Web Key
+Set~\cite{rfc7517}. The JWKS is fetched and cached (one-hour
 TTL); the RSA public key is reconstructed from its modulus and exponent
 via \texttt{KeyFactory}/\texttt{RSAPublicKeySpec}; and the signature is
 checked with \texttt{Signature.getInstance("SHA256withRSA")}. The
@@ -72,9 +74,10 @@ authentication.
 
 Several protections are worth noting as concrete implementations rather
 than configuration switches. Password hashing (\texttt{JxPasswords})
-uses \texttt{PBKDF2WithHmacSHA256} with a 16-byte random salt and a
-self-describing encoding (\texttt{pbkdf2\$sha256\$iters\$salt\$hash}),
-verified in constant time. File uploads reject a fixed blocklist of
+uses \texttt{PBKDF2WithHmacSHA256}~\cite{rfc8018} with a 16-byte random
+salt and a self-describing encoding
+(\texttt{pbkdf2\$sha256\$iters\$salt\$hash}), verified in constant time,
+following current NIST authentication guidance~\cite{nist80063b}. File uploads reject a fixed blocklist of
 dangerous extensions (e.g.\ \texttt{.jsp}, \texttt{.class},
 \texttt{.war}, \texttt{.sh}, \texttt{.exe}, \texttt{.php}) \emph{even
 when} a wildlist is configured, and normalise paths to prevent

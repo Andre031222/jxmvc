@@ -1,57 +1,55 @@
-% Bibliografía inicial — completar hasta 15–25 refs (frameworks, microframeworks,
-% seguridad por defecto, open-source software papers). Entradas mínimas para compilar.
+% Bibliografía de JxMVC (espejo BibTeX de la thebibliography en main.tex).
+% Para usar con el .bst de Wiley: \bibliographystyle{wileyNJD-AMA}\bibliography{references}
 
-@online{springboot,
-  author = {{VMware}},
-  title  = {Spring Boot},
-  url    = {https://spring.io/projects/spring-boot},
-  year   = {2024},
-  note   = {Accessed 2026-07-05}
-}
+@online{springboot, author={{VMware}}, title={Spring Boot}, url={https://spring.io/projects/spring-boot}, year={2024}}
+@online{quarkus, author={{Red Hat}}, title={Quarkus: Supersonic Subatomic Java}, url={https://quarkus.io}, year={2024}}
+@online{micronaut, author={{Micronaut Foundation}}, title={Micronaut Framework}, url={https://micronaut.io}, year={2024}}
+@online{javalin, author={{Javalin}}, title={A Simple Web Framework for Java and Kotlin}, url={https://javalin.io}, year={2024}}
+@online{graalvm, author={{Oracle}}, title={{GraalVM} Native Image}, url={https://www.graalvm.org/native-image/}, year={2024}}
 
-@online{quarkus,
-  author = {{Red Hat}},
-  title  = {Quarkus: Supersonic Subatomic Java},
-  url    = {https://quarkus.io},
-  year   = {2024},
-  note   = {Accessed 2026-07-05}
-}
+@article{wimmer2019,
+  author={Wimmer, Christian and Stancu, Codrut and Hofer, Peter and Jovanovic, Vojin and H\"{u}gelmeier, Paul and Aigner, Christian and Simon, Doug},
+  title={Initialize Once, Start Fast: Application Initialization at Build Time},
+  journal={Proc. ACM Program. Lang. (OOPSLA)}, volume={3}, number={184}, pages={1--29}, year={2019}, doi={10.1145/3360610}}
 
-@online{micronaut,
-  author = {{Micronaut Foundation}},
-  title  = {Micronaut Framework},
-  url    = {https://micronaut.io},
-  year   = {2024},
-  note   = {Accessed 2026-07-05}
-}
+@online{jakartaservlet, author={{Eclipse Foundation}}, title={Jakarta Servlet Specification}, url={https://jakarta.ee/specifications/servlet/}, year={2024}}
 
-@online{javalin,
-  author = {{Javalin}},
-  title  = {Javalin: A simple web framework for Java and Kotlin},
-  url    = {https://javalin.io},
-  year   = {2024},
-  note   = {Accessed 2026-07-05}
-}
+@article{krasner1988,
+  author={Krasner, Glenn E. and Pope, Stephen T.},
+  title={A Cookbook for Using the Model-View-Controller User Interface Paradigm in {Smalltalk-80}},
+  journal={Journal of Object-Oriented Programming}, volume={1}, number={3}, pages={26--49}, year={1988}}
 
-@online{graalvm,
-  author = {{Oracle}},
-  title  = {GraalVM Native Image},
-  url    = {https://www.graalvm.org/native-image/},
-  year   = {2024},
-  note   = {Accessed 2026-07-05}
-}
+@article{sotovalero2021,
+  author={Soto-Valero, C\'esar and Harrand, Nicolas and Monperrus, Martin and Baudry, Benoit},
+  title={A Comprehensive Study of Bloated Dependencies in the {Maven} Ecosystem},
+  journal={Empirical Software Engineering}, volume={26}, number={45}, year={2021}, doi={10.1007/s10664-020-09914-8}}
 
-@online{jakartaservlet,
-  author = {{Eclipse Foundation}},
-  title  = {Jakarta Servlet Specification},
-  url    = {https://jakarta.ee/specifications/servlet/},
-  year   = {2024},
-  note   = {Accessed 2026-07-05}
-}
+@inproceedings{ohm2020,
+  author={Ohm, Marc and Plate, Henrik and Sykosch, Arnold and Meier, Michael},
+  title={Backstabber's Knife Collection: A Review of Open Source Software Supply Chain Attacks},
+  booktitle={Detection of Intrusions and Malware, and Vulnerability Assessment (DIMVA)}, pages={23--43}, year={2020}, doi={10.1007/978-3-030-52683-2_2}}
 
-@article{owasp,
-  author  = {{OWASP Foundation}},
-  title   = {OWASP Top 10 Web Application Security Risks},
-  journal = {OWASP},
-  year    = {2021}
-}
+@article{saltzer1975,
+  author={Saltzer, Jerome H. and Schroeder, Michael D.},
+  title={The Protection of Information in Computer Systems},
+  journal={Proceedings of the IEEE}, volume={63}, number={9}, pages={1278--1308}, year={1975}, doi={10.1109/PROC.1975.9939}}
+
+@online{owasp, author={{OWASP Foundation}}, title={{OWASP} Top 10 Web Application Security Risks}, url={https://owasp.org/Top10/}, year={2021}}
+
+@techreport{rfc6749, author={Hardt, Dick}, title={The {OAuth} 2.0 Authorization Framework}, institution={IETF}, type={RFC}, number={6749}, year={2012}}
+@techreport{rfc7636, author={Sakimura, Nat and Bradley, John and Agarwal, Naveen}, title={Proof Key for Code Exchange by {OAuth} Public Clients}, institution={IETF}, type={RFC}, number={7636}, year={2015}}
+@misc{oidc, author={Sakimura, Nat and Bradley, John and Jones, Michael and de Medeiros, Breno and Mortimore, Chuck}, title={{OpenID} Connect Core 1.0}, howpublished={OpenID Foundation}, year={2014}}
+@techreport{rfc7519, author={Jones, Michael and Bradley, John and Sakimura, Nat}, title={{JSON} Web Token ({JWT})}, institution={IETF}, type={RFC}, number={7519}, year={2015}}
+@techreport{rfc7517, author={Jones, Michael}, title={{JSON} Web Key ({JWK})}, institution={IETF}, type={RFC}, number={7517}, year={2015}}
+@techreport{rfc8018, author={Moriarty, Kathleen and Kaliski, Burt and Rusch, Andreas}, title={{PKCS} \#5: Password-Based Cryptography Specification Version 2.1}, institution={IETF}, type={RFC}, number={8018}, year={2017}}
+@techreport{nist80063b, author={Grassi, Paul A. and Fenton, James L. and Newton, Elaine M.}, title={{NIST} Special Publication 800-63B: Digital Identity Guidelines --- Authentication and Lifecycle Management}, institution={NIST}, year={2017}}
+
+@inproceedings{georges2007,
+  author={Georges, Andy and Buytaert, Dries and Eeckhout, Lieven},
+  title={Statistically Rigorous {Java} Performance Evaluation},
+  booktitle={OOPSLA}, pages={57--76}, year={2007}, doi={10.1145/1297027.1297033}}
+
+@inproceedings{kalibera2013,
+  author={Kalibera, Tomas and Jones, Richard},
+  title={Rigorous Benchmarking in Reasonable Time},
+  booktitle={ISMM}, pages={63--74}, year={2013}, doi={10.1145/2464157.2464160}}

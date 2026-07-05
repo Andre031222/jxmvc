@@ -32,10 +32,13 @@ concrete decisions.
 
 The heart of JxMVC is a fixed, ordered request pipeline implemented in
 the core servlet (\texttt{MainLxServlet}). Every request traverses the
-same fifteen-stage sequence, so cross-cutting concerns---sanitisation,
+same fifteen-stage sequence, shown in its real execution order in
+Figure~\ref{fig:pipeline}, so cross-cutting concerns---sanitisation,
 CORS, rate limiting, authentication, validation, compression,
-metrics---are applied uniformly and by construction. The principal
-stages, in order, are:
+metrics---are applied uniformly and by construction. Grouping by role,
+the principal stages are:
+
+\input{figures/pipeline}
 
 \begin{enumerate}
   \item \textbf{Sanitiser} (\texttt{BaseSanitizer}) --- XSS-oriented
