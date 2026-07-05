@@ -13,11 +13,12 @@ condiciones y de escribir la tabla de resultados.
 ## 1. Instalar lo necesario (una sola vez)
 
 ```bash
-sudo pacman -Syu --needed docker jdk-openjdk git
+sudo pacman -Syu --needed docker jdk-openjdk git cpupower
 ```
 - `docker` → construye y corre cada framework aislado.
 - `jdk-openjdk` → un JDK en el host (lo usa el generador de carga `LoadClient`).
 - `git` → para clonar el repo.
+- `cpupower` → fija la frecuencia de CPU en modo `performance` (clave para cifras estables, ver §8).
 
 ## 2. Arrancar Docker y darte permiso (una sola vez)
 
@@ -52,13 +53,25 @@ BENCH_NATIVE=1 ./bench.sh 64 30 5
 ```
 
 Los números son: `64` conexiones concurrentes, `30` segundos de medición por prueba, `5`
-repeticiones (se reporta la mediana). Puedes ajustar CPU/RAM fijas para reproducibilidad:
+repeticiones (se reporta la **mediana** de arranque, RSS y rps). Sin argumentos los defaults son
+`64 20 3`. Puedes ajustar CPU/RAM fijas para reproducibilidad:
 ```bash
 BENCH_CPUS=4 BENCH_MEM=2g BENCH_NATIVE=1 ./bench.sh 64 30 5
 ```
 
+**Recomendado para el paper — aislar el generador de carga.** El `LoadClient` corre en el host y
+compite por CPU con el contenedor. Para que midas el *servidor* y no el cliente, fija el contenedor
+y el cliente a **núcleos distintos** (ejemplo para 8 núcleos: 0-3 al contenedor, 4-7 al cliente):
+```bash
+BENCH_CPUS=4 BENCH_CPUSET=0-3 BENCH_CLIENT_CPUS=4-7 BENCH_MEM=2g BENCH_NATIVE=1 ./bench.sh 64 30 5
+```
+- `BENCH_CPUSET` → clava el contenedor a esos núcleos (`docker --cpuset-cpus`).
+- `BENCH_CLIENT_CPUS` → clava el `LoadClient` a otros (`taskset`). Necesita el paquete `taskset` (util-linux, ya viene en Arch).
+
 > El script es **resiliente**: si algún framework no construye o no arranca, lo registra con sus
-> logs y sigue con los demás. No se detiene todo por uno.
+> logs y sigue con los demás. No se detiene todo por uno. **Pero** si algún framework devuelve
+> errores/no-2xx bajo carga, marca esa fila con `⚠` y termina con código ≠ 0: esas cifras **no**
+> son válidas (típicamente el cliente se saturó — usa `BENCH_CLIENT_CPUS`).
 
 ## 5. Resultado
 
@@ -71,6 +84,16 @@ Míralos así:
 ```bash
 cat ../results/RESULTS-docker.md
 ```
+
+**Antes de confiar en las cifras — valida que no hubo errores.** Una corrida con errores o
+respuestas no-2xx no sirve para el paper (mide fallos, no rendimiento). El script ya te avisa, pero
+compruébalo tú mismo:
+```bash
+# Debe imprimir 0. Columnas 9 y 10 del CSV son errores y no-2xx.
+awk -F, 'NR>1{e+=$9+$10} END{print "errores+no2xx =", e+0}' ../results/raw-docker.csv
+```
+Si es `> 0`, o ves filas con `⚠` en la tabla, **repite** aislando el cliente con `BENCH_CLIENT_CPUS`
+(ver §4) y/o dando más CPU/RAM al contenedor.
 
 ## 6. Qué me tienes que pasar
 
@@ -99,9 +122,17 @@ Pásame todos los `raw-*.csv`.
 ## 8. Buenas prácticas para cifras de publicación
 
 - Cierra navegador/IDE y apps pesadas antes de correr.
-- Si tienes `cpupower`: `sudo cpupower frequency-set -g performance`.
-- Corre 2–3 veces y quédate con la corrida más estable (la 1ª repetición de cada framework, con
-  el JIT frío, ya la descarta la mediana).
+- **Governor a `performance`:** `sudo cpupower frequency-set -g performance` (evita que el escalado
+  dinámico de frecuencia meta ruido en los rps).
+- **Desactiva turbo boost** para que la frecuencia no dependa de la temperatura (Intel):
+  `echo 1 | sudo tee /sys/devices/system/cpu/intel_pstate/no_turbo`. En corridas largas en **laptop**
+  vigila el *throttling térmico*: si la máquina se calienta, los últimos frameworks medidos salen
+  penalizados. Deja enfriar entre tandas.
+- **Aísla el cliente** de la carga (`BENCH_CLIENT_CPUS`, ver §4): es lo que más afecta la validez.
+- **Fija CPU/RAM explícitas** (`BENCH_CPUS`/`BENCH_MEM`); no dependas de los defaults (2 CPU / 1g).
+- Sobre las repeticiones: el `LoadClient` ya hace *warmup* (calienta el JIT antes de medir), así que
+  cada repetición mide en estado estacionario. La **mediana** de las repeticiones absorbe el ruido
+  restante; para el paper reporta también **min/max o el IC** desde el CSV, no solo la mediana.
 
 ## 9. Problemas comunes
 

@@ -14,6 +14,13 @@ REPS="${3:-3}"
 CPUS="${BENCH_CPUS:-2}"
 MEM="${BENCH_MEM:-1g}"
 PORT=8080
+# Reproducibilidad avanzada (opcional):
+#   BENCH_CPUSET="0,1"      -> fija el contenedor a esos núcleos (docker --cpuset-cpus)
+#   BENCH_CLIENT_CPUS="2,3" -> fija el LoadClient a OTROS núcleos (taskset) para no competir
+CPUSET="${BENCH_CPUSET:-}"
+CLIENT_CPUS="${BENCH_CLIENT_CPUS:-}"
+CLIENT_PREFIX=()
+[ -n "$CLIENT_CPUS" ] && CLIENT_PREFIX=(taskset -c "$CLIENT_CPUS")
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
 REPO="$(cd "$HERE/../.." && pwd)"
@@ -61,7 +68,9 @@ for fw in "${APPS[@]}"; do
   image_mb=$(docker image inspect "$img" --format '{{.Size}}' | awk '{printf "%.1f", $1/1048576}')
 
   docker rm -f "bench_$fw" >/dev/null 2>&1 || true
-  docker run -d --name "bench_$fw" --cpus="$CPUS" --memory="$MEM" -p "$PORT:8080" "$img" >/dev/null
+  runargs=(--cpus="$CPUS" --memory="$MEM")
+  [ -n "$CPUSET" ] && runargs+=(--cpuset-cpus="$CPUSET")
+  docker run -d --name "bench_$fw" "${runargs[@]}" -p "$PORT:8080" "$img" >/dev/null
 
   startup_ms=$(wait_up) || startup_ms=-1
   if [ "$startup_ms" = "-1" ]; then
@@ -74,9 +83,12 @@ for fw in "${APPS[@]}"; do
   # warmup + medición de carga (host -> contenedor)
   for ep in plaintext json; do
     for r in $(seq 1 "$REPS"); do
-      line=$( (cd "$HERE/../load" && java LoadClient "http://localhost:$PORT/$ep" "$CONNS" "$DUR" 5) 2>/dev/null )
+      line=$( (cd "$HERE/../load" && ${CLIENT_PREFIX[@]+"${CLIENT_PREFIX[@]}"} java LoadClient "http://localhost:$PORT/$ep" "$CONNS" "$DUR" 5) 2>/dev/null )
       rss_mb=$(docker stats --no-stream --format '{{.MemUsage}}' "bench_$fw" | awk -F'/' '{gsub(/[^0-9.]/,"",$1); print $1}')
       echo "$fw,$image_mb,$startup_ms,$rss_mb,$line" >> "$CSV"
+      # Validez: errores/no-2xx invalidan la medición (posible saturación del cliente o del server).
+      e=$(echo "$line" | awk -F, '{print ($5+$6)+0}')
+      [ "${e:-0}" -gt 0 ] && echo "  ⚠ $fw /$ep rep $r: errores/no-2xx=$e — medición SOSPECHOSA (revisa saturación/CPU del cliente)"
     done
   done
 
@@ -85,24 +97,43 @@ done
 
 echo "CSV crudo -> $CSV"
 
-# Agrega el CSV a una tabla Markdown (mediana de rps por framework/endpoint).
+# Mediana de la columna $2 (1-indexed del CSV) para el framework $1; filtro opcional de endpoint en $3.
+med() {
+  awk -F, -v f="$1" -v c="$2" -v ep="${3:-}" \
+    '$1==f && (ep=="" || $5==ep){print $c}' "$CSV" \
+    | sort -n | awk '{a[NR]=$1} END{print (NR? a[int((NR+1)/2)] : "-")}'
+}
+
+# Agrega el CSV a una tabla Markdown (mediana por framework/endpoint).
 {
   echo "# Resultados dockerizados"
   echo
   echo "Entorno: \`docker --cpus=$CPUS --memory=$MEM\`, misma base JRE. conns=$CONNS, dur=${DUR}s, reps=$REPS."
   echo "Generado por \`bench.sh\`. Números relativos comparables; ver README §8 (validez)."
+  echo "Arranque/RSS/rps son **mediana** de las $REPS repeticiones. \`⚠\` = el framework tuvo errores/no-2xx: cifra NO válida."
   echo
   echo "| Framework | Imagen (MB) | Arranque (ms) | RSS (MB) | rps /plaintext (mediana) | rps /json (mediana) |"
   echo "|---|---|---|---|---|---|"
   for fw in "${APPS[@]}"; do
-    im=$(awk -F, -v f="$fw" '$1==f{print $2; exit}' "$CSV")
-    su=$(awk -F, -v f="$fw" '$1==f{print $3; exit}' "$CSV")
-    rs=$(awk -F, -v f="$fw" '$1==f{print $4; exit}' "$CSV")
-    pt=$(awk -F, -v f="$fw" '$1==f && $5=="http://localhost:8080/plaintext"{print $11}' "$CSV" | sort -n | awk '{a[NR]=$1}END{print (NR? a[int((NR+1)/2)] : "-")}')
-    js=$(awk -F, -v f="$fw" '$1==f && $5=="http://localhost:8080/json"{print $11}' "$CSV" | sort -n | awk '{a[NR]=$1}END{print (NR? a[int((NR+1)/2)] : "-")}')
-    [ -n "$im" ] && echo "| $fw | $im | $su | $rs | $pt | $js |" || echo "| $fw | (no arrancó) | | | | |"
+    im=$(awk -F, -v f="$fw" '$1==f{print $2; exit}' "$CSV")   # imagen: valor constante por framework
+    su=$(med "$fw" 3)                                          # arranque: mediana
+    rs=$(med "$fw" 4)                                          # RSS: mediana
+    pt=$(med "$fw" 11 "http://localhost:8080/plaintext")
+    js=$(med "$fw" 11 "http://localhost:8080/json")
+    err=$(awk -F, -v f="$fw" '$1==f{e+=$9+$10} END{print e+0}' "$CSV")
+    flag=""; [ "${err:-0}" -gt 0 ] && flag=" ⚠"
+    [ -n "$im" ] && echo "| ${fw}${flag} | $im | $su | $rs | $pt | $js |" || echo "| $fw | (no arrancó) | | | | |"
   done
 } > "$OUT"
 
 echo "Tabla -> $OUT"
 cat "$OUT"
+
+# Validez global: si hubo cualquier error/no-2xx, avisar fuerte y salir con código != 0.
+total_err=$(awk -F, 'NR>1{e+=$9+$10} END{print e+0}' "$CSV")
+if [ "${total_err:-0}" -gt 0 ]; then
+  echo ""
+  echo "⚠⚠ ATENCIÓN: $total_err errores/no-2xx en total. Las filas marcadas con ⚠ NO son válidas para el paper."
+  echo "   Causas típicas: cliente saturado (usa BENCH_CLIENT_CPUS), poca CPU/RAM al contenedor, o el server falla bajo carga."
+  exit 3
+fi
