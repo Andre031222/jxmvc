@@ -65,3 +65,39 @@ dependencies. Its value is the combination of that design point, the
 empirical evidence that it remains competitive on latency and start-up,
 and its use as a readable reference implementation of web-framework
 internals.
+
+\subsection{Practical implications: when to choose JxMVC}
+
+The evaluation and our experience suggest a concrete decision guide
+rather than a blanket recommendation. JxMVC is a strong fit when the
+\emph{supply-chain surface} must be minimised or fully audited---the
+entire runtime is one \SI{253}{\kilo\byte} JAR with no transitive
+dependencies to vet or patch, a property that matters in regulated,
+air-gapped, or security-reviewed environments where each added library
+is a compliance cost. It fits \emph{internal tools and services} where
+auditability and safe defaults outweigh raw feature breadth, and
+\emph{start-up-sensitive} deployments (scale-to-zero, frequent
+redeploys) where its sub-second cold start beats Spring Boot and
+Micronaut. Conversely, JxMVC is \emph{not} the right choice when
+per-instance memory density is the binding cost (the servlet container
+makes its RSS the highest of the field), when peak throughput is
+paramount (Quarkus and Javalin lead), or when a team depends on a large
+plugin ecosystem and commercial support---areas where the incumbents
+are, and should remain, the default.
+
+\subsection{Pedagogical value}
+
+A recurring, non-performance benefit emerged repeatedly while building
+and documenting the framework: JxMVC is small and explicit enough to
+serve as a \emph{readable reference implementation} of web-framework
+internals. Because routing, dependency injection, the connection pool,
+JSON parsing, the security pipeline, and an OIDC client are each a few
+hundred lines of dependency-free Java on top of the JDK, a student can
+read a mechanism end to end in one sitting rather than tracing it
+through layers of generated code and third-party abstractions. The
+same property aids security review: the complete attack-relevant
+surface---sanitisation, authentication ordering, token verification,
+body caps---can be inspected directly. We therefore see JxMVC's
+compactness not only as an operational advantage but as a teaching and
+auditing artifact, turning the web stack from a black box into a worked
+example.

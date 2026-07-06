@@ -25,13 +25,20 @@ illuminates the mechanics of the web. Across all three, a smaller,
 auditable, self-contained framework is not a nostalgic preference but a
 practical requirement.
 
-There is, however, a gap in the design space. Minimal ``micro''
-frameworks reduce dependencies but typically delegate JSON, pooling,
-scheduling, and security to third-party libraries, and treat security
-as opt-in configuration layered on top of the request path. We are
-aware of no mainstream full-stack MVC framework for Jakarta EE that is
-simultaneously \emph{zero-dependency at runtime} and
-\emph{secure-by-default at the pipeline level}.
+There is, however, an under-served point in the design space. Minimal
+``micro'' frameworks reduce dependencies but typically delegate JSON,
+pooling, scheduling, and security to third-party libraries, and treat
+security as opt-in configuration layered on top of the request path. A
+few minimalist Java projects (for example, Minum~\cite{minum}) push further toward
+self-containment. Yet, to the best of our knowledge, no widely adopted
+production framework combines full-stack MVC capabilities with
+\emph{both} zero runtime dependencies \emph{and} security-by-default
+enforced structurally in the request pipeline. Concretely, the design
+point we target matters for supply-chain-audited and regulated
+deployments (where every transitive dependency is a liability), for
+edge and resource-constrained hosts (where image size dominates), and
+for teaching, where a framework whose internals can be read end to end
+turns the web stack from a black box into a worked example.
 
 This paper presents \textbf{JxMVC}, a full-stack MVC framework for
 Jakarta~EE~10 that occupies this gap. JxMVC implements routing, data

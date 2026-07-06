@@ -43,8 +43,15 @@ window is
 \]
 where $W$ is the window length, $t$ the elapsed time into the current
 window, and $c_{\text{prev}}, c_{\text{cur}}$ the previous and current
-bucket counts. This is the standard sliding-window approximation, here
-implemented with the JDK alone.
+bucket counts. We chose this over the simpler fixed-window counter
+precisely because a fixed window admits a burst of up to twice the
+configured limit across a window boundary; the weighted estimate
+smooths that edge while keeping $O(1)$ state per client, and needs no
+external library. The practical lesson is that the naming matters:
+an earlier version of the code was documented as ``sliding window''
+but implemented a fixed window---a discrepancy we caught and corrected,
+and a reminder that rate-limiting claims deserve a test that exercises
+the boundary, not just the steady state.
 
 \subsection{OIDC without libraries}
 
@@ -100,3 +107,63 @@ passthrough, cache stampede, concurrent WebSocket broadcast, JSON error
 escaping, path traversal, and mass assignment---rather than trivial
 getters, so that ``dependency-free'' extends even to how the framework
 proves its own correctness.
+
+\subsection{Lessons learned}
+\label{sec:lessons}
+
+Building every subsystem from scratch surfaced trade-offs that a
+library-driven design never exposes; we distil the most transferable
+ones here.
+
+\paragraph{Reflection versus compile-time metadata was the central
+tension.} We resolve routes, bind parameters, and serialise objects via
+runtime reflection, chosen deliberately for its simplicity and for
+keeping control flow explicit and readable---there is no annotation
+processor or generated code to reason about. The cost is twofold: a
+measurable hot-path overhead, and poor affinity with GraalVM
+native-image, which favours ahead-of-time metadata. We recovered much
+of the former by caching annotated-method metadata per controller class
+(Section~\ref{sec:impl}), a change that a profiler, not intuition,
+motivated---``reflection is slow'' proved too coarse a heuristic. With
+hindsight, we would design binding and metadata resolution to be
+cache-first (or optionally build-time) from the outset, keeping the
+native-image door open without sacrificing the reflective developer
+experience.
+
+\paragraph{Standing on the servlet container was the right call---and
+the source of our one clear weakness.} Delegating HTTP, JSP, and
+WebSocket handling to the mature Jakarta Servlet API bought correct
+protocol behaviour, familiar deployment, and years of hardening for
+free, and let a small team focus on the framework rather than on an
+HTTP stack. The price is resident memory: our evaluation shows the
+container, not the \SI{253}{\kilo\byte} core, dominates RSS. This was a
+humbling, quantified finding---the footprint advantage that is dramatic
+at the \emph{artifact} level largely disappears at the \emph{deployable}
+level. The honest lesson is that ``tiny framework'' and ``tiny
+deployment'' are different claims, and only the latter is what an
+operator actually pays for.
+
+\paragraph{Security-by-default is a design discipline, not a feature.}
+Making protections structural rather than opt-in forced decisions that
+opt-in modules avoid: the pipeline must \emph{fail closed} when no
+authentication provider is configured, rate limiting must key on the
+resolved action rather than the raw URL (so rotating a path variable
+cannot dilute a limit), and the ordering of stages (Figure~\ref{fig:pipeline})
+must guarantee that every check precedes the developer's code. Getting
+this right is harder than shipping a security starter, but it is the
+property that a newly written controller inherits without its author
+doing anything.
+
+\paragraph{Much of a ``framework'' is thin, cohesive glue over the JDK.}
+The most surprising realisation was how much modern web infrastructure
+the platform already provides: \texttt{java.net.http} for the OAuth
+back-channel, \texttt{java.security} for full RS256/JWKS token
+verification, virtual threads for asynchronous work, and the Servlet
+API for the transport. Implementing OpenID~Connect---often assumed to
+require a dedicated library---turned out to need only careful use of
+these primitives. The value JxMVC adds is therefore less in new
+mechanisms than in \emph{cohesion and defaults}: assembling the
+primitives into a small, secure, teachable whole. Conversely, our one
+genuinely regrettable shortcut, deriving query context from the call
+stack in \texttt{@JxQuery}, is clever but fragile, and we would replace
+it with an explicit API if starting over.

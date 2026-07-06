@@ -16,7 +16,7 @@
 \DeclareSIUnit\req{req}
 \sisetup{detect-weight=true, detect-family=true}
 \usepackage{tikz}
-\usetikzlibrary{positioning,arrows.meta}
+\usetikzlibrary{positioning,arrows.meta,fit,backgrounds,calc}
 
 % Marcador de secciones por redactar (quitar al finalizar el borrador).
 \providecommand{\TODO}[1]{\par\medskip\noindent\fbox{\textbf{TODO}}\quad\emph{#1}\par\medskip}
@@ -31,9 +31,9 @@
 
 \journal{Software: Practice and Experience}
 
-\title{JxMVC: a zero-dependency, security-hardened MVC framework for
-  Jakarta EE in 253\,KB --- design, implementation and empirical
-  evaluation}
+\title{JxMVC: a 253\,kB zero-dependency, security-by-default MVC
+  framework for Jakarta EE --- design decisions, implementation
+  experience, and empirical evaluation}
 
 % NOTA: autoría por confirmar. Afiliación fijada (UNAP). Rellenar nombres al acordar la autoría.
 \author[1]{[Autor\'ia por confirmar]}
@@ -46,22 +46,27 @@
 \keywords{web framework | Jakarta EE | zero-dependency | security-by-default |
   performance evaluation | GraalVM native image}
 
-\abstract[Abstract]{Modern ``batteries-included'' web frameworks trade a
-  large runtime footprint, deep transitive-dependency trees, and a broad
-  attack surface for developer convenience. We present \textbf{JxMVC}, a
-  full-stack MVC framework for Jakarta EE that fits in \textbf{253\,KB with
-  zero runtime dependencies} and applies \textbf{security-by-default at the
-  request-pipeline level} rather than as opt-in configuration. We evaluate
-  JxMVC against Spring Boot, Quarkus, Micronaut, and Javalin---plus a GraalVM
-  native-image build---using a reproducible, containerised, single-command
-  harness under pinned-core isolation on bare-metal Linux. JxMVC produces the
+\abstract[Abstract]{Modern ``batteries-included'' JVM web frameworks trade
+  large runtime footprints, deep transitive-dependency trees, and broad
+  attack surfaces for developer convenience. We present \textbf{JxMVC}, a
+  full-stack MVC framework for Jakarta~EE~10 that occupies \textbf{253\,kB
+  with zero runtime dependencies} and enforces \textbf{security-by-default
+  structurally}, in a fixed fifteen-stage request pipeline. Unlike mainstream
+  frameworks where hardening is opt-in, JxMVC applies input sanitisation,
+  rate limiting, CSRF protection, authentication, and body-size caps to
+  \emph{every} request by construction. Using a reproducible, containerised,
+  single-command benchmark harness under pinned-core isolation on bare-metal
+  Linux, we compare JxMVC against Spring Boot, Quarkus, Micronaut, and
+  Javalin (plus a GraalVM native-image reference). JxMVC produces the
   \emph{smallest JVM-mode deployable image} of the group, starts faster than
   Spring Boot and Micronaut, and sustains competitive throughput with
-  indistinguishable tail latency, serving \textbf{92.8 million requests with
-  zero errors}; its one clear trade-off is higher resident memory from the
-  embedded servlet container. The contribution is not a new technique but a
-  \emph{design point}---minimalism, hardening-by-default, and pedagogical
-  readability---backed by an honest empirical evaluation and a reusable
+  statistically indistinguishable tail latency while serving \textbf{92.8
+  million requests with zero errors}; its principal trade-off is higher
+  resident memory from the embedded servlet container. Beyond the numbers, we
+  report the design decisions and implementation experience of building every
+  subsystem from scratch. The contribution is a deliberate \emph{design
+  point}---radical minimalism, hardening-by-default, and pedagogical
+  readability---supported by honest empirical evidence and a reusable
   open-source artifact.}
 
 \begin{document}
@@ -105,6 +110,7 @@ To be finalised upon confirmation of authorship.
 \bibitem{quarkus} Red Hat. Quarkus: Supersonic Subatomic Java. \url{https://quarkus.io}, 2024.
 \bibitem{micronaut} Micronaut Foundation. Micronaut Framework. \url{https://micronaut.io}, 2024.
 \bibitem{javalin} Javalin. A Simple Web Framework for Java and Kotlin. \url{https://javalin.io}, 2024.
+\bibitem{minum} Katz B. Minum: A Minimal Java Web Framework. \url{https://github.com/byronka/minum}, 2024.
 \bibitem{graalvm} Oracle. GraalVM Native Image. \url{https://www.graalvm.org/native-image/}, 2024.
 \bibitem{wimmer2019} Wimmer C, Stancu C, Hofer P, et al. Initialize Once, Start Fast: Application Initialization at Build Time. \emph{Proc. ACM Program. Lang.} (OOPSLA), 3(184):1--29, 2019.
 \bibitem{jakartaservlet} Eclipse Foundation. Jakarta Servlet Specification. \url{https://jakarta.ee/specifications/servlet/}, 2024.

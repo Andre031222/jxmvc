@@ -1,14 +1,16 @@
-% Figura del pipeline de 15 etapas (orden real de MainLxServlet.serviceInternal).
-% Requiere: \usepackage{tikz}\usetikzlibrary{positioning,arrows.meta} (en main.tex).
+% Figura del pipeline de 15 etapas (orden real de MainLxServlet.serviceInternal),
+% agrupado en fases. Requiere tikz + positioning,arrows.meta,fit,backgrounds (en main.tex).
 \begin{figure}[tb]
   \centering
   \small
   \begin{tikzpicture}[
-    node distance=1.9mm,
-    stage/.style={draw, rounded corners=1.5pt, minimum width=62mm,
-      minimum height=4.9mm, inner sep=1pt, align=center, font=\footnotesize, fill=black!3},
-    sec/.style={stage, fill=red!7, draw=red!55, very thick},
-    arr/.style={-{Latex[length=1.4mm]}, gray!70}
+    node distance=1.7mm,
+    stage/.style={draw=black!35, rounded corners=1.5pt, minimum width=60mm,
+      minimum height=4.8mm, inner sep=1pt, align=center, font=\footnotesize, fill=white},
+    sec/.style={stage, draw=red!65, very thick},
+    arr/.style={-{Latex[length=1.4mm]}, gray!65},
+    grp/.style={rounded corners=2.5pt, inner sep=2.2mm, draw=none},
+    glbl/.style={rotate=90, font=\scriptsize\bfseries, anchor=south, text=black!55}
   ]
     \node[stage] (s1)  {\textbf{1}\quad Internal endpoints \texttt{/jx/*}};
     \node[stage, below=of s1]  (s2)  {\textbf{2}\quad Metrics timer start};
@@ -30,15 +32,26 @@
                        s9/s10,s10/s11,s11/s12,s12/s13,s13/s14,s14/s15}
       \draw[arr] (\a) -- (\b);
 
-    \node[above=1.2mm of s1, font=\footnotesize\itshape] {request};
-    \node[below=1.2mm of s15, font=\footnotesize\itshape] {response};
+    \node[above=1.0mm of s1, font=\footnotesize\itshape] {request $\downarrow$};
+    \node[below=1.0mm of s15, font=\footnotesize\itshape] {response $\uparrow$};
+
+    \begin{scope}[on background layer]
+      \node[grp, fill=black!5,  fit=(s1)(s3)]   (g1) {};
+      \node[grp, fill=red!9,    fit=(s4)(s7)]   (g2) {};
+      \node[grp, fill=blue!6,   fit=(s8)(s12)]  (g3) {};
+      \node[grp, fill=green!7,  fit=(s13)(s15)] (g4) {};
+    \end{scope}
+    \node[glbl, left=0.6mm of g1] {Ingress \& routing};
+    \node[glbl, left=0.6mm of g2, text=red!60] {Security gate};
+    \node[glbl, left=0.6mm of g3] {Context \& hooks};
+    \node[glbl, left=0.6mm of g4] {Invoke \& egress};
   \end{tikzpicture}
-  \caption{The fixed fifteen-stage request pipeline of
-    \texttt{MainLxServlet} (real execution order). Cross-cutting to every
-    response, and applied outside this sequence, are the security headers
-    and conditional gzip set in \texttt{service}. The shaded stages
-    (4--7) form the security gate that precedes and encloses the
-    developer's controller, which is what makes the ``secure-by-default''
-    property structural rather than advisory.}
+  \caption{The fixed fifteen-stage request pipeline of \texttt{MainLxServlet}
+    (real execution order), grouped into four phases. Cross-cutting to every
+    response, and applied outside this sequence in \texttt{service}, are the
+    security headers and conditional gzip. The \emph{security gate}
+    (stages~4--7, shaded) precedes and encloses the developer's controller,
+    which is what makes ``secure-by-default'' a structural property of the
+    pipeline rather than advisory guidance.}
   \label{fig:pipeline}
 \end{figure}

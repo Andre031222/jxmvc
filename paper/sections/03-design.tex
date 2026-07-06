@@ -77,7 +77,11 @@ structural rather than advisory.
 
 \subsection{Subsystems}
 
-All subsystems are built in-framework. Data access (\texttt{JxDB})
+\input{figures/architecture}
+
+Figure~\ref{fig:architecture} shows how JxMVC layers its subsystems on
+the JDK and the Jakarta Servlet API. All subsystems are built
+in-framework. Data access (\texttt{JxDB})
 issues JDBC directly with named parameters and returns row objects
 whose columns are read explicitly, avoiding reflection-based mapping.
 \texttt{JxPool} is a custom connection pool with configurable
