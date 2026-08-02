@@ -80,8 +80,9 @@ for fw in "${APPS[@]}"; do
   fi
   echo "  arranque=${startup_ms}ms  imagen=${image_mb}MB"
 
-  # warmup + medición de carga (host -> contenedor)
-  for ep in plaintext json; do
+  # warmup + medición de carga (host -> contenedor).
+  # BENCH_DB=1 añade el endpoint /db (SELECT real sobre H2 in-memory).
+  for ep in plaintext json ${BENCH_DB:+db}; do
     for r in $(seq 1 "$REPS"); do
       line=$( (cd "$HERE/../load" && ${CLIENT_PREFIX[@]+"${CLIENT_PREFIX[@]}"} java LoadClient "http://localhost:$PORT/$ep" "$CONNS" "$DUR" 5) 2>/dev/null )
       rss_mb=$(docker stats --no-stream --format '{{.MemUsage}}' "bench_$fw" | awk -F'/' '{gsub(/[^0-9.]/,"",$1); print $1}')
@@ -112,17 +113,18 @@ med() {
   echo "Generado por \`bench.sh\`. Números relativos comparables; ver README §8 (validez)."
   echo "Arranque/RSS/rps son **mediana** de las $REPS repeticiones. \`⚠\` = el framework tuvo errores/no-2xx: cifra NO válida."
   echo
-  echo "| Framework | Imagen (MB) | Arranque (ms) | RSS (MB) | rps /plaintext (mediana) | rps /json (mediana) |"
-  echo "|---|---|---|---|---|---|"
+  echo "| Framework | Imagen (MB) | Arranque (ms) | RSS (MB) | rps /plaintext (mediana) | rps /json (mediana) | rps /db (mediana) |"
+  echo "|---|---|---|---|---|---|---|"
   for fw in "${APPS[@]}"; do
     im=$(awk -F, -v f="$fw" '$1==f{print $2; exit}' "$CSV")   # imagen: valor constante por framework
     su=$(med "$fw" 3)                                          # arranque: mediana
     rs=$(med "$fw" 4)                                          # RSS: mediana
     pt=$(med "$fw" 11 "http://localhost:8080/plaintext")
     js=$(med "$fw" 11 "http://localhost:8080/json")
+    db=$(med "$fw" 11 "http://localhost:8080/db")             # "-" si no se corrió con BENCH_DB=1
     err=$(awk -F, -v f="$fw" '$1==f{e+=$9+$10} END{print e+0}' "$CSV")
     flag=""; [ "${err:-0}" -gt 0 ] && flag=" ⚠"
-    [ -n "$im" ] && echo "| ${fw}${flag} | $im | $su | $rs | $pt | $js |" || echo "| $fw | (no arrancó) | | | | |"
+    [ -n "$im" ] && echo "| ${fw}${flag} | $im | $su | $rs | $pt | $js | $db |" || echo "| $fw | (no arrancó) | | | | | |"
   done
 } > "$OUT"
 

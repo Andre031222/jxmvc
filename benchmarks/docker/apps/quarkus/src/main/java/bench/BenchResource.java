@@ -12,4 +12,7 @@ public class BenchResource {
 
     @GET @Path("/json") @Produces("application/json")
     public String json() { return "{\"message\":\"hello\",\"n\":42}"; }
+
+    @GET @Path("/db") @Produces("application/json")
+    public String db() { return Db.json(); }
 }

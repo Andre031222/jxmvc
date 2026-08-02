@@ -11,4 +11,7 @@ public class BenchController {
 
     @Get(value = "/json", produces = "application/json")
     public String json() { return "{\"message\":\"hello\",\"n\":42}"; }
+
+    @Get(value = "/db", produces = "application/json")
+    public String db() { return Db.json(); }
 }
