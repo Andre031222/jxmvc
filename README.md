@@ -172,7 +172,7 @@ available.
 
 ```bibtex
 @misc{jxmvc,
-  author       = {Laura-Murillo, Ramiro Pedro and Vilca-Solorzano, R. Andre and Torres-Cruz, Fred},
+  author       = {Laura-Murillo, Ramiro Pedro and Vilca-Solorzano, Richar Andre and Torres-Cruz, Fred},
   title        = {JxMVC: A Zero-Dependency, Security-by-Default MVC Framework for Jakarta EE},
   howpublished = {\url{https://github.com/Andre031222/jxmvc}},
   note         = {Manuscript under review at the Journal of Systems and Software},
@@ -189,7 +189,7 @@ Listed in the order of the manuscript.
 | Author | Affiliation | ORCID |
 |---|---|---|
 | Ramiro Pedro Laura-Murillo | Universidad Nacional de Juliaca, Peru | [0000-0003-1837-4871](https://orcid.org/0000-0003-1837-4871) |
-| R. Andre Vilca-Solorzano *(corresponding)* | Universidad Nacional del Altiplano, Puno, Peru | [0009-0003-2385-5263](https://orcid.org/0009-0003-2385-5263) |
+| Richar Andre Vilca-Solorzano *(corresponding)* | Universidad Nacional del Altiplano, Puno, Peru | [0009-0003-2385-5263](https://orcid.org/0009-0003-2385-5263) |
 | Fred Torres-Cruz | Universidad Nacional del Altiplano, Puno, Peru | [0000-0003-0834-6834](https://orcid.org/0000-0003-0834-6834) |
 
 * * *
