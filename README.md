@@ -15,13 +15,13 @@ fixed fifteen-stage request pipeline.
 [![Jakarta EE 10](https://img.shields.io/badge/Jakarta_EE-10-EE2A24?style=flat-square&logo=jakartaee&logoColor=white)](https://jakarta.ee/)
 [![Runtime deps](https://img.shields.io/badge/runtime_deps-0-2E7D32?style=flat-square)](#design-point)
 [![Tests](https://img.shields.io/badge/tests-347_passing-C21325?style=flat-square)](#reproducing-the-benchmarks)
-[![Paper](https://img.shields.io/badge/paper-under_review_(SPE)-64748b?style=flat-square)](#paper)
+[![Paper](https://img.shields.io/badge/paper-under_review_(JSS)-64748b?style=flat-square)](#paper)
 
 </div>
 
 A paper describing the design, implementation and empirical evaluation of JxMVC is
-**under review at _Software: Practice and Experience_ (Wiley)**. This repository holds
-the framework core, a demo application, and the fully reproducible benchmark harness.
+**under review at the _Journal of Systems and Software_ (Elsevier)**. This repository
+holds the framework core, a demo application, and the fully reproducible benchmark harness.
 
 * * *
 
@@ -166,22 +166,34 @@ framework** — consistent with the zero-dependency principle.
 ## Paper
 
 The design decisions, from-scratch implementation experience, and empirical evaluation
-are written up in a manuscript **currently under review at _Software: Practice and
-Experience_ (Wiley)**. A citable DOI (Zenodo) and the article reference will be added
-here once available.
+are written up in a manuscript **under review at the _Journal of Systems and Software_
+(Elsevier)**. A citable DOI (Zenodo) and the article reference will be added here once
+available.
 
 ```bibtex
 @misc{jxmvc,
+  author       = {Laura-Murillo, Ramiro Pedro and Vilca-Solorzano, R. Andre and Torres-Cruz, Fred},
   title        = {JxMVC: A Zero-Dependency, Security-by-Default MVC Framework for Jakarta EE},
   howpublished = {\url{https://github.com/Andre031222/jxmvc}},
-  note         = {Manuscript under review at Software: Practice and Experience},
+  note         = {Manuscript under review at the Journal of Systems and Software},
   year         = {2026}
 }
 ```
 
 * * *
 
+## Authors
+
+Listed in the order of the manuscript.
+
+| Author | Affiliation | ORCID |
+|---|---|---|
+| Ramiro Pedro Laura-Murillo | Universidad Nacional de Juliaca, Peru | [0000-0003-1837-4871](https://orcid.org/0000-0003-1837-4871) |
+| R. Andre Vilca-Solorzano *(corresponding)* | Universidad Nacional del Altiplano, Puno, Peru | [0009-0003-2385-5263](https://orcid.org/0009-0003-2385-5263) |
+| Fred Torres-Cruz | Universidad Nacional del Altiplano, Puno, Peru | [0000-0003-0834-6834](https://orcid.org/0000-0003-0834-6834) |
+
+* * *
+
 ## License
 
-Released under the [MIT License](LICENSE). Developed at the Universidad Nacional del
-Altiplano de Puno, Peru.
+Released under the [MIT License](LICENSE).
