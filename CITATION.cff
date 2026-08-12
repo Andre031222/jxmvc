@@ -1,0 +1,22 @@
+cff-version: 1.2.0
+title: "JxMVC: A Zero-Dependency, Security-by-Default MVC Framework for Jakarta EE"
+message: "If you use this software, please cite it using these metadata."
+type: software
+authors:
+  - given-names: "Ramiro Pedro"
+    family-names: "Laura-Murillo"
+    orcid: "https://orcid.org/0000-0003-1837-4871"
+    affiliation: "Universidad Nacional de Juliaca, Peru"
+  - given-names: "Richar Andre"
+    family-names: "Vilca-Solorzano"
+    orcid: "https://orcid.org/0009-0003-2385-5263"
+    affiliation: "Universidad Nacional del Altiplano, Puno, Peru"
+  - given-names: "Fred"
+    family-names: "Torres-Cruz"
+    orcid: "https://orcid.org/0000-0003-0834-6834"
+    affiliation: "Universidad Nacional del Altiplano, Puno, Peru"
+repository-code: "https://github.com/Andre031222/jxmvc"
+url: "https://jxmvc.ginit.dev"
+license: MIT
+version: "3.4.0"
+keywords: ["web framework","Jakarta EE","zero-dependency","security-by-default","MVC","Java"]

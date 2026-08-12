@@ -1,0 +1,13 @@
+{
+  "title": "JxMVC: A Zero-Dependency, Security-by-Default MVC Framework for Jakarta EE",
+  "description": "Full-stack MVC framework for Jakarta EE 10 in a 253 kB JAR with zero third-party runtime dependencies, enforcing security-by-default through a fixed fifteen-stage request pipeline. Includes a reproducible, single-command Docker benchmark harness.",
+  "upload_type": "software",
+  "license": "MIT",
+  "access_right": "open",
+  "creators": [
+    {"name": "Laura-Murillo, Ramiro Pedro", "orcid": "0000-0003-1837-4871", "affiliation": "Universidad Nacional de Juliaca, Peru"},
+    {"name": "Vilca-Solorzano, Richar Andre", "orcid": "0009-0003-2385-5263", "affiliation": "Universidad Nacional del Altiplano, Puno, Peru"},
+    {"name": "Torres-Cruz, Fred", "orcid": "0000-0003-0834-6834", "affiliation": "Universidad Nacional del Altiplano, Puno, Peru"}
+  ],
+  "keywords": ["web framework","Jakarta EE","zero-dependency","security-by-default","MVC","Java","reproducible benchmark"]
+}
