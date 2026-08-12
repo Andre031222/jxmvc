@@ -16,6 +16,7 @@ fixed fifteen-stage request pipeline.
 [![Runtime deps](https://img.shields.io/badge/runtime_deps-0-2E7D32?style=flat-square)](#design-point)
 [![Tests](https://img.shields.io/badge/tests-347_passing-C21325?style=flat-square)](#reproducing-the-benchmarks)
 [![Paper](https://img.shields.io/badge/paper-under_review_(JSS)-64748b?style=flat-square)](#paper)
+[![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.21896137-1d4ed8?style=flat-square)](https://doi.org/10.5281/zenodo.21896137)
 
 </div>
 
