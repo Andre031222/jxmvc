@@ -168,16 +168,18 @@ framework** — consistent with the zero-dependency principle.
 
 The design decisions, from-scratch implementation experience, and empirical evaluation
 are written up in a manuscript **under review at the _Journal of Systems and Software_
-(Elsevier)**. A citable DOI (Zenodo) and the article reference will be added here once
-available.
+(Elsevier)**. The archived source is citable via Zenodo:
+**[10.5281/zenodo.21896137](https://doi.org/10.5281/zenodo.21896137)**. The article
+reference will be added here once available.
 
 ```bibtex
-@misc{jxmvc,
+@software{jxmvc,
   author       = {Laura-Murillo, Ramiro Pedro and Vilca-Solorzano, Richar Andre and Torres-Cruz, Fred},
   title        = {JxMVC: A Zero-Dependency, Security-by-Default MVC Framework for Jakarta EE},
-  howpublished = {\url{https://github.com/Andre031222/jxmvc}},
-  note         = {Manuscript under review at the Journal of Systems and Software},
-  year         = {2026}
+  year         = {2026},
+  publisher    = {Zenodo},
+  doi          = {10.5281/zenodo.21896137},
+  url          = {https://doi.org/10.5281/zenodo.21896137}
 }
 ```
 
