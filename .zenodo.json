@@ -7,6 +7,7 @@
   "creators": [
     {"name": "Laura-Murillo, Ramiro Pedro", "orcid": "0000-0003-1837-4871", "affiliation": "Universidad Nacional de Juliaca, Peru"},
     {"name": "Vilca-Solorzano, Richar Andre", "orcid": "0009-0003-2385-5263", "affiliation": "Universidad Nacional del Altiplano, Puno, Peru"},
+    {"name": "Melgarejo-Bolivar, Romel Percy", "orcid": "0000-0001-9383-9136", "affiliation": "Universidad Nacional del Altiplano, Puno, Peru"},
     {"name": "Torres-Cruz, Fred", "orcid": "0000-0003-0834-6834", "affiliation": "Universidad Nacional del Altiplano, Puno, Peru"}
   ],
   "keywords": ["web framework","Jakarta EE","zero-dependency","security-by-default","MVC","Java","reproducible benchmark"]
