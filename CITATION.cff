@@ -1,5 +1,5 @@
 cff-version: 1.2.0
-title: "JxMVC: A Zero-Dependency, Security-by-Default MVC Framework for Jakarta EE"
+title: "JxMVC: A Security-by-Default Web Framework with Zero Third-Party Dependencies"
 message: "If you use this software, please cite it using these metadata."
 type: software
 authors:
@@ -22,5 +22,5 @@ authors:
 repository-code: "https://github.com/Andre031222/jxmvc"
 url: "https://jxmvc.ginit.dev"
 license: MIT
-version: "3.4.0"
+version: "3.4.1"
 keywords: ["web framework","Jakarta EE","zero-dependency","security-by-default","MVC","Java"]

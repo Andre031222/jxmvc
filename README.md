@@ -175,7 +175,7 @@ reference will be added here once available.
 ```bibtex
 @software{jxmvc,
   author       = {Laura-Murillo, Ramiro Pedro and Vilca-Solorzano, Richar Andre and Melgarejo-Bolivar, Romel Percy and Torres-Cruz, Fred},
-  title        = {JxMVC: A Zero-Dependency, Security-by-Default MVC Framework for Jakarta EE},
+  title        = {JxMVC: A Security-by-Default Web Framework with Zero Third-Party Dependencies},
   year         = {2026},
   publisher    = {Zenodo},
   doi          = {10.5281/zenodo.21896137},
