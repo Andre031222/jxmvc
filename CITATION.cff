@@ -22,5 +22,5 @@ authors:
 repository-code: "https://github.com/Andre031222/jxmvc"
 url: "https://jxmvc.ginit.dev"
 license: MIT
-version: "3.4.1"
+version: "3.4.2"
 keywords: ["web framework","Jakarta EE","zero-dependency","security-by-default","MVC","Java"]
