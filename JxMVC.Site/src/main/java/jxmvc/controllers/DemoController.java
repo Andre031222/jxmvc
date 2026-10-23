@@ -12,7 +12,7 @@ public class DemoController extends BaseController {
     @JxGetMapping("index")
     public String index() {
         view.contentType("text/html;charset=UTF-8");
-        return "Demo JxMVC 3.6.0 — <b>funcionando</b>";
+        return "Demo JxMVC 3.6.1 — <b>funcionando</b>";
     }
 
     @JxGetMapping("salud")
@@ -20,9 +20,77 @@ public class DemoController extends BaseController {
         return text("Hola " + nome);
     }
 
+    @JxGetMapping("pdf")
+    public ActionResult pdf() throws Exception {
+        JxPdf pdf = new JxPdf();
+        pdf.SetFont(JxPdf.HELVETICA_BOLD, 18);
+        pdf.TextXY(40, 50, "Documento generado con JxPdf");
+        pdf.SetFont(JxPdf.HELVETICA, 10);
+        pdf.SetTextColor(110, 110, 115);
+        pdf.TextXY(40, 68, "JxMVC " + MainLxServlet.VERSION + " · generado en vivo el "
+                + java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
+        pdf.SetTextColor(0, 0, 0);
+        pdf.Ln(14);
+
+        pdf.SetFont(JxPdf.HELVETICA, 12);
+        pdf.SetBackColor(220, 230, 242);
+        pdf.Cell(150, 30, "Celda con fondo", true, true, 0);
+        pdf.SetBackColor(255, 230, 200);
+        pdf.Cell(150, 30, "Segunda celda", true, true, 1);
+        pdf.Cell(300, 25, "Celda completa sin relleno con salto de línea", true, false, 1);
+        pdf.Ln(16);
+
+        pdf.SetFont(JxPdf.HELVETICA_BOLD, 13);
+        pdf.Cell(0, 22, "Seguridad por defecto: 18 ataques automáticos", false, false, 1);
+        String[][] filas = {
+            {"JxMVC", "17 / 18", "1"},
+            {"Spring Boot", "9 / 18", "34"},
+            {"Micronaut", "9 / 18", "36"},
+            {"Quarkus", "8 / 16", "104"},
+            {"Javalin", "8 / 16", "22"},
+        };
+        pdf.SetFont(JxPdf.HELVETICA_BOLD, 11);
+        pdf.SetTextColor(255, 255, 255);
+        pdf.SetBackColor(0, 113, 227);
+        pdf.Cell(200, 24, "Framework", true, true, 0);
+        pdf.Cell(150, 24, "Protecciones", true, true, 0);
+        pdf.Cell(165, 24, "Librerías en producción", true, true, 1);
+        pdf.SetTextColor(0, 0, 0);
+        pdf.SetFont(JxPdf.HELVETICA, 11);
+        for (int i = 0; i < filas.length; i++) {
+            if (i == 0) pdf.SetBackColor(220, 230, 242); else if (i % 2 == 0) pdf.SetBackColor(245, 245, 247); else pdf.SetBackColor(255, 255, 255);
+            pdf.Cell(200, 22, filas[i][0], true, true, 0);
+            pdf.Cell(150, 22, filas[i][1], true, true, 0);
+            pdf.Cell(165, 22, filas[i][2], true, true, 1);
+        }
+        pdf.Ln(16);
+
+        pdf.SetFont(JxPdf.COURIER, 10);
+        pdf.SetBackColor(245, 245, 247);
+        String[] codigo = {
+            "JxPdf pdf = new JxPdf();",
+            "pdf.SetFont(JxPdf.HELVETICA_BOLD, 14);",
+            "pdf.TextXY(40, 40, \"Documento\");",
+            "pdf.SetBackColor(new Color(220, 230, 242));",
+            "pdf.Cell(150, 30, \"Celda\", true, true, 1);",
+            "view.inline(pdf.GetStream(), \"application/pdf\", \"demo.pdf\");",
+        };
+        for (String l : codigo) pdf.Cell(0, 16, l, false, true, 1);
+        pdf.Ln(16);
+
+        pdf.SetFont(JxPdf.HELVETICA_OBLIQUE, 9);
+        pdf.SetTextColor(110, 110, 115);
+        pdf.Cell(0, 14, "Sin librerías externas: JxPdf escribe el PDF directamente con el JDK. Código: github.com/Andre031222/jxmvc", false, false, 1);
+
+        byte[] bytes = pdf.GetStream();
+        if ("1".equals(model.param("descargar"))) view.raw(bytes, "application/pdf", "demo-jxpdf.pdf");
+        else view.inline(bytes, "application/pdf", "demo-jxpdf.pdf");
+        return null;
+    }
+
     @JxGetMapping("ping")
     public ActionResult ping() {
-        return json(GenApi.JsonStr("pong", true, "version", "3.6.0"));
+        return json(GenApi.JsonStr("pong", true, "version", "3.6.1"));
     }
 
     @JxCors(origins = {"http://localhost:5173","http://127.0.0.1:5173"}, hosts = {"127.0.0.1","::1"}, methods = {"GET"})

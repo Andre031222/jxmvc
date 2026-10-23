@@ -48,6 +48,15 @@ public final class JxResponse {
         bodyWritten = true;
     }
 
+    public void inline(byte[] data, String contentType, String fileName) throws IOException {
+        response.setContentType(contentType);
+        response.setHeader("Content-Disposition",
+                "inline; filename=\"" + sanitizeFileName(fileName) + "\"");
+        response.setContentLength(data.length);
+        response.getOutputStream().write(data);
+        bodyWritten = true;
+    }
+
     static String sanitizeFileName(String fileName) {
         if (fileName == null || fileName.isBlank()) return "download";
         return fileName.replaceAll("[\\r\\n\"\\\\;/]", "_");

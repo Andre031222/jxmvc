@@ -5,7 +5,7 @@
   <div class="s-wrap">
     <div class="s-hero-grid">
       <div>
-        <p class="s-eyebrow">JxMVC 3.6.0 · Jakarta EE 10 · Java 17+</p>
+        <p class="s-eyebrow">JxMVC 3.6.1 · Jakarta EE 10 · Java 17+</p>
         <h1 class="s-h1">El framework MVC para Jakarta EE que es <span class="s-accent">seguro por defecto</span> y no trae dependencias.</h1>
         <p class="s-lead" style="margin-top:20px">Un solo JAR de 301 KB con routing, acceso a datos, pool de conexiones, JSON, caché, tareas programadas, WebSocket, OpenAPI, OpenID Connect y lectura de PDF. Las protecciones se aplican en cada petición, antes de tu código, sin módulos adicionales.</p>
         <div class="s-actions">
@@ -20,7 +20,7 @@
         <p class="s-small" style="margin-top:10px">Instala el core en tu repositorio Maven y crea un proyecto. En Windows usa el comando de PowerShell de <a class="s-accent" href="${pageContext.request.contextPath}/downloads">Descargas</a>.</p>
       </div>
       <div class="s-code">
-        <div class="s-code-top"><span>NoteController.java</span><span>compila con 3.6.0</span></div>
+        <div class="s-code-top"><span>NoteController.java</span><span>compila con 3.6.1</span></div>
 <pre><span class="a">@JxControllerMapping</span>(<span class="s">"notes"</span>)
 <span class="k">public class</span> <span class="t">NoteController</span> <span class="k">extends</span> <span class="t">JxController</span> {
 
@@ -164,7 +164,7 @@
       <div class="s-item"><h3 class="s-h3">Contraseñas</h3><p class="s-p"><code>JxPasswords</code>: PBKDF2-SHA256 con sal aleatoria y verificación en tiempo constante.</p></div>
       <div class="s-item"><h3 class="s-h3">Caché, tareas y eventos</h3><p class="s-p">Caché en memoria con expiración, cron, tareas a intervalo y un bus de eventos síncrono.</p></div>
       <div class="s-item"><h3 class="s-h3">WebSocket</h3><p class="s-p">Endpoints con salas y difusión. Hilos virtuales en Java 21 o superior.</p></div>
-      <div class="s-item"><h3 class="s-h3">PDF</h3><p class="s-p"><code>JxPdf</code> extrae texto y metadatos, incluso de documentos cifrados, detecta páginas escaneadas y genera PDF simples.</p></div>
+      <div class="s-item"><h3 class="s-h3">PDF</h3><p class="s-p"><code>JxPdf</code> lee texto y metadatos, incluso de documentos cifrados, y genera PDF con texto, celdas y colores sin librerías externas. <a class="s-accent" href="${pageContext.request.contextPath}/demo/pdf" target="_blank" rel="noopener">Ver PDF generado en vivo</a></p></div>
       <div class="s-item"><h3 class="s-h3">Observabilidad</h3><p class="s-p"><code>/jx/health</code> siempre; <code>/jx/info</code>, <code>/jx/metrics</code> y <code>/jx/openapi</code> en desarrollo o con <code>jxmvc.internal.expose</code>.</p></div>
       <div class="s-item"><h3 class="s-h3">Pruebas sin librerías</h3><p class="s-p">Un runner propio y peticiones simuladas para probar controladores sin contenedor ni JUnit.</p></div>
     </div>
