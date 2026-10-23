@@ -171,6 +171,32 @@
   </div>
 </section>
 
+<section class="s-sec">
+  <div class="s-wrap s-split">
+    <div>
+      <p class="s-eyebrow">Código y citación</p>
+      <h2 class="s-h2">Abierto, archivado y citable.</h2>
+      <p class="s-p" style="margin-top:14px">El código, las aplicaciones de comparación, los dos arneses de evaluación y los datos crudos están en GitHub bajo licencia MIT. Cada versión queda archivada en Zenodo con su propio DOI.</p>
+      <div class="s-actions">
+        <a class="s-btn s-btn-primary" href="https://github.com/Andre031222/jxmvc" target="_blank" rel="noopener">GitHub</a>
+        <a class="s-btn s-btn-ghost" href="https://doi.org/10.5281/zenodo.21896136" target="_blank" rel="noopener">Zenodo</a>
+      </div>
+    </div>
+    <div class="s-table-wrap">
+      <table class="s-table">
+        <thead><tr><th>Recurso</th><th>Enlace</th></tr></thead>
+        <tbody>
+          <tr><td>Repositorio</td><td><a class="s-accent" href="https://github.com/Andre031222/jxmvc" target="_blank" rel="noopener">github.com/Andre031222/jxmvc</a></td></tr>
+          <tr><td>DOI de todas las versiones</td><td><a class="s-accent" href="https://doi.org/10.5281/zenodo.21896136" target="_blank" rel="noopener">10.5281/zenodo.21896136</a></td></tr>
+          <tr><td>DOI de la versión 3.5.1</td><td><a class="s-accent" href="https://doi.org/10.5281/zenodo.23604453" target="_blank" rel="noopener">10.5281/zenodo.23604453</a></td></tr>
+          <tr><td>DOI de la versión 3.5.0 (evaluada)</td><td><a class="s-accent" href="https://doi.org/10.5281/zenodo.23585853" target="_blank" rel="noopener">10.5281/zenodo.23585853</a></td></tr>
+          <tr><td>Datos y arneses</td><td><a class="s-accent" href="https://github.com/Andre031222/jxmvc/tree/main/benchmarks" target="_blank" rel="noopener">benchmarks/</a></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
 <section class="s-sec soft">
   <div class="s-wrap s-cta">
     <div>

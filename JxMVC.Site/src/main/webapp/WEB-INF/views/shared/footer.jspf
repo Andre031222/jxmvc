@@ -76,7 +76,7 @@
                         <li><a href="${pageContext.request.contextPath}/jx/health" class="jx-foot-link" style="font-family:'SF Mono',Menlo,Consolas,monospace">/jx/health</a></li>
                         <li><a href="https://github.com/Andre031222/jxmvc/tree/main/benchmarks" target="_blank" rel="noopener" class="jx-foot-link">Benchmarks</a></li>
                         <li><a href="https://github.com/Andre031222/jxmvc/releases" target="_blank" rel="noopener" class="jx-foot-link">Versiones</a></li>
-                        <li><a href="https://doi.org/10.5281/zenodo.21896136" target="_blank" rel="noopener" class="jx-foot-link">Zenodo DOI</a></li>
+                        <li><a href="https://doi.org/10.5281/zenodo.21896136" target="_blank" rel="noopener" class="jx-foot-link">Zenodo · DOI</a></li>
                     </ul>
                 </div>
 
