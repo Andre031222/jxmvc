@@ -12,7 +12,7 @@ public class DemoController extends BaseController {
     @JxGetMapping("index")
     public String index() {
         view.contentType("text/html;charset=UTF-8");
-        return "Demo JxMVC 3.6.1 — <b>funcionando</b>";
+        return "Demo JxMVC 3.7.0 — <b>funcionando</b>";
     }
 
     @JxGetMapping("salud")
@@ -20,15 +20,53 @@ public class DemoController extends BaseController {
         return text("Hola " + nome);
     }
 
+    private static byte[] demoFont;
+    private static JxPdf.Signer demoSigner;
+
+    private static synchronized byte[] demoFont() throws java.io.IOException {
+        if (demoFont == null) {
+            try (var in = DemoController.class.getResourceAsStream("/demo/BricolageGrotesque-Medium.ttf")) { demoFont = in.readAllBytes(); }
+        }
+        return demoFont;
+    }
+
+    private static synchronized JxPdf.Signer demoSigner() throws Exception {
+        if (demoSigner == null) {
+            try (var in = DemoController.class.getResourceAsStream("/demo/demo-firma.p12")) { demoSigner = JxPdf.Signer.fromPkcs12(in.readAllBytes(), "jxmvc-demo"); }
+        }
+        return demoSigner;
+    }
+
+    private static byte[] chart(int[] values, int max) throws java.io.IOException {
+        int w = 1030, h = 260, gap = 40, bar = (w - gap * (values.length + 1)) / values.length;
+        var img = new java.awt.image.BufferedImage(w, h, java.awt.image.BufferedImage.TYPE_INT_ARGB);
+        var g = img.createGraphics();
+        g.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+        g.setColor(new java.awt.Color(229, 229, 234));
+        for (int i = 0; i <= 3; i++) g.fillRect(0, h - 1 - i * (h - 10) / 3, w, 2);
+        for (int i = 0; i < values.length; i++) {
+            int bh = Math.max(4, values[i] * (h - 10) / max), x = gap + i * (bar + gap);
+            g.setColor(i == 0 ? new java.awt.Color(0, 113, 227) : new java.awt.Color(174, 174, 178));
+            g.fillRoundRect(x, h - bh, bar, bh + 12, 18, 18);
+        }
+        g.dispose();
+        var out = new java.io.ByteArrayOutputStream();
+        javax.imageio.ImageIO.write(img, "png", out);
+        return out.toByteArray();
+    }
+
     @JxGetMapping("pdf")
     public ActionResult pdf() throws Exception {
+        boolean firmar = "1".equals(model.param("firmar"));
         JxPdf pdf = new JxPdf();
-        pdf.SetFont(JxPdf.HELVETICA_BOLD, 18);
-        pdf.TextXY(40, 50, "Documento generado con JxPdf");
+        pdf.AddFont("Bricolage", demoFont());
+        pdf.SetFont("Bricolage", 22);
+        pdf.TextXY(40, 52, "Documento generado con JxPdf");
         pdf.SetFont(JxPdf.HELVETICA, 10);
         pdf.SetTextColor(110, 110, 115);
-        pdf.TextXY(40, 68, "JxMVC " + MainLxServlet.VERSION + " · generado en vivo el "
-                + java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")));
+        pdf.TextXY(40, 70, "JxMVC " + MainLxServlet.VERSION + " · generado en vivo el "
+                + java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"))
+                + (firmar ? " · firmado digitalmente" : ""));
         pdf.SetTextColor(0, 0, 0);
         pdf.Ln(14);
 
@@ -40,7 +78,7 @@ public class DemoController extends BaseController {
         pdf.Cell(300, 25, "Celda completa sin relleno con salto de línea", true, false, 1);
         pdf.Ln(16);
 
-        pdf.SetFont(JxPdf.HELVETICA_BOLD, 13);
+        pdf.SetFont("Bricolage", 14);
         pdf.Cell(0, 22, "Seguridad por defecto: 18 ataques automáticos", false, false, 1);
         String[][] filas = {
             {"JxMVC", "17 / 18", "1"},
@@ -63,34 +101,47 @@ public class DemoController extends BaseController {
             pdf.Cell(150, 22, filas[i][1], true, true, 0);
             pdf.Cell(165, 22, filas[i][2], true, true, 1);
         }
-        pdf.Ln(16);
+        pdf.Ln(12);
 
-        pdf.SetFont(JxPdf.COURIER, 10);
+        pdf.Image(chart(new int[]{17, 9, 9, 8, 8}, 18), -1, -1, 515, 0);
+        pdf.SetFont(JxPdf.HELVETICA, 9);
+        pdf.SetTextColor(110, 110, 115);
+        for (String n : new String[]{"JxMVC 17", "Spring 9", "Micronaut 9", "Quarkus 8", "Javalin 8"}) pdf.Cell(103, 16, n, false, false, 0);
+        pdf.Ln(26);
+        pdf.SetTextColor(0, 0, 0);
+
+        pdf.SetFont(JxPdf.COURIER, 9);
         pdf.SetBackColor(245, 245, 247);
         String[] codigo = {
             "JxPdf pdf = new JxPdf();",
-            "pdf.SetFont(JxPdf.HELVETICA_BOLD, 14);",
-            "pdf.TextXY(40, 40, \"Documento\");",
+            "pdf.AddFont(\"Bricolage\", \"BricolageGrotesque-Medium.ttf\");",
+            "pdf.SetFont(\"Bricolage\", 22);",
+            "pdf.TextXY(40, 52, \"Documento\");",
             "pdf.SetBackColor(new Color(220, 230, 242));",
             "pdf.Cell(150, 30, \"Celda\", true, true, 1);",
+            "pdf.Image(\"grafico.png\", -1, -1, 515, 0);",
+            "pdf.Sign(JxPdf.Signer.fromPkcs12(p12, clave), \"Motivo\", \"Lugar\");",
             "view.inline(pdf.GetStream(), \"application/pdf\", \"demo.pdf\");",
         };
-        for (String l : codigo) pdf.Cell(0, 16, l, false, true, 1);
-        pdf.Ln(16);
+        for (String l : codigo) pdf.Cell(0, 15, l, false, true, 1);
+        pdf.Ln(12);
 
         pdf.SetFont(JxPdf.HELVETICA_OBLIQUE, 9);
         pdf.SetTextColor(110, 110, 115);
-        pdf.Cell(0, 14, "Sin librerías externas: JxPdf escribe el PDF directamente con el JDK. Código: github.com/Andre031222/jxmvc", false, false, 1);
+        pdf.Cell(0, 14, "Sin librerías externas: texto, fuentes TTF, imágenes y firma digital escritos con el JDK.", false, false, 1);
+        if (firmar) pdf.Cell(0, 14, "Firmado con un certificado de demostración autofirmado: el visor mostrará la firma íntegra pero no confiable.", false, false, 1);
 
+        if (firmar) pdf.Sign(demoSigner(), "Demostración de firma digital", "jxmvc.ginit.dev");
         byte[] bytes = pdf.GetStream();
-        if ("1".equals(model.param("descargar"))) view.raw(bytes, "application/pdf", "demo-jxpdf.pdf");
-        else view.inline(bytes, "application/pdf", "demo-jxpdf.pdf");
+        String nombre = firmar ? "demo-jxpdf-firmado.pdf" : "demo-jxpdf.pdf";
+        if ("1".equals(model.param("descargar"))) view.raw(bytes, "application/pdf", nombre);
+        else view.inline(bytes, "application/pdf", nombre);
         return null;
     }
 
     @JxGetMapping("ping")
     public ActionResult ping() {
-        return json(GenApi.JsonStr("pong", true, "version", "3.6.1"));
+        return json(GenApi.JsonStr("pong", true, "version", "3.7.0"));
     }
 
     @JxCors(origins = {"http://localhost:5173","http://127.0.0.1:5173"}, hosts = {"127.0.0.1","::1"}, methods = {"GET"})

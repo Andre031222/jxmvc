@@ -8,7 +8,7 @@
       <h1 class="s-h1" style="font-size:clamp(2rem,1.2rem + 2.6vw,3.2rem)">Un framework que se puede leer completo.</h1>
     </div>
     <div>
-      <p class="s-lead">JxMVC es un framework MVC para Jakarta EE escrito solo sobre el JDK y la API de Servlet. No usa Spring, Hibernate ni Jackson: el routing, el acceso a datos, el pool, el JSON, la seguridad y el resto están dentro de un JAR de 301 KB y 55 clases que una sola persona puede revisar.</p>
+      <p class="s-lead">JxMVC es un framework MVC para Jakarta EE escrito solo sobre el JDK y la API de Servlet. No usa Spring, Hibernate ni Jackson: el routing, el acceso a datos, el pool, el JSON, la seguridad y el resto están dentro de un JAR de 327 KB y 55 clases que una sola persona puede revisar.</p>
       <p class="s-p" style="margin-top:16px">Su versión 3 creció hasta cubrir lo que necesita una aplicación web real sin romper tres reglas: cero dependencias de terceros, seguridad aplicada por el pipeline y una API explícita.</p>
     </div>
   </div>

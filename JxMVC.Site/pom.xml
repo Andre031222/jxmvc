@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>jxmvc</groupId>
     <artifactId>jxmvc-site</artifactId>
-    <version>3.6.1</version>
+    <version>3.7.0</version>
     <packaging>war</packaging>
     <name>JxMVC site</name>
 
@@ -24,7 +24,7 @@
         <dependency>
             <groupId>jxmvc</groupId>
             <artifactId>jxmvc-core</artifactId>
-            <version>3.6.1</version>
+            <version>3.7.0</version>
         </dependency>
 
         <dependency>

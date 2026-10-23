@@ -17,6 +17,10 @@ public class PdfTest {
     public static void main(String[] args) throws Exception {
         testCreateRoundtrip();
         testWriter();
+        testTrueType();
+        testImages();
+        testSignature();
+        testLatex();
         testPagination();
         testUnmappableChars();
         testDifferencesAndTJ();
@@ -82,6 +86,107 @@ public class PdfTest {
         eq("create: texto página 2 con escapes", "Página dos (con paréntesis) y \\ barra", doc.page(1));
         eq("create: título", "Constancia ñ", doc.info().get("Title"));
         eq("create: producer", "JxMVC JxPdf", doc.info().get("Producer"));
+    }
+
+    static byte[] res(String file) throws Exception {
+        try (var in = PdfTest.class.getResourceAsStream("/jxpdf/" + file)) { return in.readAllBytes(); }
+    }
+
+    static void testTrueType() throws Exception {
+        System.out.println("── fuentes TrueType ──");
+        JxPdf pdf = new JxPdf();
+        pdf.AddFont("Bricolage", res("BricolageGrotesque-Medium.ttf"));
+        pdf.SetFont("Bricolage", 16);
+        pdf.TextXY(40, 50, "Año 2026: ñandú, über, «hola» y 10 €");
+        pdf.SetFont(JxPdf.HELVETICA, 11);
+        pdf.Cell(0, 20, "Texto con fuente base", false, false, 1);
+        byte[] bytes = pdf.GetStream();
+        String raw = new String(bytes, StandardCharsets.ISO_8859_1);
+        check("ttf: incrustada como CIDFontType2", raw.contains("/CIDFontType2") && raw.contains("/FontFile2"));
+        check("ttf: nombre PostScript", raw.contains("/BaseFont /BricolageGrotesque"));
+        String t = JxPdf.read(bytes).text();
+        check("ttf: texto Unicode recuperable", t.contains("Año 2026: ñandú, über, «hola» y 10 €"));
+        check("ttf: mezcla con fuente base", t.contains("Texto con fuente base"));
+        try { new JxPdf().AddFont("x", new byte[]{1, 2, 3}); fail("ttf: archivo inválido", "aceptado"); }
+        catch (IllegalArgumentException e) { ok("ttf: archivo inválido rechazado"); }
+        try { new JxPdf().SetFont("NoExiste", 10); fail("ttf: fuente no registrada", "aceptada"); }
+        catch (IllegalArgumentException e) { ok("ttf: fuente no registrada rechazada"); }
+    }
+
+    static byte[] image(String format, boolean alpha) throws Exception {
+        var img = new java.awt.image.BufferedImage(40, 20, alpha ? java.awt.image.BufferedImage.TYPE_INT_ARGB : java.awt.image.BufferedImage.TYPE_INT_RGB);
+        for (int x = 0; x < 40; x++) for (int y = 0; y < 20; y++) img.setRGB(x, y, (alpha && x < 10 ? 0x40 : 0xFF) << 24 | (x * 6) << 16 | (y * 12) << 8 | 0x80);
+        var out = new ByteArrayOutputStream();
+        javax.imageio.ImageIO.write(img, format, out);
+        return out.toByteArray();
+    }
+
+    static void testImages() throws Exception {
+        System.out.println("── imágenes ──");
+        byte[] png = image("png", true), jpg = image("jpg", false);
+        JxPdf pdf = new JxPdf();
+        pdf.Cell(0, 20, "Antes de la imagen", false, false, 1);
+        pdf.Image(png, -1, -1, 200, 0);
+        pdf.Image(jpg, 300, 100, 0, 50);
+        pdf.Image(png, 40, 300, 80, 40);
+        pdf.Cell(0, 20, "Después de la imagen", false, false, 1);
+        byte[] bytes = pdf.GetStream();
+        String raw = new String(bytes, StandardCharsets.ISO_8859_1);
+        check("imagen: JPEG directo con DCTDecode", raw.contains("/Filter /DCTDecode"));
+        check("imagen: PNG con transparencia (SMask)", raw.contains("/SMask"));
+        eq("imagen: misma imagen se incrusta una sola vez", 2, raw.split("/Subtype /Image /Width 40", -1).length - 2);
+        var doc = JxPdf.read(bytes);
+        check("imagen: el texto sigue legible", doc.text().contains("Antes de la imagen") && doc.text().contains("Después de la imagen"));
+        check("imagen: página con texto no se marca escaneada", !doc.isScanned(0));
+        try { new JxPdf().Image(new byte[]{1, 2, 3}, 0, 0, 10, 10); fail("imagen: formato inválido", "aceptado"); }
+        catch (IllegalArgumentException e) { ok("imagen: formato inválido rechazado"); }
+    }
+
+    static void testSignature() throws Exception {
+        System.out.println("── firma digital ──");
+        JxPdf.Signer rsa = JxPdf.Signer.fromPkcs12(res("test-rsa.p12"), "jxmvc-test");
+        JxPdf.Signer ec = JxPdf.Signer.fromPkcs12(res("test-ec.p12"), "jxmvc-test");
+        JxPdf pdf = new JxPdf();
+        pdf.SetFont(JxPdf.HELVETICA_BOLD, 14);
+        pdf.TextXY(40, 50, "Constancia firmada");
+        pdf.Sign(rsa, "Aprobación", "Puno, Perú");
+        byte[] signed = pdf.GetStream();
+        var sigs = JxPdf.verify(signed);
+        eq("firma: una firma", 1, sigs.size());
+        check("firma RSA: válida", sigs.get(0).valid());
+        check("firma RSA: cubre todo el documento", sigs.get(0).coversWholeDocument());
+        eq("firma: firmante", "JxMVC Test RSA", sigs.get(0).signer());
+        eq("firma: motivo con tilde", "Aprobación", sigs.get(0).reason());
+        eq("firma: el texto sigue legible", "Constancia firmada", JxPdf.read(signed).page(0).trim());
+
+        byte[] tampered = signed.clone();
+        int at = new String(signed, StandardCharsets.ISO_8859_1).indexOf("/Producer (JxMVC");
+        tampered[at + 11] = 'X';
+        check("firma: alteración detectada", !JxPdf.verify(tampered).get(0).valid());
+
+        byte[] twice = JxPdf.sign(signed, ec, "Visto bueno", null);
+        var both = JxPdf.verify(twice);
+        eq("firma: dos firmas sucesivas", 2, both.size());
+        check("firma EC: ambas válidas", both.stream().allMatch(JxPdf.SignatureInfo::valid));
+        eq("firma: solo la última cubre todo", 1, (int) both.stream().filter(JxPdf.SignatureInfo::coversWholeDocument).count());
+
+        byte[] simple = JxPdf.sign(JxPdf.create("Simple", "Documento existente"), rsa, null, null);
+        check("firma: PDF existente con tabla xref", JxPdf.verify(simple).get(0).valid());
+        eq("firma: sin firmas en PDF sin firmar", 0, JxPdf.verify(JxPdf.create(null, "x")).size());
+        try { JxPdf.sign(res("rc4-128.pdf"), rsa, null, null); fail("firma: PDF cifrado", "aceptado"); }
+        catch (IllegalArgumentException e) { ok("firma: PDF cifrado rechazado"); }
+    }
+
+    static void testLatex() throws Exception {
+        System.out.println("── PDF generado con LaTeX ──");
+        byte[] tex = res("latex.pdf");
+        String t = JxPdf.read(tex).text();
+        check("latex: acentos y eñes", t.contains("año, ñandú, acción, pingüino"));
+        check("latex: título de sección", t.contains("Prueba de JxPdf"));
+        byte[] signed = JxPdf.sign(tex, JxPdf.Signer.fromPkcs12(res("test-rsa.p12"), "jxmvc-test"), "Revisado", null);
+        var sigs = JxPdf.verify(signed);
+        check("latex: firma sobre xref stream válida", sigs.size() == 1 && sigs.get(0).valid() && sigs.get(0).coversWholeDocument());
+        check("latex: sigue legible tras firmar", JxPdf.read(signed).text().contains("ñandú"));
     }
 
     static void testWriter() throws Exception {

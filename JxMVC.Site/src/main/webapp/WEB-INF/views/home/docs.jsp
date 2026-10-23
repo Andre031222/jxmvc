@@ -4,7 +4,7 @@
 <div class="s-wrap" style="color:var(--ink)">
   <div style="padding-top:clamp(16px,2vw,28px)">
     <p class="s-eyebrow">Documentación</p>
-    <h1 class="s-h2">JxMVC 3.6.1</h1>
+    <h1 class="s-h2">JxMVC 3.7.0</h1>
     <p class="s-lead" style="margin-top:10px">Jakarta EE 10 · Java 17+ · sin dependencias de terceros. Cada ejemplo usa la API pública del core.</p>
   </div>
   <div class="d-layout">
@@ -66,7 +66,7 @@ mvn install -f jxmvc/JxMVC.Core/pom.xml</pre></div><div class="d-code"><span>pom
 &lt;dependency&gt;
     &lt;groupId&gt;jxmvc&lt;/groupId&gt;
     &lt;artifactId&gt;jxmvc-core&lt;/artifactId&gt;
-    &lt;version&gt;3.6.1&lt;/version&gt;
+    &lt;version&gt;3.7.0&lt;/version&gt;
 &lt;/dependency&gt;</pre></div><div class="d-code"><span>src/main/resources/application.properties</span><pre>jxmvc.controllers.package = com.miapp.controllers
 jxmvc.services.package    = com.miapp.services
 jxmvc.profiles.active     = dev</pre></div>
@@ -335,9 +335,9 @@ public class ChatEndpoint extends JxWebSocket {
 </section>
 <section id="pdf" class="d-sec">
 <h2>PDF</h2>
-<p><code>JxPdf</code> lee el texto y los metadatos de un PDF, incluidos los cifrados con RC4 o AES, detecta las páginas escaneadas sin texto y genera documentos con texto, celdas y colores. No hace OCR ni usa librerías externas.</p>
-<h3>Generar un PDF</h3>
-<p><a class="s-btn s-btn-primary" href="${pageContext.request.contextPath}/demo/pdf" target="_blank" rel="noopener">Ver PDF generado en vivo</a> <a class="s-btn s-btn-ghost" href="${pageContext.request.contextPath}/demo/pdf?descargar=1">Descargar</a></p>
+<p><code>JxPdf</code> genera PDF con texto, celdas, colores, imágenes JPG y PNG, fuentes TTF incrustadas y firma digital, y lee el texto de cualquier PDF, incluidos los cifrados y los generados con LaTeX. Todo con el JDK, sin iText ni PDFBox.</p>
+<p><a class="s-btn s-btn-primary" href="${pageContext.request.contextPath}/demo/pdf" target="_blank" rel="noopener">Ver PDF generado en vivo</a> <a class="s-btn s-btn-ghost" href="${pageContext.request.contextPath}/demo/pdf?firmar=1" target="_blank" rel="noopener">Ver PDF firmado</a></p>
+<h3>Texto y celdas</h3>
 <p>Coordenadas en puntos desde la esquina superior izquierda, página A4 y margen de 40. <code>Cell</code> recibe ancho, alto, texto, borde, relleno y salto: 0 sigue a la derecha, 1 pasa a la línea siguiente, 2 baja debajo de la celda. Un ancho 0 llega hasta el margen derecho y las páginas nuevas se agregan solas.</p>
 <div class="d-code"><span>Generar</span><pre>JxPdf pdf = new JxPdf();
 pdf.SetFont(JxPdf.HELVETICA_BOLD, 14);
@@ -352,10 +352,30 @@ pdf.Cell(300, 25, &quot;Celda sin relleno&quot;, true, false, 1);
 
 pdf.Output(&quot;reporte.pdf&quot;);
 byte[] bytes = pdf.GetStream();</pre></div>
-<p>Para mostrarlo en el navegador usa <code>view.inline(bytes, "application/pdf", "reporte.pdf")</code>; para descargarlo, <code>view.raw(...)</code>.</p>
+<p>Fuentes base: Helvetica, Times y Courier en normal, negrita y cursiva. También existen <code>SetTextColor</code>, <code>SetDrawColor</code>, <code>SetXY</code>, <code>Ln</code> y <code>AddPage</code>. Para mostrarlo en el navegador usa <code>view.inline(bytes, "application/pdf", "reporte.pdf")</code>; para descargarlo, <code>view.raw(...)</code>.</p>
+<h3>Fuentes TTF</h3>
+<p>Una fuente TrueType se incrusta completa y admite cualquier carácter Unicode. El texto sigue siendo seleccionable y buscable.</p>
+<div class="d-code"><span>Fuente propia</span><pre>pdf.AddFont(&quot;Roboto&quot;, &quot;fonts/Roboto-Regular.ttf&quot;);
+pdf.SetFont(&quot;Roboto&quot;, 16);
+pdf.TextXY(40, 80, &quot;Año 2026: ñandú, über, 10 €&quot;);</pre></div>
+<h3>Imágenes</h3>
+<p>JPG se incrusta tal cual y PNG conserva la transparencia. Con <code>x</code> e <code>y</code> en -1 la imagen sigue el flujo del documento; un alto 0 conserva la proporción. La misma imagen usada varias veces se incrusta una sola vez.</p>
+<div class="d-code"><span>Imagen</span><pre>pdf.Image(&quot;logo.png&quot;, 40, 100, 120, 0);
+pdf.Image(&quot;grafico.jpg&quot;, -1, -1, 515, 0);
+pdf.Image(bytes, 300, 100, 0, 60);</pre></div>
+<h3>Firma digital</h3>
+<p>Firma con un certificado PKCS#12 (.p12 o .pfx), RSA o EC, en el formato estándar <code>adbe.pkcs7.detached</code> que reconocen Adobe Acrobat y otros visores. Se puede firmar al generar o firmar un PDF existente; cada firma nueva se agrega sin invalidar las anteriores.</p>
+<div class="d-code"><span>Firmar y verificar</span><pre>JxPdf.Signer firma = JxPdf.Signer.fromPkcs12(Path.of(&quot;certificado.p12&quot;), &quot;clave&quot;);
 
-<p>Fuentes: <code>HELVETICA</code>, <code>HELVETICA_BOLD</code>, <code>HELVETICA_OBLIQUE</code>, <code>TIMES</code>, <code>TIMES_BOLD</code>, <code>TIMES_ITALIC</code>, <code>COURIER</code> y <code>COURIER_BOLD</code>. También existen <code>SetTextColor</code>, <code>SetDrawColor</code>, <code>SetXY</code>, <code>Ln</code> y <code>AddPage</code>.</p>
+pdf.Sign(firma, &quot;Aprobación&quot;, &quot;Puno, Perú&quot;);
+byte[] firmado = pdf.GetStream();
+
+byte[] otro = JxPdf.sign(Files.readAllBytes(Path.of(&quot;contrato.pdf&quot;)), firma, &quot;Visto bueno&quot;, null);
+
+for (JxPdf.SignatureInfo s : JxPdf.verify(otro))
+    System.out.println(s.signer() + &quot; válida=&quot; + s.valid() + &quot; todo el documento=&quot; + s.coversWholeDocument());</pre></div>
 <h3>Leer un PDF</h3>
+<p>Extrae el texto por página y los metadatos, incluso de PDF cifrados con RC4 o AES. Lee bien los PDF generados con LaTeX: acentos de TeX, fuentes Type1 y Type3 y flujos comprimidos. Detecta las páginas escaneadas sin texto; no hace OCR.</p>
 <div class="d-code"><span>JxPdf</span><pre>JxPdf.Doc doc = JxPdf.read(Path.of(&quot;contrato.pdf&quot;));
 int pages     = doc.pageCount();
 String text   = doc.text();
@@ -363,10 +383,7 @@ String first  = doc.page(0);
 boolean scan  = doc.isScanned(2);
 String author = doc.info().get(&quot;Author&quot;);
 
-JxPdf.Doc secret = JxPdf.read(bytes, &quot;clave&quot;);
-
-view.inline(pdf.GetStream(), &quot;application/pdf&quot;, &quot;reporte.pdf&quot;);
-return null;</pre></div>
+JxPdf.Doc secret = JxPdf.read(bytes, &quot;clave&quot;);</pre></div>
 </section>
 <section id="servicios" class="d-sec">
 <h2>Servicios e inyección</h2>

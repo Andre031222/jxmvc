@@ -2,6 +2,8 @@ package jxmvc.core;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -40,21 +42,33 @@ public final class JxPdf {
     public static final String HELVETICA = "Helvetica";
     public static final String HELVETICA_BOLD = "Helvetica-Bold";
     public static final String HELVETICA_OBLIQUE = "Helvetica-Oblique";
+    public static final String HELVETICA_BOLD_OBLIQUE = "Helvetica-BoldOblique";
     public static final String TIMES = "Times-Roman";
     public static final String TIMES_BOLD = "Times-Bold";
     public static final String TIMES_ITALIC = "Times-Italic";
+    public static final String TIMES_BOLD_ITALIC = "Times-BoldItalic";
     public static final String COURIER = "Courier";
     public static final String COURIER_BOLD = "Courier-Bold";
+    public static final String COURIER_OBLIQUE = "Courier-Oblique";
+    public static final String COURIER_BOLD_OBLIQUE = "Courier-BoldOblique";
 
+    private static final Set<String> CORE = Set.of(HELVETICA, HELVETICA_BOLD, HELVETICA_OBLIQUE, HELVETICA_BOLD_OBLIQUE,
+            TIMES, TIMES_BOLD, TIMES_ITALIC, TIMES_BOLD_ITALIC, COURIER, COURIER_BOLD, COURIER_OBLIQUE, COURIER_BOLD_OBLIQUE,
+            "Symbol", "ZapfDingbats");
     private static final float PAGE_W = 595, PAGE_H = 842;
+    private static final int SIG_SIZE = 16384;
 
     private final List<StringBuilder> pages = new ArrayList<>();
     private final Map<String, String> fonts = new LinkedHashMap<>();
+    private final Map<String, Ttf> ttfs = new HashMap<>();
+    private final Map<String, Img> images = new LinkedHashMap<>();
     private final float margin;
     private String font = HELVETICA;
     private float size = 12;
     private float x, y;
     private float[] back = {1, 1, 1}, ink = {0, 0, 0}, line = {0, 0, 0};
+    private Signer signer;
+    private String signReason, signLocation;
 
     public JxPdf() { this(40); }
 
@@ -70,10 +84,20 @@ public final class JxPdf {
         return this;
     }
 
+    public JxPdf AddFont(String name, String ttfPath) throws IOException { return AddFont(name, Files.readAllBytes(Path.of(ttfPath))); }
+
+    public JxPdf AddFont(String name, byte[] ttf) {
+        if (name == null || name.isBlank() || CORE.contains(name)) throw new IllegalArgumentException("Nombre de fuente inválido: " + name);
+        ttfs.put(name, new Ttf(ttf));
+        return this;
+    }
+
     public JxPdf SetFont(String name, float size) {
-        this.font = name == null ? HELVETICA : name;
+        String n = name == null ? HELVETICA : name;
+        if (!CORE.contains(n) && !ttfs.containsKey(n)) throw new IllegalArgumentException("Fuente no registrada: " + n + " (usa AddFont para un .ttf)");
+        this.font = n;
         this.size = size;
-        fonts.computeIfAbsent(this.font, k -> "F" + (fonts.size() + 1));
+        fontRef();
         return this;
     }
 
@@ -94,9 +118,8 @@ public final class JxPdf {
     public float GetY() { return y; }
 
     public JxPdf TextXY(float x, float y, String text) {
-        fonts.computeIfAbsent(font, k -> "F" + (fonts.size() + 1));
-        page().append(String.format(Locale.ROOT, "%s BT /%s %.2f Tf %.2f %.2f Td (%s) Tj ET\n",
-                fill(ink), fonts.get(font), size, x, PAGE_H - y, escape(text == null ? "" : text)));
+        page().append(String.format(Locale.ROOT, "%s BT /%s %.2f Tf %.2f %.2f Td %s Tj ET\n",
+                fill(ink), fontRef(), size, x, PAGE_H - y, show(text == null ? "" : text)));
         this.x = margin;
         this.y = Math.max(this.y, y + size * 0.6f);
         return this;
@@ -113,9 +136,8 @@ public final class JxPdf {
                     fill(back), stroke(line), x, PAGE_H - y - h, w, h, fill && border ? "B" : fill ? "f" : "S"));
         }
         if (text != null && !text.isEmpty()) {
-            fonts.computeIfAbsent(font, k -> "F" + (fonts.size() + 1));
-            sb.append(String.format(Locale.ROOT, "%s BT /%s %.2f Tf %.2f %.2f Td (%s) Tj ET\n",
-                    fill(ink), fonts.get(font), size, x + 3, PAGE_H - y - h / 2 - size * 0.35f, escape(text)));
+            sb.append(String.format(Locale.ROOT, "%s BT /%s %.2f Tf %.2f %.2f Td %s Tj ET\n",
+                    fill(ink), fontRef(), size, x + 3, PAGE_H - y - h / 2 - size * 0.35f, show(text)));
         }
         if (ln == 1) { x = margin; y += h; }
         else if (ln == 2) y += h;
@@ -131,44 +153,98 @@ public final class JxPdf {
         return this;
     }
 
+    public JxPdf Image(String path, float w) throws IOException { return Image(Files.readAllBytes(Path.of(path)), -1, -1, w, 0); }
+
+    public JxPdf Image(String path, float x, float y, float w, float h) throws IOException {
+        return Image(Files.readAllBytes(Path.of(path)), x, y, w, h);
+    }
+
+    public JxPdf Image(byte[] data, float x, float y, float w, float h) {
+        String key = hex(digest("SHA-256", data));
+        Img img = images.get(key);
+        if (img == null) {
+            img = Img.of(data, "Im" + (images.size() + 1));
+            images.put(key, img);
+        }
+        if (w <= 0 && h <= 0) { w = img.w() * 0.75f; h = img.h() * 0.75f; }
+        else if (h <= 0) h = w * img.h() / img.w();
+        else if (w <= 0) w = h * img.w() / img.h();
+        boolean flow = y < 0;
+        if (flow) {
+            if (this.y + h > PAGE_H - margin) AddPage();
+            y = this.y;
+            if (x < 0) x = this.x;
+        }
+        page().append(String.format(Locale.ROOT, "q %.2f 0 0 %.2f %.2f %.2f cm /%s Do Q\n", w, h, x, PAGE_H - y - h, img.name()));
+        if (flow) {
+            this.x = margin;
+            this.y = y + h;
+        }
+        return this;
+    }
+
+    public JxPdf Sign(Signer signer, String reason, String location) {
+        this.signer = signer;
+        this.signReason = reason;
+        this.signLocation = location;
+        return this;
+    }
+
     public byte[] GetStream() {
         if (fonts.isEmpty()) fonts.put(HELVETICA, "F1");
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        List<Integer> offs = new ArrayList<>();
-        int first = 3 + fonts.size() + 1;
-        write(out, "%PDF-1.4\n%\u00e2\u00e3\u00cf\u00d3\n");
-        StringBuilder kids = new StringBuilder();
-        for (int i = 0; i < pages.size(); i++) kids.append(i == 0 ? "" : " ").append(first + 2 * i).append(" 0 R");
-        obj(out, offs, "<< /Type /Catalog /Pages 2 0 R >>");
-        obj(out, offs, "<< /Type /Pages /Kids [" + kids + "] /Count " + pages.size() + " >>");
-        StringBuilder res = new StringBuilder("<< /Font << ");
-        int n = 3;
+        List<byte[]> objs = new ArrayList<>();
+        int catalog = add(objs, null), tree = add(objs, null);
+        int info = add(objs, ascii("<< /Producer (JxMVC JxPdf) /CreationDate " + date() + " >>"));
+        StringBuilder fontRes = new StringBuilder();
         for (Map.Entry<String, String> f : fonts.entrySet()) {
-            obj(out, offs, "<< /Type /Font /Subtype /Type1 /BaseFont /" + f.getKey() + " /Encoding /WinAnsiEncoding >>");
-            res.append('/').append(f.getValue()).append(' ').append(n++).append(" 0 R ");
+            Ttf t = ttfs.get(f.getKey());
+            int n = t != null ? t.write(objs)
+                    : add(objs, ascii("<< /Type /Font /Subtype /Type1 /BaseFont /" + f.getKey()
+                        + (f.getKey().equals("Symbol") || f.getKey().equals("ZapfDingbats") ? "" : " /Encoding /WinAnsiEncoding") + " >>"));
+            fontRes.append('/').append(f.getValue()).append(' ').append(n).append(" 0 R ");
         }
-        res.append(">> >>");
-        obj(out, offs, "<< /Producer (JxMVC JxPdf) >>");
-        for (int i = 0; i < pages.size(); i++) {
-            obj(out, offs, "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources " + res
-                    + " /Contents " + (first + 2 * i + 1) + " 0 R >>");
-            byte[] content = deflate(pages.get(i).toString().getBytes(CP1252));
-            offs.add(out.size());
-            write(out, offs.size() + " 0 obj\n<< /Length " + content.length + " /Filter /FlateDecode >>\nstream\n");
-            out.writeBytes(content);
-            write(out, "\nendstream\nendobj\n");
+        StringBuilder imgRes = new StringBuilder();
+        for (Img im : images.values()) imgRes.append('/').append(im.name()).append(' ').append(im.write(objs)).append(" 0 R ");
+        String res = "<< /Font << " + fontRes + ">>" + (imgRes.length() > 0 ? " /XObject << " + imgRes + ">>" : "") + " >>";
+        StringBuilder kids = new StringBuilder();
+        for (StringBuilder p : pages) {
+            int content = add(objs, streamObj("/Filter /FlateDecode", deflate(p.toString().getBytes(CP1252))));
+            int pg = add(objs, ascii("<< /Type /Page /Parent " + tree + " 0 R /MediaBox [0 0 595 842] /Resources " + res
+                    + " /Contents " + content + " 0 R >>"));
+            kids.append(pg).append(" 0 R ");
+        }
+        objs.set(catalog - 1, ascii("<< /Type /Catalog /Pages " + tree + " 0 R >>"));
+        objs.set(tree - 1, ascii("<< /Type /Pages /Kids [" + kids + "] /Count " + pages.size() + " >>"));
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        write(out, "%PDF-1.7\n%âãÏÓ\n");
+        int[] offs = new int[objs.size()];
+        for (int i = 0; i < objs.size(); i++) {
+            offs[i] = out.size();
+            write(out, (i + 1) + " 0 obj\n");
+            out.writeBytes(objs.get(i));
+            write(out, "\nendobj\n");
         }
         int xref = out.size();
-        write(out, "xref\n0 " + (offs.size() + 1) + "\n0000000000 65535 f \n");
+        write(out, "xref\n0 " + (objs.size() + 1) + "\n0000000000 65535 f \n");
         for (int o : offs) write(out, String.format("%010d 00000 n \n", o));
-        write(out, "trailer\n<< /Size " + (offs.size() + 1) + " /Root 1 0 R /Info " + (3 + fonts.size()) + " 0 R >>\nstartxref\n"
-                + xref + "\n%%EOF\n");
-        return out.toByteArray();
+        String id = hex(digest("MD5", out.toByteArray()));
+        write(out, "trailer\n<< /Size " + (objs.size() + 1) + " /Root " + catalog + " 0 R /Info " + info + " 0 R /ID [<" + id + "> <" + id
+                + ">] >>\nstartxref\n" + xref + "\n%%EOF\n");
+        byte[] pdf = out.toByteArray();
+        return signer == null ? pdf : sign(pdf, signer, signReason, signLocation);
     }
 
     public void Output(String path) throws IOException { Files.write(Path.of(path), GetStream()); }
 
     private StringBuilder page() { return pages.get(pages.size() - 1); }
+
+    private String fontRef() { return fonts.computeIfAbsent(font, k -> "F" + (fonts.size() + 1)); }
+
+    private String show(String text) {
+        Ttf t = ttfs.get(font);
+        return t == null ? "(" + escape(text) + ")" : "<" + t.encode(text) + ">";
+    }
 
     private static float[] rgb(java.awt.Color c) { return rgb(c.getRed(), c.getGreen(), c.getBlue()); }
 
@@ -177,6 +253,40 @@ public final class JxPdf {
     private static String fill(float[] c) { return String.format(Locale.ROOT, "%.3f %.3f %.3f rg", c[0], c[1], c[2]); }
 
     private static String stroke(float[] c) { return String.format(Locale.ROOT, "%.3f %.3f %.3f RG", c[0], c[1], c[2]); }
+
+    private static int add(List<byte[]> objs, byte[] body) {
+        objs.add(body);
+        return objs.size();
+    }
+
+    private static byte[] ascii(String s) { return s.getBytes(StandardCharsets.ISO_8859_1); }
+
+    private static byte[] streamObj(String dict, byte[] data) {
+        ByteArrayOutputStream o = new ByteArrayOutputStream();
+        o.writeBytes(ascii("<< " + dict + " /Length " + data.length + " >>\nstream\n"));
+        o.writeBytes(data);
+        o.writeBytes(ascii("\nendstream"));
+        return o.toByteArray();
+    }
+
+    private static String date() {
+        java.time.OffsetDateTime t = java.time.OffsetDateTime.now();
+        int off = t.getOffset().getTotalSeconds() / 60;
+        return String.format(Locale.ROOT, "(D:%s%s%02d'%02d')", t.format(java.time.format.DateTimeFormatter.ofPattern("yyyyMMddHHmmss")),
+                off < 0 ? "-" : "+", Math.abs(off) / 60, Math.abs(off) % 60);
+    }
+
+    private static byte[] digest(String alg, byte[] data) {
+        try { return MessageDigest.getInstance(alg).digest(data); }
+        catch (GeneralSecurityException e) { throw new IllegalStateException(e); }
+    }
+
+    private static String hex(byte[] b) { return HexFormat.of().withUpperCase().formatHex(b); }
+
+    private static String pdfText(String s) {
+        for (char c : s.toCharArray()) if (c > 126 || c < 32) return "<FEFF" + hex(s.getBytes(StandardCharsets.UTF_16BE)) + ">";
+        return "(" + escape(s) + ")";
+    }
 
     public record Doc(List<String> pages, List<Integer> scanned, Map<String, String> info) {
         public int pageCount()            { return pages.size(); }
@@ -493,6 +603,37 @@ public final class JxPdf {
             o = resolve(o);
             if (o instanceof Stream s) return s.dict();
             return o instanceof Map<?, ?> m ? cast(m) : EMPTY;
+        }
+
+        Ref firstPage(Object node, int depth) {
+            if (depth > MAX_DEPTH) return null;
+            Map<String, Object> d = dict(node);
+            if (resolve(d.get("Kids")) instanceof List<?> kids) {
+                for (Object k : kids) {
+                    Ref r = firstPage(k, depth + 1);
+                    if (r != null) return r;
+                }
+                return null;
+            }
+            return node instanceof Ref r && !d.isEmpty() ? r : null;
+        }
+
+        String ser(Object o) {
+            if (o instanceof Ref r) return r.num() + " " + gens.getOrDefault(r.num(), 0) + " R";
+            if (o instanceof Name n) return "/" + nameEscape(n.v());
+            if (o instanceof byte[] str) return "<" + hex(str) + ">";
+            if (o instanceof Map<?, ?> m) {
+                StringBuilder sb = new StringBuilder("<<");
+                m.forEach((k, v) -> sb.append(" /").append(nameEscape(String.valueOf(k))).append(' ').append(ser(v)));
+                return sb.append(" >>").toString();
+            }
+            if (o instanceof List<?> l) {
+                StringBuilder sb = new StringBuilder("[");
+                for (Object v : l) sb.append(' ').append(ser(v));
+                return sb.append(" ]").toString();
+            }
+            if (o instanceof Double dbl) return BigDecimal.valueOf(dbl).stripTrailingZeros().toPlainString();
+            return o == null ? "null" : o.toString();
         }
     }
 
@@ -1420,5 +1561,513 @@ public final class JxPdf {
         Map<String, String> m = new LinkedHashMap<>();
         for (int i = 0; i < kv.length; i += 2) m.put(kv[i], kv[i + 1]);
         return m;
+    }
+
+    private static final class Ttf {
+        final byte[] d;
+        final String psName;
+        final int units, ascent, descent, capHeight;
+        final int[] bbox, advance;
+        final float italic;
+        final boolean fixed;
+        final Map<Integer, Integer> cmap = new HashMap<>();
+        final TreeMap<Integer, String> used = new TreeMap<>();
+
+        Ttf(byte[] d) {
+            if (d == null || d.length < 12) throw new IllegalArgumentException("Archivo de fuente vacío o inválido");
+            this.d = d;
+            if (u32(0) == 0x74746366) throw new IllegalArgumentException("Las colecciones .ttc no están soportadas; usa un archivo .ttf");
+            Map<String, Integer> t = new HashMap<>();
+            int n = u16(4);
+            for (int i = 0; i < n; i++) {
+                int r = 12 + 16 * i;
+                t.put(new String(d, r, 4, StandardCharsets.ISO_8859_1), u32(r + 8));
+            }
+            if (!t.containsKey("glyf")) throw new IllegalArgumentException("Solo se admiten fuentes TrueType (.ttf con contornos glyf)");
+            int head = need(t, "head"), hhea = need(t, "hhea"), maxp = need(t, "maxp"), hmtx = need(t, "hmtx");
+            units = Math.max(16, u16(head + 18));
+            bbox = new int[]{s16(head + 36), s16(head + 38), s16(head + 40), s16(head + 42)};
+            ascent = s16(hhea + 4);
+            descent = s16(hhea + 6);
+            int metrics = Math.max(1, u16(hhea + 34)), glyphs = u16(maxp + 4);
+            advance = new int[Math.max(1, glyphs)];
+            for (int g = 0; g < advance.length; g++) advance[g] = u16(hmtx + 4 * Math.min(g, metrics - 1));
+            int cap = ascent;
+            Integer os2 = t.get("OS/2");
+            if (os2 != null) {
+                if ((u16(os2 + 8) & 0x000F) == 2) throw new IllegalArgumentException("La licencia de la fuente no permite incrustarla");
+                if (u16(os2) >= 2 && os2 + 90 <= d.length) cap = s16(os2 + 88);
+            }
+            capHeight = cap;
+            Integer post = t.get("post");
+            italic = post == null ? 0 : u32(post + 4) / 65536f;
+            fixed = post != null && u32(post + 12) != 0;
+            psName = name(t.get("name"));
+            readCmap(need(t, "cmap"));
+        }
+
+        int need(Map<String, Integer> t, String tag) {
+            Integer o = t.get(tag);
+            if (o == null || o >= d.length) throw new IllegalArgumentException("Fuente sin tabla " + tag);
+            return o;
+        }
+
+        int u16(int p) { return p + 1 < d.length ? ((d[p] & 0xFF) << 8) | (d[p + 1] & 0xFF) : 0; }
+        int s16(int p) { return (short) u16(p); }
+        int u32(int p) { return p + 3 < d.length ? ((d[p] & 0xFF) << 24) | ((d[p + 1] & 0xFF) << 16) | ((d[p + 2] & 0xFF) << 8) | (d[p + 3] & 0xFF) : 0; }
+
+        String name(Integer off) {
+            if (off != null) {
+                int count = u16(off + 2), strings = off + u16(off + 4);
+                for (int i = 0; i < count; i++) {
+                    int r = off + 6 + 12 * i;
+                    if (u16(r + 6) != 6) continue;
+                    int platform = u16(r), len = u16(r + 8), at = strings + u16(r + 10);
+                    if (at + len > d.length) continue;
+                    String s = new String(d, at, len, platform == 3 || platform == 0 ? StandardCharsets.UTF_16BE : StandardCharsets.ISO_8859_1)
+                            .replaceAll("[^A-Za-z0-9-]", "");
+                    if (!s.isEmpty()) return s;
+                }
+            }
+            return "JxFont";
+        }
+
+        void readCmap(int off) {
+            int n = u16(off + 2), best = -1, bestScore = -1;
+            for (int i = 0; i < n; i++) {
+                int r = off + 4 + 8 * i, pid = u16(r), eid = u16(r + 2), sub = off + u32(r + 4), fmt = u16(sub);
+                int score = fmt == 12 && pid == 3 && eid == 10 ? 4 : fmt == 12 ? 3 : fmt == 4 && pid == 3 ? 2 : fmt == 4 ? 1 : -1;
+                if (score > bestScore) { bestScore = score; best = sub; }
+            }
+            if (best < 0) throw new IllegalArgumentException("Fuente sin tabla cmap Unicode");
+            if (u16(best) == 12) {
+                long groups = u32(best + 12) & 0xFFFFFFFFL;
+                for (int i = 0; i < groups && best + 16 + 12 * i + 12 <= d.length; i++) {
+                    int g = best + 16 + 12 * i, start = u32(g), end = u32(g + 4), gid = u32(g + 8);
+                    for (int c = start; c <= end && c <= 0x10FFFF; c++) cmap.putIfAbsent(c, gid + c - start);
+                }
+            } else {
+                int seg = u16(best + 6) / 2, ends = best + 14, starts = ends + 2 * seg + 2, deltas = starts + 2 * seg, ranges = deltas + 2 * seg;
+                for (int s = 0; s < seg; s++) {
+                    int end = u16(ends + 2 * s), start = u16(starts + 2 * s), delta = u16(deltas + 2 * s), ro = u16(ranges + 2 * s);
+                    for (int c = start; c <= end && c != 0xFFFF; c++) {
+                        int g;
+                        if (ro == 0) g = (c + delta) & 0xFFFF;
+                        else {
+                            g = u16(ranges + 2 * s + ro + 2 * (c - start));
+                            if (g != 0) g = (g + delta) & 0xFFFF;
+                        }
+                        if (g != 0) cmap.putIfAbsent(c, g);
+                    }
+                }
+            }
+        }
+
+        String encode(String text) {
+            StringBuilder sb = new StringBuilder();
+            text.codePoints().forEach(cp -> {
+                int g = cmap.getOrDefault(cp, 0);
+                if (g >= advance.length) g = 0;
+                used.putIfAbsent(g, new String(Character.toChars(cp)));
+                sb.append(String.format("%04X", g));
+            });
+            return sb.toString();
+        }
+
+        int sc(int v) { return Math.round(v * 1000f / units); }
+
+        int write(List<byte[]> objs) {
+            int file = add(objs, streamObj("/Filter /FlateDecode /Length1 " + d.length, deflate(d)));
+            int flags = 32 | (fixed ? 1 : 0) | (italic != 0 ? 64 : 0);
+            int desc = add(objs, ascii(String.format(Locale.ROOT,
+                    "<< /Type /FontDescriptor /FontName /%s /Flags %d /FontBBox [%d %d %d %d] /ItalicAngle %.2f /Ascent %d /Descent %d /CapHeight %d /StemV 80 /FontFile2 %d 0 R >>",
+                    psName, flags, sc(bbox[0]), sc(bbox[1]), sc(bbox[2]), sc(bbox[3]), italic, sc(ascent), sc(descent), sc(capHeight), file)));
+            StringBuilder w = new StringBuilder();
+            for (int g : used.keySet()) w.append(g).append(" [").append(sc(advance[g])).append("] ");
+            int cid = add(objs, ascii("<< /Type /Font /Subtype /CIDFontType2 /BaseFont /" + psName
+                    + " /CIDSystemInfo << /Registry (Adobe) /Ordering (Identity) /Supplement 0 >> /FontDescriptor " + desc
+                    + " 0 R /DW 1000 /W [" + w + "] /CIDToGIDMap /Identity >>"));
+            int uni = add(objs, streamObj("/Filter /FlateDecode", deflate(ascii(toUnicode()))));
+            return add(objs, ascii("<< /Type /Font /Subtype /Type0 /BaseFont /" + psName + " /Encoding /Identity-H /DescendantFonts [" + cid
+                    + " 0 R] /ToUnicode " + uni + " 0 R >>"));
+        }
+
+        String toUnicode() {
+            StringBuilder sb = new StringBuilder("/CIDInit /ProcSet findresource begin\n12 dict begin\nbegincmap\n"
+                    + "/CIDSystemInfo << /Registry (Adobe) /Ordering (UCS) /Supplement 0 >> def\n/CMapName /Adobe-Identity-UCS def\n/CMapType 2 def\n"
+                    + "1 begincodespacerange\n<0000> <FFFF>\nendcodespacerange\n");
+            List<Map.Entry<Integer, String>> e = new ArrayList<>(used.entrySet());
+            for (int i = 0; i < e.size(); i += 100) {
+                List<Map.Entry<Integer, String>> chunk = e.subList(i, Math.min(i + 100, e.size()));
+                sb.append(chunk.size()).append(" beginbfchar\n");
+                for (Map.Entry<Integer, String> m : chunk)
+                    sb.append(String.format("<%04X> <%s>\n", m.getKey(), hex(m.getValue().getBytes(StandardCharsets.UTF_16BE))));
+                sb.append("endbfchar\n");
+            }
+            return sb.append("endcmap\nCMapName currentdict /CMap defineresource pop\nend\nend\n").toString();
+        }
+    }
+
+    private record Img(String name, int w, int h, byte[] data, String filter, String cs, String decode, byte[] smask) {
+        static Img of(byte[] d, String name) {
+            if (d != null && d.length > 4 && (d[0] & 0xFF) == 0xFF && (d[1] & 0xFF) == 0xD8) return jpeg(d, name);
+            java.awt.image.BufferedImage bi;
+            try { bi = javax.imageio.ImageIO.read(new java.io.ByteArrayInputStream(d == null ? new byte[0] : d)); }
+            catch (IOException e) { bi = null; }
+            if (bi == null) throw new IllegalArgumentException("Formato de imagen no soportado (usa JPG o PNG)");
+            int w = bi.getWidth(), h = bi.getHeight();
+            byte[] rgb = new byte[w * h * 3], alpha = new byte[w * h];
+            boolean translucent = false;
+            for (int yy = 0, i = 0; yy < h; yy++) {
+                for (int xx = 0; xx < w; xx++, i++) {
+                    int p = bi.getRGB(xx, yy);
+                    rgb[3 * i] = (byte) (p >> 16);
+                    rgb[3 * i + 1] = (byte) (p >> 8);
+                    rgb[3 * i + 2] = (byte) p;
+                    alpha[i] = (byte) (p >>> 24);
+                    if ((p >>> 24) != 0xFF) translucent = true;
+                }
+            }
+            return new Img(name, w, h, deflate(rgb), "FlateDecode", "DeviceRGB", null, translucent ? deflate(alpha) : null);
+        }
+
+        static Img jpeg(byte[] d, String name) {
+            boolean adobe = false;
+            for (int i = 2; i + 9 < d.length; ) {
+                if ((d[i] & 0xFF) != 0xFF) { i++; continue; }
+                int m = d[i + 1] & 0xFF;
+                if (m == 0xD8 || m == 0x01 || (m >= 0xD0 && m <= 0xD7) || m == 0xFF) { i += m == 0xFF ? 1 : 2; continue; }
+                int len = ((d[i + 2] & 0xFF) << 8) | (d[i + 3] & 0xFF);
+                if (m == 0xEE) adobe = true;
+                if (m >= 0xC0 && m <= 0xCF && m != 0xC4 && m != 0xC8 && m != 0xCC) {
+                    int h = ((d[i + 5] & 0xFF) << 8) | (d[i + 6] & 0xFF), w = ((d[i + 7] & 0xFF) << 8) | (d[i + 8] & 0xFF), c = d[i + 9] & 0xFF;
+                    String cs = c == 1 ? "DeviceGray" : c == 4 ? "DeviceCMYK" : "DeviceRGB";
+                    return new Img(name, w, h, d, "DCTDecode", cs, c == 4 && adobe ? "[1 0 1 0 1 0 1 0]" : null, null);
+                }
+                i += 2 + len;
+            }
+            throw new IllegalArgumentException("JPEG inválido");
+        }
+
+        int write(List<byte[]> objs) {
+            int sm = smask == null ? 0 : add(objs, streamObj("/Type /XObject /Subtype /Image /Width " + w + " /Height " + h
+                    + " /ColorSpace /DeviceGray /BitsPerComponent 8 /Filter /FlateDecode", smask));
+            return add(objs, streamObj("/Type /XObject /Subtype /Image /Width " + w + " /Height " + h + " /ColorSpace /" + cs
+                    + " /BitsPerComponent 8 /Filter /" + filter + (decode != null ? " /Decode " + decode : "") + (sm > 0 ? " /SMask " + sm + " 0 R" : ""), data));
+        }
+    }
+
+    public record Signer(java.security.PrivateKey key, java.security.cert.X509Certificate[] chain) {
+        public static Signer fromPkcs12(Path file, String password) throws IOException, GeneralSecurityException {
+            return fromPkcs12(Files.readAllBytes(file), password);
+        }
+
+        public static Signer fromPkcs12(byte[] p12, String password) throws IOException, GeneralSecurityException {
+            char[] pw = password == null ? new char[0] : password.toCharArray();
+            java.security.KeyStore ks = java.security.KeyStore.getInstance("PKCS12");
+            ks.load(new java.io.ByteArrayInputStream(p12), pw);
+            for (String a : Collections.list(ks.aliases())) {
+                if (!ks.isKeyEntry(a)) continue;
+                java.security.cert.Certificate[] ch = ks.getCertificateChain(a);
+                java.security.cert.X509Certificate[] x = new java.security.cert.X509Certificate[ch.length];
+                for (int i = 0; i < ch.length; i++) x[i] = (java.security.cert.X509Certificate) ch[i];
+                return new Signer((java.security.PrivateKey) ks.getKey(a, pw), x);
+            }
+            throw new IllegalArgumentException("El archivo no contiene una clave privada");
+        }
+
+        String commonName() {
+            String dn = chain[0].getSubjectX500Principal().getName();
+            for (String part : dn.split(",(?=(?:[^\"]*\"[^\"]*\")*[^\"]*$)")) if (part.trim().startsWith("CN=")) return part.trim().substring(3);
+            return dn;
+        }
+    }
+
+    public record SignatureInfo(String signer, String reason, String date, boolean valid, boolean coversWholeDocument) {}
+
+    public static byte[] sign(byte[] pdf, Signer signer, String reason, String location) {
+        if (pdf == null || indexOf(pdf, "%PDF-", 0, Math.min(pdf.length, 1024)) < 0) throw new IllegalArgumentException("No es un PDF");
+        if (signer == null || signer.key() == null || signer.chain() == null || signer.chain().length == 0)
+            throw new IllegalArgumentException("Firmante sin clave o certificado");
+        Reader r = new Reader(pdf, "");
+        r.scan();
+        if (r.trailer.containsKey("Encrypt")) throw new IllegalArgumentException("No se puede firmar un PDF cifrado");
+        r.expandObjectStreams();
+        if (!(r.trailer.get("Root") instanceof Ref root)) throw new IllegalArgumentException("PDF sin catálogo");
+        Map<String, Object> catalog = new LinkedHashMap<>(r.dict(root));
+        Ref pageRef = r.firstPage(catalog.get("Pages"), 0);
+        if (pageRef == null) throw new IllegalArgumentException("PDF sin páginas");
+        int next = Math.max(intOf(r.trailer.get("Size")), r.objs.keySet().stream().mapToInt(Integer::intValue).max().orElse(0) + 1);
+        int sigN = next++, fieldN = next++, formN = next++;
+
+        Map<String, Object> form = new LinkedHashMap<>(r.dict(catalog.get("AcroForm")));
+        List<Object> fields = new ArrayList<>(r.resolve(form.get("Fields")) instanceof List<?> l ? l : List.of());
+        int count = 1;
+        for (Object f : fields) if ("Sig".equals(nameOf(r.dict(f).get("FT")))) count++;
+        fields.add(new Ref(fieldN));
+        form.put("Fields", fields);
+        form.put("SigFlags", 3L);
+        catalog.put("AcroForm", new Ref(formN));
+        Map<String, Object> page = new LinkedHashMap<>(r.dict(pageRef));
+        List<Object> annots = new ArrayList<>(r.resolve(page.get("Annots")) instanceof List<?> l ? l : List.of());
+        annots.add(new Ref(fieldN));
+        page.put("Annots", annots);
+
+        String placeholder = "/ByteRange [0 0000000000 0000000000 0000000000]";
+        String sig = "<< /Type /Sig /Filter /Adobe.PPKLite /SubFilter /adbe.pkcs7.detached " + placeholder
+                + " /Contents <" + "0".repeat(2 * SIG_SIZE) + "> /M " + date() + " /Name " + pdfText(signer.commonName())
+                + (reason != null && !reason.isBlank() ? " /Reason " + pdfText(reason) : "")
+                + (location != null && !location.isBlank() ? " /Location " + pdfText(location) : "") + " >>";
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        out.writeBytes(pdf);
+        if (pdf[pdf.length - 1] != '\n') write(out, "\n");
+        TreeMap<Integer, int[]> xref = new TreeMap<>();
+        xref.put(sigN, new int[]{out.size(), 0});
+        write(out, sigN + " 0 obj\n" + sig + "\nendobj\n");
+        xref.put(fieldN, new int[]{out.size(), 0});
+        write(out, fieldN + " 0 obj\n<< /Type /Annot /Subtype /Widget /FT /Sig /T (Firma" + count + ") /V " + sigN + " 0 R /P "
+                + r.ser(pageRef) + " /Rect [0 0 0 0] /F 132 >>\nendobj\n");
+        xref.put(formN, new int[]{out.size(), 0});
+        write(out, formN + " 0 obj\n" + r.ser(form) + "\nendobj\n");
+        int rootGen = r.gens.getOrDefault(root.num(), 0), pageGen = r.gens.getOrDefault(pageRef.num(), 0);
+        xref.put(root.num(), new int[]{out.size(), rootGen});
+        write(out, root.num() + " " + rootGen + " obj\n" + r.ser(catalog) + "\nendobj\n");
+        xref.put(pageRef.num(), new int[]{out.size(), pageGen});
+        write(out, pageRef.num() + " " + pageGen + " obj\n" + r.ser(page) + "\nendobj\n");
+
+        int prev = lastStartXref(pdf);
+        StringBuilder tr = new StringBuilder("/Root " + r.ser(root));
+        if (r.trailer.get("Info") != null) tr.append(" /Info ").append(r.ser(r.trailer.get("Info")));
+        if (r.trailer.get("ID") != null) tr.append(" /ID ").append(r.ser(r.trailer.get("ID")));
+        if (prev >= 0) tr.append(" /Prev ").append(prev);
+        boolean stream = prev >= 0 && indexOf(pdf, "xref", prev, Math.min(pdf.length, prev + 4)) != prev;
+        int start;
+        if (stream) {
+            int xn = next++;
+            start = out.size();
+            xref.put(xn, new int[]{start, 0});
+            ByteArrayOutputStream rows = new ByteArrayOutputStream();
+            StringBuilder index = new StringBuilder();
+            for (Map.Entry<Integer, int[]> e : xref.entrySet()) {
+                int o = e.getValue()[0], g = e.getValue()[1];
+                rows.writeBytes(new byte[]{1, (byte) (o >>> 24), (byte) (o >>> 16), (byte) (o >>> 8), (byte) o, (byte) (g >>> 8), (byte) g});
+                index.append(e.getKey()).append(" 1 ");
+            }
+            out.writeBytes(ascii(xn + " 0 obj\n"));
+            out.writeBytes(streamObj("/Type /XRef /Size " + next + " /W [1 4 2] /Index [" + index + "] " + tr, rows.toByteArray()));
+            write(out, "\nendobj\n");
+        } else {
+            start = out.size();
+            StringBuilder sb = new StringBuilder("xref\n");
+            for (Map.Entry<Integer, int[]> e : xref.entrySet())
+                sb.append(e.getKey()).append(" 1\n").append(String.format("%010d %05d n \n", e.getValue()[0], e.getValue()[1]));
+            write(out, sb + "trailer\n<< /Size " + next + " " + tr + " >>\n");
+        }
+        write(out, "startxref\n" + start + "\n%%EOF\n");
+
+        byte[] b = out.toByteArray();
+        int ph = indexOf(b, placeholder, xref.get(sigN)[0], b.length);
+        int c0 = indexOf(b, "/Contents <", ph, b.length) + "/Contents ".length(), c1 = c0 + 2 + 2 * SIG_SIZE;
+        String range = String.format("/ByteRange [0 %010d %010d %010d]", c0, c1, b.length - c1);
+        System.arraycopy(ascii(range), 0, b, ph, range.length());
+        try {
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            md.update(b, 0, c0);
+            md.update(b, c1, b.length - c1);
+            byte[] cms = cms(md.digest(), signer);
+            if (cms.length > SIG_SIZE) throw new IllegalArgumentException("Firma demasiado grande para el espacio reservado");
+            byte[] h = ascii(hex(cms));
+            System.arraycopy(h, 0, b, c0 + 1, h.length);
+        } catch (GeneralSecurityException e) {
+            throw new IllegalArgumentException("No se pudo firmar: " + e.getMessage(), e);
+        }
+        return b;
+    }
+
+    public static List<SignatureInfo> verify(byte[] pdf) {
+        if (pdf == null || indexOf(pdf, "%PDF-", 0, Math.min(pdf.length, 1024)) < 0) throw new IllegalArgumentException("No es un PDF");
+        Reader r = new Reader(pdf, "");
+        r.scan();
+        r.expandObjectStreams();
+        List<SignatureInfo> out = new ArrayList<>();
+        for (Object o : r.objs.values()) {
+            Map<String, Object> d = r.dict(o);
+            if (!(r.resolve(d.get("ByteRange")) instanceof List<?> br) || br.size() != 4 || !(r.resolve(d.get("Contents")) instanceof byte[] cms)) continue;
+            String name = r.resolve(d.get("Name")) instanceof byte[] n ? textString(n) : "";
+            String reason = r.resolve(d.get("Reason")) instanceof byte[] rs ? textString(rs) : "";
+            String date = r.resolve(d.get("M")) instanceof byte[] m ? textString(m) : "";
+            long a = longOf(br.get(0)), al = longOf(br.get(1)), b0 = longOf(br.get(2)), bl = longOf(br.get(3));
+            boolean whole = a == 0 && b0 + bl == pdf.length;
+            boolean valid = false;
+            try {
+                if (a >= 0 && al >= 0 && b0 >= a + al && b0 + bl <= pdf.length) {
+                    Der info = Der.parse(cms, 0), signed = info.child(1).child(0);
+                    List<Der> parts = signed.children();
+                    Der certs = null;
+                    for (Der c : parts) if (c.tag == 0xA0) certs = c;
+                    Der signerInfo = parts.get(parts.size() - 1).child(0);
+                    java.security.cert.CertificateFactory cf = java.security.cert.CertificateFactory.getInstance("X.509");
+                    java.security.cert.X509Certificate cert = null;
+                    BigInteger serial = signerInfo.child(1).child(1).integer();
+                    for (Der c : certs.children()) {
+                        java.security.cert.X509Certificate x = (java.security.cert.X509Certificate) cf.generateCertificate(new java.io.ByteArrayInputStream(c.raw()));
+                        if (cert == null || x.getSerialNumber().equals(serial)) cert = x;
+                    }
+                    String digestAlg = switch (signerInfo.child(2).child(0).oid()) {
+                        case "1.3.14.3.2.26" -> "SHA-1";
+                        case "2.16.840.1.101.3.4.2.2" -> "SHA-384";
+                        case "2.16.840.1.101.3.4.2.3" -> "SHA-512";
+                        default -> "SHA-256";
+                    };
+                    MessageDigest md = MessageDigest.getInstance(digestAlg);
+                    md.update(pdf, (int) a, (int) al);
+                    md.update(pdf, (int) b0, (int) bl);
+                    byte[] actual = md.digest();
+                    Der attrs = signerInfo.child(3);
+                    byte[] expected = null;
+                    for (Der at : attrs.children()) if ("1.2.840.113549.1.9.4".equals(at.child(0).oid())) expected = at.child(1).child(0).content();
+                    byte[] toVerify = attrs.raw();
+                    toVerify[0] = 0x31;
+                    String alg = digestAlg.replace("-", "") + "with" + ("EC".equals(cert.getPublicKey().getAlgorithm()) ? "ECDSA" : "RSA");
+                    java.security.Signature s = java.security.Signature.getInstance(alg);
+                    s.initVerify(cert.getPublicKey());
+                    s.update(toVerify);
+                    valid = expected != null && MessageDigest.isEqual(expected, actual) && s.verify(signerInfo.child(5).content());
+                    if (name.isEmpty()) name = cert.getSubjectX500Principal().getName();
+                }
+            } catch (RuntimeException | GeneralSecurityException e) {
+                valid = false;
+            }
+            out.add(new SignatureInfo(name, reason, date, valid, whole));
+        }
+        return out;
+    }
+
+    private static long longOf(Object o) { return o instanceof Number n ? n.longValue() : -1; }
+
+    private static int lastStartXref(byte[] b) {
+        int p = -1;
+        for (int i = indexOf(b, "startxref", 0, b.length); i >= 0; i = indexOf(b, "startxref", i + 9, b.length)) p = i;
+        if (p < 0) return -1;
+        Object o = new Lexer(b, p + 9, b.length).next(0);
+        return o instanceof Number n ? n.intValue() : -1;
+    }
+
+    private static byte[] cms(byte[] digest, Signer signer) throws GeneralSecurityException {
+        java.security.cert.X509Certificate cert = signer.chain()[0];
+        boolean ec = "EC".equals(signer.key().getAlgorithm());
+        byte[] sha256 = der(0x30, oid("2.16.840.1.101.3.4.2.1"), new byte[]{5, 0});
+        byte[] data = oid("1.2.840.113549.1.7.1");
+        String now = java.time.ZonedDateTime.now(java.time.ZoneOffset.UTC).format(java.time.format.DateTimeFormatter.ofPattern("yyMMddHHmmss'Z'"));
+        List<byte[]> attrs = new ArrayList<>(List.of(
+                der(0x30, oid("1.2.840.113549.1.9.3"), der(0x31, data)),
+                der(0x30, oid("1.2.840.113549.1.9.4"), der(0x31, der(0x04, digest))),
+                der(0x30, oid("1.2.840.113549.1.9.5"), der(0x31, der(0x17, ascii(now))))));
+        attrs.sort(Arrays::compareUnsigned);
+        byte[] set = cat(attrs.toArray(new byte[0][]));
+        java.security.Signature s = java.security.Signature.getInstance(ec ? "SHA256withECDSA" : "SHA256withRSA");
+        s.initSign(signer.key());
+        s.update(der(0x31, set));
+        byte[] value = s.sign();
+        byte[] alg = ec ? der(0x30, oid("1.2.840.10045.4.3.2")) : der(0x30, oid("1.2.840.113549.1.1.1"), new byte[]{5, 0});
+        byte[] sid = der(0x30, cert.getIssuerX500Principal().getEncoded(), der(0x02, cert.getSerialNumber().toByteArray()));
+        byte[] signerInfo = der(0x30, der(0x02, new byte[]{1}), sid, sha256, der(0xA0, set), alg, der(0x04, value));
+        byte[][] certs = new byte[signer.chain().length][];
+        for (int i = 0; i < certs.length; i++) certs[i] = signer.chain()[i].getEncoded();
+        byte[] signed = der(0x30, der(0x02, new byte[]{1}), der(0x31, sha256), der(0x30, data), der(0xA0, cat(certs)), der(0x31, signerInfo));
+        return der(0x30, oid("1.2.840.113549.1.7.2"), der(0xA0, signed));
+    }
+
+    private static byte[] der(int tag, byte[]... parts) {
+        byte[] body = cat(parts);
+        ByteArrayOutputStream o = new ByteArrayOutputStream();
+        o.write(tag);
+        int n = body.length;
+        if (n < 0x80) o.write(n);
+        else {
+            int bytes = n > 0xFFFFFF ? 4 : n > 0xFFFF ? 3 : n > 0xFF ? 2 : 1;
+            o.write(0x80 | bytes);
+            for (int i = bytes - 1; i >= 0; i--) o.write(n >>> (8 * i));
+        }
+        o.writeBytes(body);
+        return o.toByteArray();
+    }
+
+    private static byte[] cat(byte[]... parts) {
+        ByteArrayOutputStream o = new ByteArrayOutputStream();
+        for (byte[] p : parts) o.writeBytes(p);
+        return o.toByteArray();
+    }
+
+    private static byte[] oid(String dotted) {
+        String[] p = dotted.split("\\.");
+        ByteArrayOutputStream o = new ByteArrayOutputStream();
+        o.write(Integer.parseInt(p[0]) * 40 + Integer.parseInt(p[1]));
+        for (int i = 2; i < p.length; i++) {
+            long v = Long.parseLong(p[i]);
+            int shift = 0;
+            while ((v >>> (7 * (shift + 1))) != 0) shift++;
+            for (int k = shift; k >= 0; k--) o.write((int) ((v >>> (7 * k)) & 0x7F) | (k > 0 ? 0x80 : 0));
+        }
+        return der(0x06, o.toByteArray());
+    }
+
+    private static final class Der {
+        final byte[] b;
+        final int tag, start, head, len;
+
+        Der(byte[] b, int tag, int start, int head, int len) { this.b = b; this.tag = tag; this.start = start; this.head = head; this.len = len; }
+
+        static Der parse(byte[] b, int p) {
+            if (p + 2 > b.length) throw new IllegalArgumentException("DER truncado");
+            int tag = b[p] & 0xFF, l = b[p + 1] & 0xFF, h = 2;
+            if (l >= 0x80) {
+                int n = l & 0x7F;
+                if (n == 0 || n > 4 || p + 2 + n > b.length) throw new IllegalArgumentException("DER inválido");
+                l = 0;
+                for (int i = 0; i < n; i++) l = (l << 8) | (b[p + 2 + i] & 0xFF);
+                h += n;
+            }
+            if (l < 0 || p + h + l > b.length) throw new IllegalArgumentException("DER fuera de rango");
+            return new Der(b, tag, p, h, l);
+        }
+
+        List<Der> children() {
+            List<Der> out = new ArrayList<>();
+            for (int p = start + head; p < start + head + len; ) {
+                Der c = parse(b, p);
+                out.add(c);
+                p = c.start + c.head + c.len;
+            }
+            return out;
+        }
+
+        Der child(int i) { return children().get(i); }
+        byte[] content() { return Arrays.copyOfRange(b, start + head, start + head + len); }
+        byte[] raw() { return Arrays.copyOfRange(b, start, start + head + len); }
+        BigInteger integer() { return new BigInteger(content()); }
+
+        String oid() {
+            byte[] c = content();
+            if (c.length == 0) return "";
+            int f = c[0] & 0xFF;
+            StringBuilder sb = new StringBuilder().append(f / 40).append('.').append(f % 40);
+            long v = 0;
+            for (int i = 1; i < c.length; i++) {
+                v = (v << 7) | (c[i] & 0x7F);
+                if ((c[i] & 0x80) == 0) { sb.append('.').append(v); v = 0; }
+            }
+            return sb.toString();
+        }
+    }
+
+    private static String nameEscape(String n) {
+        StringBuilder sb = new StringBuilder();
+        for (char c : n.toCharArray()) {
+            if (c < 0x21 || c > 0x7E || "()<>[]{}/%#".indexOf(c) >= 0) sb.append(String.format("#%02X", c & 0xFF));
+            else sb.append(c);
+        }
+        return sb.toString();
     }
 }
