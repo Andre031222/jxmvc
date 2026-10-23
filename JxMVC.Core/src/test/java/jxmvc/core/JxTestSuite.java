@@ -20,7 +20,8 @@ public class JxTestSuite {
         "jxmvc.core.WebSocketTest",
         "jxmvc.core.SecurityTest",
         "jxmvc.core.HardeningV33Test",
-        "jxmvc.core.OAuthTest"
+        "jxmvc.core.OAuthTest",
+        "jxmvc.core.PdfTest"
     );
 
     public static void main(String[] args) throws Exception {
