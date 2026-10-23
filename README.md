@@ -21,8 +21,8 @@ fixed fifteen-stage request pipeline.
 </div>
 
 A paper describing the design, implementation and empirical evaluation of JxMVC is
-**under review at the _Journal of Systems and Software_ (Elsevier)**. This repository
-holds the framework core, a demo application, and the fully reproducible benchmark harness.
+in preparation. This repository holds the framework core, a demo application, and the
+fully reproducible benchmark harness.
 
 * * *
 
