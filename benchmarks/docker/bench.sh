@@ -17,6 +17,7 @@ PORT=8080
 # Reproducibilidad avanzada (opcional):
 #   BENCH_CPUSET="0,1"      -> fija el contenedor a esos núcleos (docker --cpuset-cpus)
 #   BENCH_CLIENT_CPUS="2,3" -> fija el LoadClient a OTROS núcleos (taskset) para no competir
+#   BENCH_HEAP="512m"       -> mismo heap fijo (-Xms/-Xmx) para todos los frameworks JVM
 CPUSET="${BENCH_CPUSET:-}"
 CLIENT_CPUS="${BENCH_CLIENT_CPUS:-}"
 CLIENT_PREFIX=()
@@ -69,6 +70,7 @@ for fw in "${APPS[@]}"; do
 
   docker rm -f "bench_$fw" >/dev/null 2>&1 || true
   runargs=(--cpus="$CPUS" --memory="$MEM")
+  [ -n "${BENCH_HEAP:-}" ] && [ "$fw" != "quarkus-native" ] && runargs+=(-e "JAVA_TOOL_OPTIONS=-Xms$BENCH_HEAP -Xmx$BENCH_HEAP")
   [ -n "$CPUSET" ] && runargs+=(--cpuset-cpus="$CPUSET")
   docker run -d --name "bench_$fw" "${runargs[@]}" -p "$PORT:8080" "$img" >/dev/null
 
