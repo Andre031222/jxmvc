@@ -16,7 +16,7 @@ fixed fifteen-stage request pipeline.
 [![Runtime deps](https://img.shields.io/badge/runtime_deps-0-2E7D32?style=flat-square)](#design-point)
 [![Tests](https://img.shields.io/badge/tests-425_passing-C21325?style=flat-square)](#reproducing-the-benchmarks)
 [![Paper](https://img.shields.io/badge/paper-in_preparation-64748b?style=flat-square)](#paper)
-[![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.21896137-1d4ed8?style=flat-square)](https://doi.org/10.5281/zenodo.21896137)
+[![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.21896136-1d4ed8?style=flat-square)](https://doi.org/10.5281/zenodo.21896136)
 
 </div>
 
@@ -113,8 +113,9 @@ and [`benchmarks/security/`](benchmarks/security/); `./run.sh` reproduces it.
 ## Download and install
 
 JxMVC is published at **<https://github.com/Andre031222/jxmvc>**. Every release is listed
-under [Releases](https://github.com/Andre031222/jxmvc/releases), and the evaluated version is
-archived on Zenodo ([10.5281/zenodo.21896137](https://doi.org/10.5281/zenodo.21896137)).
+under [Releases](https://github.com/Andre031222/jxmvc/releases), and every version is
+archived on Zenodo under [10.5281/zenodo.21896136](https://doi.org/10.5281/zenodo.21896136) (v3.5.0:
+[10.5281/zenodo.23585853](https://doi.org/10.5281/zenodo.23585853)).
 
 One command installs the framework into your local Maven repository and, optionally, creates
 a ready-to-run project. It needs JDK 17+ and Maven 3.9+; Tomcat is downloaded on first run.
@@ -226,7 +227,7 @@ framework** — consistent with the zero-dependency principle.
 
 The design decisions, from-scratch implementation experience, and empirical evaluation
 are written up in a manuscript **in preparation**. The archived source is citable via Zenodo:
-**[10.5281/zenodo.21896137](https://doi.org/10.5281/zenodo.21896137)**. The article
+**[10.5281/zenodo.21896136](https://doi.org/10.5281/zenodo.21896136)**. The article
 reference will be added here once available.
 
 ```bibtex
@@ -235,8 +236,8 @@ reference will be added here once available.
   title        = {JxMVC: A Security-by-Default Web Framework with Zero Third-Party Dependencies},
   year         = {2026},
   publisher    = {Zenodo},
-  doi          = {10.5281/zenodo.21896137},
-  url          = {https://doi.org/10.5281/zenodo.21896137}
+  doi          = {10.5281/zenodo.21896136},
+  url          = {https://doi.org/10.5281/zenodo.21896136}
 }
 ```
 

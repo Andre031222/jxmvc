@@ -25,3 +25,4 @@ license: MIT
 version: "3.5.0"
 date-released: "2026-10-23"
 keywords: ["web framework","Jakarta EE","zero-dependency","security-by-default","MVC","Java"]
+doi: "10.5281/zenodo.21896136"
