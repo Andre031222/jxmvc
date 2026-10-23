@@ -51,10 +51,12 @@ enough to read and audit end to end.
 | JSON / pooling / OIDC | **own**, JDK-only | delegated to libraries |
 | Readability | whole core auditable in one sitting | tracing across generated code |
 
-Security is not a bolt-on module. In the fixed fifteen-stage pipeline, rate limiting,
-authentication (fail-closed), CSRF, and body-size caps **precede and enclose** the
-developer's controller — a newly written controller is hardened before its author adds a
-single security annotation.
+Security is not a bolt-on module. In the fixed fifteen-stage pipeline, security headers,
+cross-origin rejection, parameter sanitisation, body-size caps and fail-closed
+authentication **precede and enclose** the developer's controller, so a newly written
+controller is hardened before its author adds a single security annotation. Rate limiting
+(`@JxRateLimit`) and session-token CSRF (`jxmvc.security.csrf=true`) are switched on where
+the application needs them.
 
 * * *
 
@@ -89,45 +91,82 @@ Raw per-run data and the environment description live in [`benchmarks/`](benchma
 
 * * *
 
+## Download and install
+
+JxMVC is published at **<https://github.com/Andre031222/jxmvc>**. Every release is listed
+under [Releases](https://github.com/Andre031222/jxmvc/releases), and the evaluated version is
+archived on Zenodo ([10.5281/zenodo.21896137](https://doi.org/10.5281/zenodo.21896137)).
+
+One command installs the framework into your local Maven repository and, optionally, creates
+a ready-to-run project. It needs JDK 17+ and Maven 3.9+; Tomcat is downloaded on first run.
+
+```bash
+# macOS / Linux
+curl -fsSL https://raw.githubusercontent.com/Andre031222/jxmvc/main/install.sh | sh -s -- new myapp
+```
+
+```powershell
+# Windows (PowerShell)
+& ([scriptblock]::Create((irm https://raw.githubusercontent.com/Andre031222/jxmvc/main/install.ps1))) new myapp
+```
+
+```bash
+cd myapp
+mvn package cargo:run     # http://localhost:8080
+mvn package               # target/myapp.war, deployable on Tomcat 10.1+
+```
+
+Drop `new myapp` to install only the framework. Set `JXMVC_VERSION=v3.4.2` to pin a release.
+
+* * *
+
 ## Quick start
 
-Add the core to your Jakarta EE 10 web application and write a controller:
+A controller, an entity and its repository:
 
 ```java
-@JxControllerMapping("/notes")
+@JxControllerMapping("notes")
 public class NoteController extends JxController {
 
     @JxGetMapping("/{id}")
-    public ActionResult show(JxRequest req) {
-        DBRow note = JxDB.queryOne(
-            "SELECT * FROM note WHERE id = :id",
-            Map.of("id", req.pathLong("id")));
-        return json(note);              // built-in JSON serialiser
+    public ActionResult show() {
+        try (JxDB db = db()) {
+            return json(db.queryRow("SELECT * FROM note WHERE id = ?", model.pathVarLong("id")));
+        }
     }
 
-    @JxRequireAuth                      // tightens an already-hardened path
+    @JxRequireAuth
     @JxPostMapping("/")
-    public ActionResult create(JxRequest req) {
-        Note n = req.body(Note.class);  // parsed, size-capped, validated
-        long id = JxRepository.of(Note.class).insert(n);
+    public ActionResult create(@JxValid @JxBody Note note) {
+        long id = new NoteRepository().save(note);
         return redirect("/notes/" + id);
     }
 }
+
+public class Note {
+    @JxId public Long id;
+    @JxRequired @JxMaxLength(200) public String title;
+}
+
+public class NoteRepository extends JxRepository<Note, Long> {
+    public NoteRepository() { super("note", Note.class); }
+}
 ```
 
-By the time either method runs, the pipeline has already rate-limited the caller,
-sanitised the parameters, enforced CSRF on the mutating `POST`, and capped the request
-body — none of which appears in your source. Live demo and docs: <https://jxmvc.ginit.dev>.
+Before either action runs, the pipeline has already added the security headers, rejected
+cross-origin requests, sanitised the parameters and capped the request body. `@JxBody`
+parses the JSON body and `@JxValid` checks it; `@JxRequireAuth` denies the request when no
+authenticated user is present. Rate limiting is opt-in per action with `@JxRateLimit`, and
+session-token CSRF is enabled with `jxmvc.security.csrf=true`. Live demo and docs:
+<https://jxmvc.ginit.dev>.
 
 ### Build from source
 
 ```bash
 git clone https://github.com/Andre031222/jxmvc.git
 cd jxmvc
-mvn -q -pl JxMVC.Core -am install     # builds the 253 kB core
+mvn -q -f JxMVC.Core/pom.xml install
 ```
-
-Requires JDK 17+ and Maven. Deploy on Tomcat 10.1+ (or any Jakarta Servlet 6 container).
 
 * * *
 
