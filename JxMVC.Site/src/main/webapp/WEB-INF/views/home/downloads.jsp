@@ -12,7 +12,7 @@
                  font-size:.72rem; line-height:1.65; color:var(--dc-text); }
 </style>
 
-<section class="max-w-6xl mx-auto px-4 sm:px-6 py-10">
+<section class="s-wrap" style="padding-top:40px;padding-bottom:40px">
 
     <%-- ── Encabezado ─────────────────────────────────────────────── --%>
     <div class="max-w-3xl mb-10 jx-reveal jx-delay-1">
@@ -203,8 +203,8 @@ cd mi-app &amp;&amp; mvn package cargo:run</pre>
 
             <p class="text-xs text-muted dark:text-[#86868b] text-center leading-relaxed">
                 Requiere Java 17+ y Apache Tomcat 10+.<br>
-                Instala el JAR primero con
-                <code class="bg-black/[0.05] dark:bg-white/[0.05] px-1.5 py-0.5 rounded font-mono">mvn install</code>.
+                Instala el core primero con el comando de arriba
+                o con <code class="bg-black/[0.05] dark:bg-white/[0.05] px-1.5 py-0.5 rounded font-mono">mvn install</code>.
             </p>
         </div>
     </form>
@@ -217,9 +217,10 @@ cd mi-app &amp;&amp; mvn package cargo:run</pre>
             <div class="bg-white dark:bg-white/[0.05] border border-black/[0.06] dark:border-white/[0.06] rounded-2xl p-5 hover:border-apple/30 transition-colors">
                 <p class="text-xs font-mono uppercase tracking-[0.25em] text-muted dark:text-[#86868b] mb-2">JAR del framework</p>
                 <h3 class="text-base font-semibold text-ink dark:text-[#f5f5f7] mb-1">jxmvc-core-3.5.0.jar</h3>
-                <p class="text-xs text-muted dark:text-[#86868b] mb-3">298 KB — cero dependencias en runtime</p>
+                <p class="text-xs text-muted dark:text-[#86868b] mb-3">298 KB — cero dependencias en runtime · <a class="text-apple" href="https://github.com/Andre031222/jxmvc/releases/latest" target="_blank" rel="noopener">última versión en GitHub</a></p>
                 <div class="jx-code">
-                    <pre>mvn install -f JxMVC.Core/pom.xml</pre>
+                    <pre>git clone https://github.com/Andre031222/jxmvc.git
+mvn install -f jxmvc/JxMVC.Core/pom.xml</pre>
                 </div>
             </div>
 

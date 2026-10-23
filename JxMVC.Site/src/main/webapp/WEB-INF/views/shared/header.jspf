@@ -15,6 +15,7 @@
          Reemplaza el Play CDN que compilaba en el navegador en cada carga.
          Regenerar: npx tailwindcss@3 -c JxMVC.Site/tailwind.config.js -i JxMVC.Site/tailwind.input.css -o JxMVC.Site/src/main/webapp/assets/css/tailwind.css --minify --%>
     <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/tailwind.css">
+    <link rel="stylesheet" href="${pageContext.request.contextPath}/assets/css/site.css?v=350">
     <style>
         /* ── Tipografía global ───────────────────────────────────────── */
         *, body { font-family: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif; }
@@ -558,10 +559,14 @@ document.addEventListener('DOMContentLoaded', function() {
     jxApply(_jxLang);
 
     var path = window.location.pathname;
+    var navBest = null, navLen = 0;
     document.querySelectorAll('.nav-link').forEach(function(a) {
-        var href = a.getAttribute('href');
-        if (href && (path === href || (href !== '/' && path.startsWith(href)))) a.classList.add('active');
+        var href = (a.getAttribute('href') || '').replace(/^https?:\/\/[^/]+/, '');
+        var root = href.endsWith('/');
+        var hit = root ? path === href : (path === href || path.startsWith(href + '/'));
+        if (hit && href.length > navLen) { navBest = a; navLen = href.length; }
     });
+    if (navBest) navBest.classList.add('active');
 
     var tabs = document.querySelectorAll('.jx-tab');
     var best = null, bestLen = 0;

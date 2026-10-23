@@ -40,7 +40,7 @@
   }
 </style>
 
-<section class="max-w-5xl mx-auto px-4 sm:px-6 py-12">
+<section class="s-wrap" style="padding-top:48px;padding-bottom:48px">
   <div class="mb-10">
     <h1 class="text-4xl font-bold tracking-tight mb-3 text-ink dark:text-[#f5f5f7]">
       Panel de observabilidad

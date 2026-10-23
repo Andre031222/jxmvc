@@ -1,155 +1,69 @@
 <%@page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ include file="/WEB-INF/views/shared/header.jspf" %>
 
-<div class="max-w-6xl mx-auto px-4 sm:px-6 py-10">
-
-<%-- ── Encabezado ───────────────────────────────────────────────────── --%>
-<div class="mb-12 jx-reveal jx-delay-1">
-    <p class="text-[10px] font-mono uppercase tracking-[0.28em] text-muted dark:text-[#8E8E93] mb-3" data-i18n="about.tag">About</p>
-    <h1 class="text-4xl sm:text-5xl font-bold tracking-tight mb-4 text-ink dark:text-white">
-        JxMVC <span class="text-apple">3.5.0</span>
-    </h1>
-    <p class="text-base text-muted dark:text-[#8E8E93] max-w-2xl leading-relaxed" data-i18n="about.desc">
-        Framework MVC para Jakarta EE construido desde cero — sin Spring, sin Hibernate,
-        sin dependencias en runtime. Un JAR de 298 KB con routing, pool de conexiones,
-        validación, JSON, WebSocket, métricas y OpenAPI integrados. Virtual Threads
-        detectados automáticamente en Java 21+.
-    </p>
-</div>
-
-<%-- ── Métricas clave ──────────────────────────────────────────────── --%>
-<div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-12 jx-reveal jx-delay-2">
-    <div class="bg-white dark:bg-[#1C1C1E] border border-black/[0.06] dark:border-white/[0.07] rounded-2xl px-5 py-5 shadow-card">
-        <p class="text-2xl font-bold text-ink dark:text-white">298<span class="text-apple text-sm font-semibold"> KB</span></p>
-        <p class="text-[11px] text-muted dark:text-[#8E8E93] mt-1">Tamaño del core</p>
+<section class="s-hero">
+  <div class="s-wrap s-split">
+    <div>
+      <p class="s-eyebrow">Acerca de</p>
+      <h1 class="s-h1" style="font-size:clamp(2rem,1.2rem + 2.6vw,3.2rem)">Un framework que se puede leer completo.</h1>
     </div>
-    <div class="bg-white dark:bg-[#1C1C1E] border border-black/[0.06] dark:border-white/[0.07] rounded-2xl px-5 py-5 shadow-card">
-        <p class="text-2xl font-bold text-ink dark:text-white">0<span class="text-apple text-sm font-semibold"> deps</span></p>
-        <p class="text-[11px] text-muted dark:text-[#8E8E93] mt-1">Dependencias runtime</p>
+    <div>
+      <p class="s-lead">JxMVC es un framework MVC para Jakarta EE escrito solo sobre el JDK y la API de Servlet. No usa Spring, Hibernate ni Jackson: el routing, el acceso a datos, el pool, el JSON, la seguridad y el resto están dentro de un JAR de 298 KB y 55 clases que una sola persona puede revisar.</p>
+      <p class="s-p" style="margin-top:16px">Su versión 3 creció hasta cubrir lo que necesita una aplicación web real sin romper tres reglas: cero dependencias de terceros, seguridad aplicada por el pipeline y una API explícita.</p>
     </div>
-    <div class="bg-white dark:bg-[#1C1C1E] border border-black/[0.06] dark:border-white/[0.07] rounded-2xl px-5 py-5 shadow-card">
-        <p class="text-2xl font-bold text-ink dark:text-white">15</p>
-        <p class="text-[11px] text-muted dark:text-[#8E8E93] mt-1">Etapas del pipeline</p>
-    </div>
-    <div class="bg-white dark:bg-[#1C1C1E] border border-black/[0.06] dark:border-white/[0.07] rounded-2xl px-5 py-5 shadow-card">
-        <p class="text-2xl font-bold text-ink dark:text-white">54</p>
-        <p class="text-[11px] text-muted dark:text-[#8E8E93] mt-1">Clases en el core</p>
-    </div>
-</div>
+  </div>
+</section>
 
-<%-- ── Pipeline por request (orden real de MainLxServlet) ──────────── --%>
-<div class="mb-12 jx-reveal jx-delay-3">
-    <p class="text-[10px] font-mono uppercase tracking-[0.28em] text-muted dark:text-[#8E8E93] mb-5" data-i18n="about.pipeline">Pipeline de cada request</p>
-    <div class="bg-white dark:bg-[#1C1C1E] border border-black/[0.06] dark:border-white/[0.07] rounded-2xl overflow-hidden divide-y divide-black/[0.05] dark:divide-white/[0.05] shadow-card">
-        <%
-        String[][] steps = {
-            {"01","Endpoints internos",    "/jx/health · /jx/info · /jx/metrics · /jx/openapi"},
-            {"02","Métricas — inicio",     "Timer de latencia por ruta"},
-            {"03","Resolución de ruta",     "Convención / anotaciones / plantillas {var}"},
-            {"04","Rate limiting",          "@JxRateLimit — ventana deslizante, clave por acción"},
-            {"05","Autenticación",          "@JxRequireAuth / @JxRequireRole — fail-closed"},
-            {"06","CSRF",                   "Token de sesión en verbos mutadores · @JxCsrfExempt"},
-            {"07","CORS",                   "@JxCors global o por controlador/acción"},
-            {"08","Contexto",               "JxRequest / JxResponse construidos"},
-            {"09","Filtros before",         "@JxFilter · JxFilters.before()"},
-            {"10","Instancia + DI",         "Controlador instanciado, @JxInject resuelto"},
-            {"11","@JxBeforeAction",        "Interceptores pre-acción por método"},
-            {"12","@JxModelAttr",           "Atributos comunes inyectados al modelo"},
-            {"13","Invocación",             "@JxAsync / @JxRetry · @JxCacheable · @JxTransactional"},
-            {"14","@JxAfterAction + after", "Interceptores post-acción y filtros after"},
-            {"15","Render + métricas",      "Negociación de contenido · JSP / JSON / raw · registro final"},
-        };
-        for (String[] step : steps) {
-        %>
-        <div class="flex items-start gap-5 px-5 py-3.5 hover:bg-[#F5F5F7] dark:hover:bg-white/[0.04] transition-colors">
-            <span class="text-[10px] font-mono text-muted dark:text-[#8E8E93] w-6 shrink-0 pt-px"><%= step[0] %></span>
-            <div class="min-w-0">
-                <p class="text-sm font-medium text-ink dark:text-white"><%= step[1] %></p>
-                <p class="text-xs text-muted dark:text-[#8E8E93] mt-0.5"><%= step[2] %></p>
-            </div>
-        </div>
-        <% } %>
+<section class="s-sec soft">
+  <div class="s-wrap">
+    <p class="s-eyebrow">Principios</p>
+    <div class="s-grid-3" style="margin-top:8px">
+      <div class="s-item"><h3 class="s-h3">Cero dependencias</h3><p class="s-p">Cada función está escrita sobre el JDK y Jakarta Servlet. El único artefacto extra en producción es el driver JDBC de tu base de datos.</p></div>
+      <div class="s-item"><h3 class="s-h3">Seguro por defecto</h3><p class="s-p">Las protecciones son propiedades del pipeline, no de cada ruta. Un controlador nuevo ya está protegido antes de añadirle una anotación.</p></div>
+      <div class="s-item"><h3 class="s-h3">API explícita</h3><p class="s-p">Flujo de control directo y columnas leídas por nombre, sin mapeo por reflexión. Lo que hace el código es lo que se lee.</p></div>
     </div>
-</div>
+  </div>
+</section>
 
-<%-- ── Comparativa ─────────────────────────────────────────────────── --%>
-<div class="mb-12 jx-reveal jx-delay-4">
-    <p class="text-[10px] font-mono uppercase tracking-[0.28em] text-muted dark:text-[#8E8E93] mb-5" data-i18n="about.compare">Comparativa</p>
-    <div class="overflow-x-auto bg-white dark:bg-[#1C1C1E] border border-black/[0.06] dark:border-white/[0.07] rounded-2xl shadow-card">
-        <table class="w-full text-xs">
-            <thead>
-                <tr class="border-b border-black/[0.06] dark:border-white/[0.06] bg-[#F5F5F7] dark:bg-white/[0.04]">
-                    <th class="text-left px-5 py-3 font-semibold text-muted dark:text-[#8E8E93] uppercase tracking-wider">Aspecto</th>
-                    <th class="text-center px-4 py-3 font-semibold text-apple">JxMVC 3.5.0</th>
-                    <th class="text-center px-4 py-3 font-semibold text-muted dark:text-[#8E8E93]">Spring Boot 3</th>
-                    <th class="text-center px-4 py-3 font-semibold text-muted dark:text-[#8E8E93]">Jakarta EE raw</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-black/[0.05] dark:divide-white/[0.05]">
-                <%
-                String[][] rows = {
-                    {"Librerías runtime (app mínima)", "1", "34", "—"},
-                    {"Dependencias de terceros", "0", "33", "0"},
-                    {"Routing",             "Conv+Ann",  "Ann",        "Manual"},
-                    {"Pool de conexiones",  "propio",    "HikariCP",   "ninguno"},
-                    {"DI",                  "propio",    "Spring DI",  "CDI"},
-                    {"Validación",          "propia",    "Bean Val",   "Bean Val"},
-                    {"JSON",                "propio",    "Jackson",    "manual"},
-                    {"WebSocket",           "built-in",  "ext",        "manual"},
-                    {"Métricas",            "built-in",  "Micrometer", "manual"},
-                    {"OpenAPI",             "built-in",  "SpringDoc",  "manual"},
-                    {"Arranque en frío (medido)", "1.3 s", "2.6 s", "—"},
-                };
-                for (String[] row : rows) {
-                %>
-                <tr class="hover:bg-[#F5F5F7] dark:hover:bg-white/[0.03] transition-colors">
-                    <td class="px-5 py-3 text-ink dark:text-white font-medium"><%= row[0] %></td>
-                    <td class="px-4 py-3 text-center font-mono text-apple font-semibold"><%= row[1] %></td>
-                    <td class="px-4 py-3 text-center text-muted dark:text-[#8E8E93] font-mono"><%= row[2] %></td>
-                    <td class="px-4 py-3 text-center text-muted dark:text-[#8E8E93] font-mono"><%= row[3] %></td>
-                </tr>
-                <% } %>
-            </tbody>
-        </table>
+<section class="s-sec">
+  <div class="s-wrap s-split">
+    <div>
+      <p class="s-eyebrow">Investigación</p>
+      <h2 class="s-h2">Evaluado con datos abiertos.</h2>
+      <p class="s-p" style="margin-top:14px">El diseño y la evaluación empírica de JxMVC frente a Spring Boot, Quarkus, Micronaut y Javalin se describen en un artículo en preparación. Los dos arneses de evaluación, las aplicaciones mínimas de cada framework y los datos crudos son públicos.</p>
+      <div class="s-actions">
+        <a class="s-btn s-btn-ghost" href="https://github.com/Andre031222/jxmvc/tree/main/benchmarks" target="_blank" rel="noopener">Benchmarks</a>
+        <a class="s-btn s-btn-ghost" href="https://doi.org/10.5281/zenodo.21896136" target="_blank" rel="noopener">Zenodo DOI</a>
+      </div>
     </div>
-</div>
-
-<%-- ── Stack técnico ───────────────────────────────────────────────── --%>
-<div class="mb-12 jx-reveal jx-delay-4">
-    <p class="text-[10px] font-mono uppercase tracking-[0.28em] text-muted dark:text-[#8E8E93] mb-5" data-i18n="about.stack">Stack</p>
-    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        <%
-        String[][] stack = {
-            {"Lenguaje",  "Java 17+ / 21+",                  "Virtual Threads detectados automáticamente en Java 21+"},
-            {"Servidor",  "Apache Tomcat 10+",               "Jakarta EE 10, Servlet 6.0"},
-            {"Build",     "Maven 3.8+",                      "WAR packaging, cargo-maven3-plugin"},
-            {"DB",        "PostgreSQL · MySQL · SQL Server", "Driver JDBC estándar, sin ORM"},
-            {"Vistas",    "JSP + Tailwind CSS",              "Sin JSTL requerido — EL puro"},
-            {"Testing",   "cargo:run embebido",              "Deploy local en segundos"},
-        };
-        for (String[] s : stack) {
-        %>
-        <div class="bg-white dark:bg-[#1C1C1E] border border-black/[0.06] dark:border-white/[0.07] rounded-2xl p-5 shadow-card hover:shadow-cardh hover:border-apple/25 transition-all">
-            <p class="text-[10px] font-mono uppercase tracking-wider text-muted dark:text-[#8E8E93] mb-1.5"><%= s[0] %></p>
-            <p class="text-sm font-semibold text-ink dark:text-white mb-1"><%= s[1] %></p>
-            <p class="text-xs text-muted dark:text-[#8E8E93] leading-relaxed"><%= s[2] %></p>
-        </div>
-        <% } %>
+    <div class="s-table-wrap">
+      <table class="s-table">
+        <thead><tr><th>Medida</th><th class="n">JxMVC</th><th class="n">Rango de los otros cuatro</th></tr></thead>
+        <tbody>
+          <tr><td>Ataques bloqueados por defecto</td><td class="n jx">17 / 18</td><td class="n">8 – 9</td></tr>
+          <tr><td>Librerías en producción</td><td class="n jx">1</td><td class="n">22 – 104</td></tr>
+          <tr><td>Imagen de contenedor</td><td class="n jx">274 MB</td><td class="n">289 – 302 MB</td></tr>
+          <tr><td>Arranque en frío</td><td class="n jx">1.3 s</td><td class="n">0.5 – 2.6 s</td></tr>
+          <tr><td>Memoria residente</td><td class="n jx">461 MB</td><td class="n">433 – 505 MB</td></tr>
+          <tr><td>Throughput en <code>/json</code></td><td class="n jx">44.5 k/s</td><td class="n">47.1 – 50.4 k/s</td></tr>
+          <tr><td>Errores en 120.9 M de peticiones</td><td class="n jx">0</td><td class="n">0</td></tr>
+        </tbody>
+      </table>
     </div>
-</div>
+  </div>
+</section>
 
-<%-- ── CTA ──────────────────────────────────────────────────────────── --%>
-<div class="flex flex-wrap gap-3 mb-4 jx-reveal jx-delay-4">
-    <a href="${pageContext.request.contextPath}/docs"
-       class="px-5 py-2.5 bg-apple text-white text-sm font-medium rounded-full hover:bg-[#0077ED] active:scale-[0.97] transition-all shadow-sm"
-       data-i18n="about.docs.btn">Ver documentación</a>
-    <a href="${pageContext.request.contextPath}/downloads"
-       class="px-5 py-2.5 bg-black/[0.05] dark:bg-white/[0.08] text-ink dark:text-white border border-black/[0.09] dark:border-white/[0.09] text-sm font-medium rounded-full hover:bg-black/[0.09] dark:hover:bg-white/[0.12] transition-colors"
-       data-i18n="about.dl.btn">Descargar</a>
-    <a href="${pageContext.request.contextPath}/jx/info" target="_blank"
-       class="px-5 py-2.5 bg-black/[0.05] dark:bg-white/[0.08] text-muted dark:text-[#8E8E93] border border-black/[0.09] dark:border-white/[0.09] text-sm font-mono rounded-full hover:text-ink dark:hover:text-white hover:bg-black/[0.09] dark:hover:bg-white/[0.12] transition-colors">
-        /jx/info →</a>
-</div>
+<section class="s-sec soft">
+  <div class="s-wrap s-grid-2">
+    <div>
+      <p class="s-eyebrow">Stack</p>
+      <p class="s-p">Java 17 o superior · Jakarta EE 10 · Servlet 6 · Tomcat 10.1 · Maven. Hilos virtuales en Java 21 o superior. Licencia MIT.</p>
+    </div>
+    <div>
+      <p class="s-eyebrow">Autores</p>
+      <p class="s-p">Idea y base original: Ramiro Pedro Laura Murillo. Desarrollo de la versión 3: Richar Andre Vilca Solorzano. Metodología, análisis y supervisión de la evaluación: Romel Percy Melgarejo Bolivar y Fred Torres Cruz.</p>
+    </div>
+  </div>
+</section>
 
-</div><%-- /container --%>
 <%@ include file="/WEB-INF/views/shared/footer.jspf" %>
