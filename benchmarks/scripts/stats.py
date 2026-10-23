@@ -7,7 +7,6 @@ from collections import defaultdict
 ORDER = ["jxmvc", "spring", "quarkus", "micronaut", "javalin", "quarkus-native"]
 ENDPOINTS = ["plaintext", "json", "db"]
 
-
 def load(path):
     cells = defaultdict(list)
     meta = {}
@@ -17,10 +16,8 @@ def load(path):
         meta.setdefault(r["framework"], r)
     return cells, meta
 
-
 def col(rows, name):
     return [float(r[name]) for r in rows]
-
 
 def mann_whitney(a, b):
     pooled = sorted(a + b)
@@ -43,17 +40,14 @@ def mann_whitney(a, b):
             extreme += 1
     return extreme / total
 
-
 def cliff(a, b):
     gt = sum(1 for x in a for y in b if x > y)
     lt = sum(1 for x in a for y in b if x < y)
     return (gt - lt) / (len(a) * len(b))
 
-
 def magnitude(d):
     d = abs(d)
     return "negligible" if d < 0.147 else "small" if d < 0.33 else "medium" if d < 0.474 else "large"
-
 
 def main(path, out):
     cells, meta = load(path)
@@ -112,7 +106,6 @@ def main(path, out):
     lines += ["", f"Peticiones totales: {requests:,}. Errores o respuestas no-2xx: {errors}."]
     open(out, "w").write("\n".join(lines) + "\n")
     print("\n".join(lines))
-
 
 if __name__ == "__main__":
     main(sys.argv[1], sys.argv[2])

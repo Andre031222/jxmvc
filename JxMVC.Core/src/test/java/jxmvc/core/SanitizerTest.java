@@ -1,7 +1,6 @@
 package jxmvc.core;
 
 public class SanitizerTest {
-
     static int passed = 0;
     static int failed = 0;
 
@@ -52,7 +51,6 @@ public class SanitizerTest {
     }
 
     static void testNormalTextUntouched() {
-        // "+" es decodificado como espacio por URLDecoder — usamos texto sin "+"
         String input = "Hello world! resultado es 4";
         String r = s(input);
         check("normal text preserved", r.contains("Hello") && r.contains("resultado"));

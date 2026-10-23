@@ -1,7 +1,3 @@
-/// JxMVC Open-source project 2024 - 2026
-/// -------------------------------------------
-///  coded by : Dr. Ramiro Pedro Laura Murillo
-
 package jxmvc.core;
 
 import java.lang.reflect.Constructor;
@@ -10,101 +6,47 @@ import java.lang.reflect.Parameter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Contenedor de servicios (DI simple) — singletons sin XML ni bytecode magic.
- *
- * <h3>Características</h3>
- * <ul>
- *   <li>Escaneo automático del paquete de servicios al primer uso.</li>
- *   <li>Inyección de campos {@code @JxInject} y {@code @JxValue}.</li>
- *   <li>Scope {@code SINGLETON} (defecto) y {@code PROTOTYPE} vía {@code @JxScope}.</li>
- *   <li>Inyección por constructor con {@code @JxInject} en el constructor.</li>
- *   <li>Binding automático de {@code @JxConfigProperties}.</li>
- *   <li>Detección de dependencias circulares.</li>
- *   <li>Inyección de {@code @JxDS} en campos {@code JxDB}.</li>
- *   <li>Registro del backend de caché vía {@code @JxCacheManager}.</li>
- * </ul>
- *
- * <pre>
- *   &#64;JxService
- *   public class UserService {
- *       &#64;JxInject private JxDB db;
- *
- *       public DBRowSet findAll() { return db.getTable("users"); }
- *   }
- *
- *   &#64;JxControllerMapping("users")
- *   public class UserController extends JxController {
- *       &#64;JxInject private UserService userService;
- *
- *       &#64;JxGetMapping("list")
- *       public ActionResult list() { return json(userService.findAll()); }
- *   }
- * </pre>
- *
- * Registro manual:
- * <pre>
- *   JxServiceRegistry.register(new UserService());
- *   JxServiceRegistry.register(MyConfig.class, new MyConfig("prod"));
- * </pre>
- */
 public final class JxServiceRegistry {
-
     private static final JxLogger LOG = JxLogger.getLogger(JxServiceRegistry.class);
 
     private static final Map<Class<?>, Object>  singletons = new ConcurrentHashMap<>();
     private static final Set<Class<?>>          prototypes = ConcurrentHashMap.newKeySet();
     private static volatile boolean             scanned    = false;
 
-    /** Detecta ciclos: clases que están siendo inicializadas en el hilo actual. */
     private static final ThreadLocal<Set<Class<?>>> creating =
             ThreadLocal.withInitial(LinkedHashSet::new);
 
     private JxServiceRegistry() {}
 
-    // ── Registro manual ───────────────────────────────────────────────────
-
-    /** Registra un singleton manualmente. */
     public static void register(Object instance) {
         singletons.put(instance.getClass(), instance);
     }
 
-    /** Registra bajo una clase/interfaz específica. */
     public static void register(Class<?> type, Object instance) {
         singletons.put(type, instance);
     }
 
-    /** Devuelve todos los singletons registrados. */
     public static Collection<Object> values() {
         ensureScanned();
         return Set.copyOf(singletons.values());
     }
 
-    /** Obtiene un singleton por tipo, o crea nueva instancia si es PROTOTYPE. */
     @SuppressWarnings("unchecked")
     public static <T> T get(Class<T> type) {
         ensureScanned();
 
-        // Prototype: crear nueva instancia
         if (prototypes.contains(type)) {
             return createInstance(type);
         }
 
         Object found = singletons.get(type);
         if (found != null) return (T) found;
-        // Buscar por compatibilidad (subclases / interfaces)
         for (Map.Entry<Class<?>, Object> e : singletons.entrySet()) {
             if (type.isAssignableFrom(e.getKey())) return (T) e.getValue();
         }
         return null;
     }
 
-    // ── Inyección ─────────────────────────────────────────────────────────
-
-    /**
-     * Inyecta los campos {@code @JxInject}, {@code @JxValue} y {@code @JxDS} en el objeto dado.
-     * Se llama automáticamente para controladores y servicios.
-     */
     public static void inject(Object target) {
         if (target == null) return;
         ensureScanned();
@@ -116,7 +58,6 @@ public final class JxServiceRegistry {
             for (Field field : cls.getDeclaredFields()) {
                 field.setAccessible(true);
 
-                // @JxInject — inyección de servicio
                 if (field.getAnnotation(JxMapping.JxInject.class) != null) {
                     Object dep = resolveField(field, target.getClass());
                     if (dep != null) {
@@ -129,7 +70,6 @@ public final class JxServiceRegistry {
                     continue;
                 }
 
-                // @JxValue — inyección de propiedad
                 JxMapping.JxValue jv = field.getAnnotation(JxMapping.JxValue.class);
                 if (jv != null) {
                     String resolved = resolveValueExpr(jv.value());
@@ -144,8 +84,6 @@ public final class JxServiceRegistry {
         }
     }
 
-    // ── Resolución de @JxValue ────────────────────────────────────────────
-
     private static String resolveValueExpr(String expr) {
         if (expr == null) return "";
         if (expr.startsWith("${") && expr.endsWith("}")) {
@@ -155,10 +93,9 @@ public final class JxServiceRegistry {
             String def = colon >= 0 ? inner.substring(colon + 1) : "";
             return BaseDbResolver.property(key, def);
         }
-        return expr;  // valor literal
+        return expr;
     }
 
-    // BUG FIX #2: type coercion ya no es muda — avisa cuando el valor es inválido
     private static Object coerceValue(String val, Class<?> type) {
         if (type == String.class) return val;
         if (type == int.class || type == Integer.class) {
@@ -180,8 +117,6 @@ public final class JxServiceRegistry {
         if (type == boolean.class || type == Boolean.class) return Boolean.parseBoolean(val.trim());
         return val;
     }
-
-    // ── Escaneo automático ────────────────────────────────────────────────
 
     private static void ensureScanned() {
         if (scanned) return;
@@ -215,7 +150,6 @@ public final class JxServiceRegistry {
                         if (!cls.isAnnotationPresent(JxMapping.JxService.class)) continue;
                         if (singletons.containsKey(cls)) continue;
 
-                        // @JxScope(PROTOTYPE) — no instanciar aún, solo registrar
                         JxMapping.JxScope scope = cls.getAnnotation(JxMapping.JxScope.class);
                         if (scope != null && scope.value() == JxMapping.ScopeType.PROTOTYPE) {
                             prototypes.add(cls);
@@ -237,15 +171,12 @@ public final class JxServiceRegistry {
             LOG.warn("Error escaneando paquete de servicios '{}': {}", pkg, e.getMessage());
         }
 
-        // Segunda pasada: inyectar dependencias
         for (Object service : Set.copyOf(singletons.values())) {
             inject(service);
         }
 
-        // Tercera pasada: registrar event listeners + cache managers
         for (Object service : Set.copyOf(singletons.values())) {
             JxEventBus.registerListeners(service);
-            // @JxCacheManager — backend de caché pluggable
             if (service.getClass().isAnnotationPresent(JxMapping.JxCacheManager.class)
                     && service instanceof JxCacheBackend backend) {
                 JxCache.setGlobalBackend(backend);
@@ -253,16 +184,6 @@ public final class JxServiceRegistry {
         }
     }
 
-    // ── Instanciación (constructor injection + @JxConfigProperties) ───────
-
-    /**
-     * Crea una instancia de la clase usando:
-     * 1. Constructor con {@code @JxInject} (constructor injection)
-     * 2. {@code @JxConfigProperties} si está presente (binding de propiedades)
-     * 3. Constructor por defecto
-     *
-     * Detecta dependencias circulares mediante un {@link ThreadLocal}.
-     */
     static Object instantiate(Class<?> cls) {
         Set<Class<?>> inProgress = creating.get();
         if (inProgress.contains(cls)) {
@@ -271,23 +192,19 @@ public final class JxServiceRegistry {
         }
         inProgress.add(cls);
         try {
-            // @JxConfigProperties: usar JxConfigBinder
             if (cls.isAnnotationPresent(JxMapping.JxConfigProperties.class)) {
                 return JxConfigBinder.bind(cls);
             }
 
-            // Constructor con @JxInject
             for (Constructor<?> ctor : cls.getDeclaredConstructors()) {
                 if (ctor.getAnnotation(JxMapping.JxInject.class) != null) {
                     return injectConstructor(ctor);
                 }
             }
 
-            // Constructor por defecto
             Constructor<?> def = cls.getDeclaredConstructor();
             def.setAccessible(true);
             return def.newInstance();
-
         } catch (JxException e) {
             throw e;
         } catch (Exception e) {
@@ -297,7 +214,6 @@ public final class JxServiceRegistry {
         }
     }
 
-    // BUG FIX #3: constructor injection valida que todos los params puedan resolverse
     private static Object injectConstructor(Constructor<?> ctor) throws Exception {
         ctor.setAccessible(true);
         Parameter[] params = ctor.getParameters();
@@ -307,11 +223,9 @@ public final class JxServiceRegistry {
             args[i] = get(pType);
 
             if (args[i] == null && !pType.isPrimitive()) {
-                // Intentar crear si es un servicio conocido
                 if (pType.isAnnotationPresent(JxMapping.JxService.class)) {
                     args[i] = instantiate(pType);
                 }
-                // Advertir si sigue siendo null — no pasar null silenciosamente
                 if (args[i] == null) {
                     LOG.warn("Constructor injection en {}: parámetro {} ({}) no pudo resolverse — se pasará null",
                             ctor.getDeclaringClass().getSimpleName(), i, pType.getSimpleName());
@@ -320,8 +234,6 @@ public final class JxServiceRegistry {
         }
         return ctor.newInstance(args);
     }
-
-    // ── Creación de instancias prototype ─────────────────────────────────
 
     @SuppressWarnings("unchecked")
     private static <T> T createInstance(Class<T> cls) {
@@ -334,26 +246,19 @@ public final class JxServiceRegistry {
         }
     }
 
-    // ── Resolución de campo @JxInject ─────────────────────────────────────
-
     private static Object resolveField(Field field, Class<?> ownerClass) {
         Class<?> type = field.getType();
 
-        // JxDB: verificar si el owner tiene @JxDS para usar datasource secundario
         if (JxDB.class.isAssignableFrom(type)) {
-            // @JxDS en el campo
             JxMapping.JxDS fieldDs = field.getAnnotation(JxMapping.JxDS.class);
             if (fieldDs != null) return new JxDB(fieldDs.value());
-            // @JxDS en la clase owner
             JxMapping.JxDS classDs = ownerClass.getAnnotation(JxMapping.JxDS.class);
             if (classDs != null) return new JxDB(classDs.value());
             return new JxDB();
         }
 
-        // Prototype
         if (prototypes.contains(type)) return createInstance(type);
 
-        // Buscar en el registro
         return get(type);
     }
 }

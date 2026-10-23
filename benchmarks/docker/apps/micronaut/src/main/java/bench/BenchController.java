@@ -13,7 +13,6 @@ import java.util.Map;
 
 @Controller
 public class BenchController {
-
     @Get(value = "/plaintext", produces = "text/plain")
     public String plaintext() { return "OK"; }
 

@@ -8,13 +8,6 @@ import java.sql.Statement;
 import java.util.concurrent.atomic.AtomicInteger;
 import org.h2.jdbcx.JdbcConnectionPool;
 
-/**
- * Shared in-memory H2 data source for the /db benchmark endpoint.
- * The class is byte-for-byte identical across all evaluated frameworks so
- * that /db measures each framework's request-handling overhead plus one
- * real SQL round-trip, holding data access constant (plain JDBC, the same
- * engine, the same query, the same 1000-row seed).
- */
 public final class Db {
     private static final int ROWS = 1000;
     private static final AtomicInteger SEQ = new AtomicInteger();
@@ -44,7 +37,6 @@ public final class Db {
         pool = p;
     }
 
-    /** Fetch one row by a rotating id and serialise it to a JSON string. */
     public static String json() {
         if (pool == null) init();
         int id = Math.floorMod(SEQ.getAndIncrement(), ROWS);

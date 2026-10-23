@@ -1,7 +1,3 @@
-/// JxMVC Open-source project 2024 - 2026
-/// -------------------------------------------
-///  coded by : Dr. Ramiro Pedro Laura Murillo
-
 package jxmvc.core;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,18 +17,7 @@ import java.util.jar.JarFile;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Motor de enrutamiento de JxMVC.
- * Resuelve la ruta HTTP al controlador y acción correspondientes
- * usando anotaciones o la convención {@code /controlador/accion/arg0/arg1}.
- *
- * El paquete de controladores se configura en {@code application.properties}:
- * <pre>
- *   jxmvc.controllers.package=com.miapp.controllers
- * </pre>
- */
 class BaseDispatcher {
-
     private static final JxLogger  log            = JxLogger.getLogger(BaseDispatcher.class);
     private static final String CONTROLLER_PKG = BaseDbResolver.controllerPackage();
     private static final String[] ALL_VERBS    = {"GET","POST","PUT","DELETE","PATCH"};
@@ -42,14 +27,11 @@ class BaseDispatcher {
     private final List<TemplateRoute>                              templateRoutes   = new CopyOnWriteArrayList<>();
     private volatile boolean indexed;
 
-    // ── Resolución de ruta ────────────────────────────────────────────────
-
     BaseDispatchPlan resolve(HttpServletRequest request) throws Exception {
         String rawPath  = extractPath(request);
         String path     = normalize(rawPath);
         if ("/__invalid".equals(path)) throw new JxException(400, "Ruta inválida");
         String verb     = request.getMethod().toUpperCase();
-        // HEAD se resuelve como GET: el contenedor omite el cuerpo en la respuesta.
         if ("HEAD".equals(verb)) verb = "GET";
 
         AnnotatedMatch match = resolveAnnotated(verb, path, rawPath);
@@ -67,8 +49,6 @@ class BaseDispatcher {
                 match.args(), match.pathVars(), route.cls(), route.method());
     }
 
-    // ── Instanciación ─────────────────────────────────────────────────────
-
     JxController newInstance(Class<? extends JxController> cls) throws ReflectiveOperationException {
         Constructor<? extends JxController> ctor = constructorCache.computeIfAbsent(cls.getName(), k -> {
             try {
@@ -79,8 +59,6 @@ class BaseDispatcher {
         });
         return ctor.newInstance();
     }
-
-    // ── Ruta convencional ─────────────────────────────────────────────────
 
     private BaseDispatchPlan resolveConventional(String rawPath, String verb) throws Exception {
         String[] seg = rawPath.equals("/") ? new String[0]
@@ -116,8 +94,6 @@ class BaseDispatcher {
         throw new NoSuchMethodException(cls.getName() + "#" + action);
     }
 
-    // ── Ruta raíz (@JxControllerMain) ────────────────────────────────────
-
     private BaseDispatchPlan resolveMain(String verb) {
         for (Class<? extends JxController> cls : scan()) {
             if (cls.getAnnotation(JxMapping.JxControllerMain.class) == null) continue;
@@ -130,8 +106,6 @@ class BaseDispatcher {
         return null;
     }
 
-    // ── Índice de rutas anotadas ──────────────────────────────────────────
-
     private AnnotatedMatch resolveAnnotated(String verb, String path, String rawPath) {
         return resolveAnnotated(verb, path, rawPath, true);
     }
@@ -140,11 +114,9 @@ class BaseDispatcher {
         ensureIndexed();
         String prefix = verb + ":";
 
-        // 1. Coincidencia exacta
         AnnotatedRoute exact = routeCache.get(prefix + path);
         if (exact != null) return new AnnotatedMatch(exact, new String[0], Collections.emptyMap());
 
-        // 2. 405: misma ruta, otro verbo (omitido al resolver un preflight OPTIONS)
         if (check405 && !"OPTIONS".equals(verb)) {
             for (String v : ALL_VERBS) {
                 if (v.equals(verb)) continue;
@@ -153,15 +125,11 @@ class BaseDispatcher {
             }
         }
 
-        // 3. Coincidencia por prefijo (args en la ruta)
-        // Solo aplica a rutas con segmento de acción explícito (>=2 segmentos: /ctrl/action)
-        // para evitar que la ruta base /ctrl capture /ctrl/desconocido como argumento.
         AnnotatedRoute best     = null;
         String         bestPath = null;
         for (Map.Entry<String, AnnotatedRoute> e : routeCache.entrySet()) {
             if (!e.getKey().startsWith(prefix)) continue;
             String rp = e.getKey().substring(prefix.length());
-            // Requiere al menos /ctrl/action (un '/' interno después del primero)
             if (rp.indexOf('/', 1) < 0) continue;
             if (path.startsWith(rp + "/") && (bestPath == null || rp.length() > bestPath.length())) {
                 bestPath = rp;
@@ -171,7 +139,6 @@ class BaseDispatcher {
 
         if (best != null) return new AnnotatedMatch(best, extraArgs(rawPath, bestPath), Collections.emptyMap());
 
-        // 4. Coincidencia por plantilla ({variable})
         for (TemplateRoute tr : templateRoutes) {
             if (!tr.verb().equals(verb) && !"ANY".equals(tr.verb())) continue;
             if (!tr.pattern().matcher(path).matches()) continue;
@@ -191,7 +158,6 @@ class BaseDispatcher {
             return new AnnotatedMatch(tr.route(), new String[0], vars);
         }
 
-        // 5. 405 también para plantillas: la ruta existe con otro verbo
         if (check405 && !"OPTIONS".equals(verb)) {
             for (TemplateRoute tr : templateRoutes) {
                 if (tr.verb().equals(verb) || "ANY".equals(tr.verb())) continue;
@@ -200,7 +166,6 @@ class BaseDispatcher {
             }
         }
 
-        // 6. OPTIONS: buscar en todos los verbos sin disparar el 405 del preflight
         if ("OPTIONS".equals(verb)) {
             for (String v : ALL_VERBS) {
                 AnnotatedMatch m = resolveAnnotated(v, path, rawPath, false);
@@ -237,8 +202,6 @@ class BaseDispatcher {
                 }
             }
         }
-        // Orden determinista de plantillas: el escaneo viene de un HashSet sin orden.
-        // Gana la más específica (menos variables; a igualdad, patrón más largo).
         templateRoutes.sort(Comparator
                 .comparingInt((TemplateRoute t) -> t.varNames().size())
                 .thenComparing(t -> -t.pattern().pattern().length())
@@ -297,8 +260,6 @@ class BaseDispatcher {
         }
     }
 
-    // ── Escaneo de controladores ──────────────────────────────────────────
-
     @SuppressWarnings("unchecked")
     private Set<Class<? extends JxController>> scan() {
         Set<Class<? extends JxController>> classes = new HashSet<>();
@@ -340,10 +301,8 @@ class BaseDispatcher {
         try {
             Class<?> raw = Class.forName(name);
             if (JxController.class.isAssignableFrom(raw)) set.add((Class<? extends JxController>) raw);
-        } catch (ClassNotFoundException ignored) {}  // clase no disponible en classpath actual
+        } catch (ClassNotFoundException ignored) {}
     }
-
-    // ── Utilidades ────────────────────────────────────────────────────────
 
     private boolean isAction(Method m) {
         return Modifier.isPublic(m.getModifiers()) && !Modifier.isStatic(m.getModifiers());
@@ -358,7 +317,7 @@ class BaseDispatcher {
         boolean any    = m.isAnnotationPresent(JxMapping.JxAnyMapping.class);
 
         if (any) return true;
-        if (!get && !post && !put && !delete && !patch) return true; // sin anotación = todos
+        if (!get && !post && !put && !delete && !patch) return true;
 
         return switch (verb) {
             case "GET", "HEAD" -> get;
@@ -377,7 +336,6 @@ class BaseDispatcher {
             String v = cm.value().trim();
             return normalize(v.startsWith("/") ? v : "/" + v);
         }
-        // @JxRestController también puede definir el prefijo de ruta
         JxMapping.JxRestController rc = cls.getAnnotation(JxMapping.JxRestController.class);
         if (rc != null && !rc.value().isBlank()) {
             String v = rc.value().trim();
@@ -428,8 +386,6 @@ class BaseDispatcher {
     private String[] extraArgs(String rawPath, String matched) {
         String norm = normalize(rawPath);
         if (!norm.startsWith(matched + "/")) return new String[0];
-        // Por segmentos (no por offset): el path crudo puede traer // o mayúsculas
-        // que desalinean los índices respecto al normalizado.
         String[] rawSegs = Arrays.stream(rawPath.split("/"))
                 .filter(s -> !s.isBlank()).toArray(String[]::new);
         int matchedSegs = (int) Arrays.stream(matched.split("/"))

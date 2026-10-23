@@ -20,7 +20,6 @@ import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
 public final class JxPdf {
-
     static final int MAX_STREAM = 64 * 1024 * 1024;
     static final int MAX_DEPTH  = 64;
 
@@ -38,7 +37,146 @@ public final class JxPdf {
         }
     }
 
-    private JxPdf() {}
+    public static final String HELVETICA = "Helvetica";
+    public static final String HELVETICA_BOLD = "Helvetica-Bold";
+    public static final String HELVETICA_OBLIQUE = "Helvetica-Oblique";
+    public static final String TIMES = "Times-Roman";
+    public static final String TIMES_BOLD = "Times-Bold";
+    public static final String TIMES_ITALIC = "Times-Italic";
+    public static final String COURIER = "Courier";
+    public static final String COURIER_BOLD = "Courier-Bold";
+
+    private static final float PAGE_W = 595, PAGE_H = 842;
+
+    private final List<StringBuilder> pages = new ArrayList<>();
+    private final Map<String, String> fonts = new LinkedHashMap<>();
+    private final float margin;
+    private String font = HELVETICA;
+    private float size = 12;
+    private float x, y;
+    private float[] back = {1, 1, 1}, ink = {0, 0, 0}, line = {0, 0, 0};
+
+    public JxPdf() { this(40); }
+
+    public JxPdf(float margin) {
+        this.margin = margin;
+        AddPage();
+    }
+
+    public JxPdf AddPage() {
+        pages.add(new StringBuilder());
+        x = margin;
+        y = margin;
+        return this;
+    }
+
+    public JxPdf SetFont(String name, float size) {
+        this.font = name == null ? HELVETICA : name;
+        this.size = size;
+        fonts.computeIfAbsent(this.font, k -> "F" + (fonts.size() + 1));
+        return this;
+    }
+
+    public JxPdf SetBackColor(java.awt.Color c) { back = rgb(c); return this; }
+    public JxPdf SetBackColor(int r, int g, int b) { back = rgb(r, g, b); return this; }
+    public JxPdf SetTextColor(java.awt.Color c) { ink = rgb(c); return this; }
+    public JxPdf SetTextColor(int r, int g, int b) { ink = rgb(r, g, b); return this; }
+    public JxPdf SetDrawColor(java.awt.Color c) { line = rgb(c); return this; }
+    public JxPdf SetDrawColor(int r, int g, int b) { line = rgb(r, g, b); return this; }
+
+    public JxPdf SetXY(float x, float y) {
+        this.x = x;
+        this.y = y;
+        return this;
+    }
+
+    public float GetX() { return x; }
+    public float GetY() { return y; }
+
+    public JxPdf TextXY(float x, float y, String text) {
+        fonts.computeIfAbsent(font, k -> "F" + (fonts.size() + 1));
+        page().append(String.format(Locale.ROOT, "%s BT /%s %.2f Tf %.2f %.2f Td (%s) Tj ET\n",
+                fill(ink), fonts.get(font), size, x, PAGE_H - y, escape(text == null ? "" : text)));
+        this.x = margin;
+        this.y = Math.max(this.y, y + size * 0.6f);
+        return this;
+    }
+
+    public JxPdf Cell(float w, float h, String text) { return Cell(w, h, text, false, false, 0); }
+
+    public JxPdf Cell(float w, float h, String text, boolean border, boolean fill, int ln) {
+        if (y + h > PAGE_H - margin) AddPage();
+        if (w <= 0) w = PAGE_W - margin - x;
+        StringBuilder sb = page();
+        if (fill || border) {
+            sb.append(String.format(Locale.ROOT, "%s %s %.2f %.2f %.2f %.2f re %s\n",
+                    fill(back), stroke(line), x, PAGE_H - y - h, w, h, fill && border ? "B" : fill ? "f" : "S"));
+        }
+        if (text != null && !text.isEmpty()) {
+            fonts.computeIfAbsent(font, k -> "F" + (fonts.size() + 1));
+            sb.append(String.format(Locale.ROOT, "%s BT /%s %.2f Tf %.2f %.2f Td (%s) Tj ET\n",
+                    fill(ink), fonts.get(font), size, x + 3, PAGE_H - y - h / 2 - size * 0.35f, escape(text)));
+        }
+        if (ln == 1) { x = margin; y += h; }
+        else if (ln == 2) y += h;
+        else x += w;
+        return this;
+    }
+
+    public JxPdf Ln() { return Ln(size * 1.4f); }
+
+    public JxPdf Ln(float h) {
+        x = margin;
+        y += h;
+        return this;
+    }
+
+    public byte[] GetStream() {
+        if (fonts.isEmpty()) fonts.put(HELVETICA, "F1");
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        List<Integer> offs = new ArrayList<>();
+        int first = 3 + fonts.size() + 1;
+        write(out, "%PDF-1.4\n%\u00e2\u00e3\u00cf\u00d3\n");
+        StringBuilder kids = new StringBuilder();
+        for (int i = 0; i < pages.size(); i++) kids.append(i == 0 ? "" : " ").append(first + 2 * i).append(" 0 R");
+        obj(out, offs, "<< /Type /Catalog /Pages 2 0 R >>");
+        obj(out, offs, "<< /Type /Pages /Kids [" + kids + "] /Count " + pages.size() + " >>");
+        StringBuilder res = new StringBuilder("<< /Font << ");
+        int n = 3;
+        for (Map.Entry<String, String> f : fonts.entrySet()) {
+            obj(out, offs, "<< /Type /Font /Subtype /Type1 /BaseFont /" + f.getKey() + " /Encoding /WinAnsiEncoding >>");
+            res.append('/').append(f.getValue()).append(' ').append(n++).append(" 0 R ");
+        }
+        res.append(">> >>");
+        obj(out, offs, "<< /Producer (JxMVC JxPdf) >>");
+        for (int i = 0; i < pages.size(); i++) {
+            obj(out, offs, "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595 842] /Resources " + res
+                    + " /Contents " + (first + 2 * i + 1) + " 0 R >>");
+            byte[] content = deflate(pages.get(i).toString().getBytes(CP1252));
+            offs.add(out.size());
+            write(out, offs.size() + " 0 obj\n<< /Length " + content.length + " /Filter /FlateDecode >>\nstream\n");
+            out.writeBytes(content);
+            write(out, "\nendstream\nendobj\n");
+        }
+        int xref = out.size();
+        write(out, "xref\n0 " + (offs.size() + 1) + "\n0000000000 65535 f \n");
+        for (int o : offs) write(out, String.format("%010d 00000 n \n", o));
+        write(out, "trailer\n<< /Size " + (offs.size() + 1) + " /Root 1 0 R /Info " + (3 + fonts.size()) + " 0 R >>\nstartxref\n"
+                + xref + "\n%%EOF\n");
+        return out.toByteArray();
+    }
+
+    public void Output(String path) throws IOException { Files.write(Path.of(path), GetStream()); }
+
+    private StringBuilder page() { return pages.get(pages.size() - 1); }
+
+    private static float[] rgb(java.awt.Color c) { return rgb(c.getRed(), c.getGreen(), c.getBlue()); }
+
+    private static float[] rgb(int r, int g, int b) { return new float[]{r / 255f, g / 255f, b / 255f}; }
+
+    private static String fill(float[] c) { return String.format(Locale.ROOT, "%.3f %.3f %.3f rg", c[0], c[1], c[2]); }
+
+    private static String stroke(float[] c) { return String.format(Locale.ROOT, "%.3f %.3f %.3f RG", c[0], c[1], c[2]); }
 
     public record Doc(List<String> pages, List<Integer> scanned, Map<String, String> info) {
         public int pageCount()            { return pages.size(); }

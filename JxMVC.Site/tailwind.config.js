@@ -1,13 +1,3 @@
-/**
- * Config de build de Tailwind para JxMVC.
- * Genera un CSS estático (solo las clases usadas) que se empaqueta dentro del WAR,
- * reemplazando el Play CDN (compilaba en el navegador en cada carga).
- *
- * Compilar:
- *   npx tailwindcss@3 -c JxMVC.Site/tailwind.config.js \
- *       -i JxMVC.Site/tailwind.input.css \
- *       -o JxMVC.Site/src/main/webapp/assets/css/tailwind.css --minify
- */
 module.exports = {
   darkMode: 'class',
   content: [

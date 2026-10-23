@@ -1,8 +1,3 @@
-/// JxMVC Open-source project 2024 - 2026
-/// -------------------------------------------
-///  coded by : Dr. Ramiro Pedro Laura Murillo
-///  v3.1.1   : R. Andre Vilca Solorzano — cron expressions
-
 package jxmvc.core;
 
 import java.lang.reflect.Method;
@@ -17,46 +12,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-/**
- * Motor de tareas programadas — sin dependencias externas.
- * Detecta métodos {@code @JxScheduled} en servicios {@code @JxService}
- * y los ejecuta con {@link ScheduledExecutorService}.
- *
- * <pre>
- *   &#64;JxService
- *   public class ReportService {
- *
- *       &#64;JxScheduled(fixedDelay = 60_000, initialDelay = 5_000)
- *       public void purgeExpiredTokens() { ... }
- *
- *       &#64;JxScheduled(fixedRate = 30_000)
- *       public void refreshCache() { ... }
- *
- *       &#64;JxScheduled(cron = "0 3 * * *")       // cada día a las 3:00 AM
- *       public void backupDiario() { ... }
- *
- *       &#64;JxScheduled(cron = "0 9 * * 1")       // cada lunes a las 9:00 AM
- *       public void reporteSemanal() { ... }
- *
- *       &#64;JxScheduled(cron = "&#42;/15 * * * *")   // cada 15 minutos
- *       public void syncExterno() { ... }
- *
- *       &#64;JxScheduled(cron = "0 0 1 * *")       // primer día de cada mes
- *       public void facturacion() { ... }
- *   }
- * </pre>
- *
- * Se inicia automáticamente en {@code MainLxServlet.init()}.
- * También se puede invocar manualmente:
- * <pre>
- *   JxScheduler.start();                                         // escanea servicios registrados
- *   JxScheduler.scheduleCron(() -> backup(), "0 2 * * *");       // cron directo
- *   JxScheduler.scheduleAtFixedRate(() -> ping(), 0, 60_000);    // fixed rate directo
- *   JxScheduler.shutdown();                                      // libera el executor
- * </pre>
- */
 public final class JxScheduler {
-
     private static final AtomicInteger threadId = new AtomicInteger(1);
     private static final JxLogger      log      = JxLogger.getLogger(JxScheduler.class);
 
@@ -72,23 +28,12 @@ public final class JxScheduler {
 
     private JxScheduler() {}
 
-    // ── Inicio ────────────────────────────────────────────────────────────
-
-    /**
-     * Escanea todos los singletons de {@link JxServiceRegistry} y programa
-     * los métodos anotados con {@code @JxScheduled}.
-     * Llamar una sola vez desde {@code MainLxServlet.init()}.
-     */
     public static void start() {
         for (Object service : JxServiceRegistry.values()) {
             scanAndSchedule(service);
         }
     }
 
-    /**
-     * Programa explícitamente un método con sus parámetros de scheduling.
-     * Gestiona automáticamente cron, fixedRate y fixedDelay.
-     */
     public static void schedule(Object target, Method method, JxMapping.JxScheduled ann) {
         method.setAccessible(true);
         Runnable task = () -> {
@@ -112,30 +57,11 @@ public final class JxScheduler {
         }
     }
 
-    /**
-     * Programa una tarea con expresión cron de 5 campos.
-     * La tarea se reprograma automáticamente después de cada ejecución.
-     *
-     * <pre>
-     *   JxScheduler.scheduleCron(() -> backup(), "0 2 * * *");   // cada día a las 2 AM
-     *   JxScheduler.scheduleCron(() -> report(), "0 8 * * 1");   // cada lunes a las 8 AM
-     *   JxScheduler.scheduleCron(() -> ping(),   "&#42;/5 * * * *"); // cada 5 minutos
-     * </pre>
-     *
-     * Campos: {@code minuto hora día-del-mes mes día-de-semana} (dow: 0=domingo, 6=sábado).
-     */
     public static void scheduleCron(Runnable task, String cron) {
         CronTrigger trigger = new CronTrigger(cron);
         fireCron(task, cron, trigger);
     }
 
-    /**
-     * Programa una tarea con tasa fija.
-     *
-     * @param task      tarea a ejecutar
-     * @param initialMs milisegundos antes del primer disparo
-     * @param periodMs  milisegundos entre disparos
-     */
     public static void scheduleAtFixedRate(Runnable task, long initialMs, long periodMs) {
         exec.scheduleAtFixedRate(() -> {
             try { task.run(); }
@@ -143,13 +69,6 @@ public final class JxScheduler {
         }, initialMs, periodMs, TimeUnit.MILLISECONDS);
     }
 
-    /**
-     * Programa una tarea con retardo fijo entre ejecuciones.
-     *
-     * @param task      tarea a ejecutar
-     * @param initialMs milisegundos antes del primer disparo
-     * @param delayMs   milisegundos entre el fin de una ejecución y el inicio de la siguiente
-     */
     public static void scheduleWithFixedDelay(Runnable task, long initialMs, long delayMs) {
         exec.scheduleWithFixedDelay(() -> {
             try { task.run(); }
@@ -157,13 +76,6 @@ public final class JxScheduler {
         }, initialMs, delayMs, TimeUnit.MILLISECONDS);
     }
 
-    /**
-     * Ejecuta una tarea una sola vez después del retraso dado.
-     *
-     * <pre>
-     *   JxScheduler.runOnce(() -> notificarAdmin(), 5_000); // en 5 segundos
-     * </pre>
-     */
     public static void runOnce(Runnable task, long delayMs) {
         exec.schedule(() -> {
             try { task.run(); }
@@ -171,7 +83,6 @@ public final class JxScheduler {
         }, delayMs, TimeUnit.MILLISECONDS);
     }
 
-    /** Ejecuta una tarea inmediatamente en el pool del scheduler. */
     public static void runAsync(Runnable task) {
         exec.submit(() -> {
             try { task.run(); }
@@ -179,7 +90,6 @@ public final class JxScheduler {
         });
     }
 
-    /** Detiene el executor esperando hasta 10s para tareas en curso (graceful shutdown). */
     public static void shutdown() {
         exec.shutdown();
         try { exec.awaitTermination(10, TimeUnit.SECONDS); }
@@ -187,12 +97,9 @@ public final class JxScheduler {
         finally { if (!exec.isTerminated()) exec.shutdownNow(); }
     }
 
-    /** Retorna {@code true} si el scheduler está activo. */
     public static boolean isRunning() {
         return !exec.isShutdown();
     }
-
-    // ── Cron ─────────────────────────────────────────────────────────────
 
     private static void fireCron(Runnable task, String cron, CronTrigger trigger) {
         long delay = trigger.nextDelayMs();
@@ -203,19 +110,12 @@ public final class JxScheduler {
         }, delay, TimeUnit.MILLISECONDS);
     }
 
-    /**
-     * Parsea y evalúa expresiones cron de 5 campos.
-     * Campos: {@code min(0-59) hora(0-23) dom(1-31) mes(1-12) dow(0-6, 0=domingo)}.
-     * Operadores: {@code *} cualquiera, valor exacto, {@code * /N} cada N (sin espacio en uso real),
-     *             {@code A-B} rango, {@code A,B,C} lista.
-     */
     static final class CronTrigger {
-
-        private final int[] minutes;    // 0-59
-        private final int[] hours;      // 0-23
-        private final int[] doms;       // 1-31  (day-of-month)
-        private final int[] months;     // 1-12
-        private final int[] dows;       // 0-6   (0=domingo)
+        private final int[] minutes;
+        private final int[] hours;
+        private final int[] doms;
+        private final int[] months;
+        private final int[] dows;
 
         CronTrigger(String expr) {
             String[] p = expr.trim().split("\\s+");
@@ -228,7 +128,6 @@ public final class JxScheduler {
             dows    = parseField(p[4],  0,  6);
         }
 
-        /** Milisegundos desde ahora hasta el próximo disparo. */
         long nextDelayMs() {
             LocalDateTime now  = LocalDateTime.now();
             LocalDateTime next = nextFire(now.truncatedTo(ChronoUnit.MINUTES).plusMinutes(1));
@@ -243,7 +142,7 @@ public final class JxScheduler {
                     t = t.plusMonths(1).withDayOfMonth(1).withHour(0).withMinute(0);
                     continue;
                 }
-                int dow = t.getDayOfWeek().getValue() % 7;   // SUNDAY=7 → 0; MON=1…SAT=6
+                int dow = t.getDayOfWeek().getValue() % 7;
                 if (!has(doms, t.getDayOfMonth()) || !has(dows, dow)) {
                     t = t.plusDays(1).withHour(0).withMinute(0);
                     continue;
@@ -290,8 +189,6 @@ public final class JxScheduler {
             return arr;
         }
     }
-
-    // ── Privados ──────────────────────────────────────────────────────────
 
     private static void scanAndSchedule(Object target) {
         for (Method m : target.getClass().getMethods()) {

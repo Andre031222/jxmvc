@@ -1,7 +1,3 @@
-/// JxMVC Open-source project 2024 - 2026
-/// -------------------------------------------
-///  coded by : Dr. Ramiro Pedro Laura Murillo
-
 package jxmvc.core;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -21,21 +17,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Contexto de la petición HTTP: parámetros, argumentos de ruta,
- * cabeceras, body y subida de archivos.
- *
- * <pre>
- *   String name  = model.param("name");           // form/query param
- *   int    age   = model.paramInt("age", 0);       // con valor por defecto
- *   String id    = model.arg(0);                   // segmento de ruta (sanitizado)
- *   String raw   = model.argRaw(0);                // sin sanitizar
- *   String body  = model.body();                   // body completo (JSON etc.)
- *   boolean ok   = model.isPost();
- * </pre>
- */
 public class JxRequest {
-
     public final HttpServletRequest  request;
     public final HttpServletResponse response;
 
@@ -62,8 +44,6 @@ public class JxRequest {
         this.pathVars = Collections.emptyMap();
     }
 
-    // ── Info de la petición ───────────────────────────────────────────────
-
     public String  method()    { return request != null ? request.getMethod() : "GET"; }
     public String  path()      { return request != null ? request.getRequestURI() : "/"; }
     public String  ip()        { return request != null ? request.getRemoteAddr() : "127.0.0.1"; }
@@ -73,8 +53,6 @@ public class JxRequest {
     public boolean isPut()     { return "PUT".equalsIgnoreCase(method()); }
     public boolean isDelete()  { return "DELETE".equalsIgnoreCase(method()); }
     public boolean isPatch()   { return "PATCH".equalsIgnoreCase(method()); }
-
-    // ── Parámetros GET/POST (siempre sanitizados) ─────────────────────────
 
     public String  param(String key)           { return request != null ? BaseSanitizer.clean(request.getParameter(key)) : null; }
     public String  paramRaw(String key)        { return request != null ? request.getParameter(key) : null; }
@@ -94,8 +72,6 @@ public class JxRequest {
         return "true".equalsIgnoreCase(v) || "1".equals(v) || "on".equalsIgnoreCase(v);
     }
 
-    // ── Variables de plantilla /usuarios/{id} ─────────────────────────────
-
     public String pathVar(String name) {
         return name != null ? pathVars.get(name.toLowerCase()) : null;
     }
@@ -108,8 +84,6 @@ public class JxRequest {
         try { return Long.parseLong(pathVar(name)); } catch (Exception e) { return 0L; }
     }
 
-    // ── Argumentos de ruta /ctrl/action/arg0/arg1 ─────────────────────────
-
     public String   arg(int i)     { return (i < 0 || i >= args.length) ? null : BaseSanitizer.clean(args[i]); }
     public String   argRaw(int i)  { return (i < 0 || i >= args.length) ? null : args[i]; }
     public int      argsCount()    { return args.length; }
@@ -119,9 +93,6 @@ public class JxRequest {
         return safe;
     }
 
-    // ── Body de la petición (JSON, texto plano, etc.) ─────────────────────
-
-    /** Tope de lectura del body no-multipart — configurable con {@code jxmvc.body.maxBytes}. */
     static final int MAX_BODY_BYTES =
             BaseDbResolver.propertyInt("jxmvc.body.maxBytes", 10 * 1024 * 1024);
 
@@ -140,7 +111,6 @@ public class JxRequest {
         } catch (Exception e) { return null; }
     }
 
-    /** Lee como máximo {@code max} bytes; si el stream trae más, responde 413 (no confía en Content-Length). */
     private static byte[] readCapped(java.io.InputStream in, int max) throws java.io.IOException {
         java.io.ByteArrayOutputStream out = new java.io.ByteArrayOutputStream(Math.min(8192, max));
         byte[] buf = new byte[8192];
@@ -154,16 +124,11 @@ public class JxRequest {
         return out.toByteArray();
     }
 
-    // ── Variables de atributo de request ─────────────────────────────────
-
     public void   setVar(String name, Object value) { if (request != null) request.setAttribute(name, value); }
     public Object getVar(String name)               { return request != null ? request.getAttribute(name) : null; }
 
-    // ── Subida de archivos ────────────────────────────────────────────────
-
     public String lastError() { return lastError; }
 
-    /** Sube un archivo; devuelve la ruta guardada o {@code null} si falla. */
     public Path uploadFile(String field, Path dir) { return uploadFile(field, dir, "*", null); }
     public Path uploadFile(String field, Path dir, String allowedExts) { return uploadFile(field, dir, allowedExts, null); }
     public Path uploadFile(String field, Path dir, String allowedExts, String nameOverride) {
@@ -187,7 +152,6 @@ public class JxRequest {
         } catch (Exception e) { lastError = e.getMessage(); return null; }
     }
 
-    /** Sube múltiples archivos. */
     public List<Path> uploadFiles(String field, Path dir) { return uploadFiles(field, dir, "*"); }
     public List<Path> uploadFiles(String field, Path dir, String allowedExts) {
         lastError = null;
@@ -212,7 +176,6 @@ public class JxRequest {
         return saved;
     }
 
-    /** Extensiones ejecutables/peligrosas: se rechazan siempre, aunque se permita {@code *}. */
     private static final java.util.Set<String> BLOCKED_EXTS = java.util.Set.of(
             ".jsp", ".jspx", ".jspf", ".jsw", ".jsv", ".class", ".war", ".jar",
             ".sh", ".bat", ".cmd", ".exe", ".dll", ".php", ".phtml", ".pl", ".py", ".rb", ".htaccess");
@@ -233,7 +196,6 @@ public class JxRequest {
         return false;
     }
 
-    // ── API PascalCase — primera clase ───────────────────────────────────
     public Path        UploadFile(String f, Path d)              { return uploadFile(f, d); }
     public Path        UploadFile(String f, Path d, String e)    { return uploadFile(f, d, e); }
     public Path        UploadFile(String f,Path d,String e,String n){ return uploadFile(f,d,e,n); }

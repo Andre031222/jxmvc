@@ -1,7 +1,3 @@
-/// JxMVC Open-source project 2024 - 2026
-/// -------------------------------------------
-///  coded by : Dr. Ramiro Pedro Laura Murillo
-
 package jxmvc.core;
 
 import java.sql.Connection;
@@ -12,23 +8,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
-/**
- * Pool de conexiones JDBC ligero — cero dependencias externas.
- * Reemplaza una conexión por instancia con un pool compartido y reutilizable.
- *
- * <pre>
- * # application.properties
- * jxmvc.pool.enabled=true
- * jxmvc.pool.size=10
- * jxmvc.pool.timeout=5
- * jxmvc.pool.validationInterval=30   # segundos sin validar contra la BD (0 = validar siempre)
- * </pre>
- *
- * Si {@code jxmvc.pool.enabled=true}, {@link JxDB} lo usa automáticamente.
- * No es necesario configurarlo manualmente.
- */
 public final class JxPool {
-
     private static final JxLogger log = JxLogger.getLogger(JxPool.class);
 
     private static volatile JxPool globalInstance;
@@ -45,9 +25,6 @@ public final class JxPool {
 
     private final ConcurrentHashMap<Connection, Long> lastValidated = new ConcurrentHashMap<>();
 
-    // ── Acceso global ─────────────────────────────────────────────────────
-
-    /** Devuelve el pool global o {@code null} si no está configurado. */
     public static JxPool global() {
         if (globalInstance == null && BaseDbResolver.poolEnabled()) {
             synchronized (JxPool.class) {
@@ -65,12 +42,9 @@ public final class JxPool {
         return globalInstance;
     }
 
-    /** Reemplaza el pool global (útil en tests o multi-tenant). */
     public static void setGlobal(JxPool pool) { globalInstance = pool; }
 
     public static boolean isEnabled() { return BaseDbResolver.poolEnabled(); }
-
-    // ── Constructor ───────────────────────────────────────────────────────
 
     public JxPool(String url, String user, String pass, int maxSize, int timeoutSecs) {
         this(url, user, pass, maxSize, timeoutSecs,
@@ -90,14 +64,6 @@ public final class JxPool {
         prewarm(Math.min(2, maxSize));
     }
 
-    // ── API pública ───────────────────────────────────────────────────────
-
-    /**
-     * Obtiene una conexión del pool.
-     * Espera hasta {@code timeoutSecs} segundos.
-     *
-     * @throws SQLException si no hay conexiones disponibles en el tiempo límite
-     */
     public Connection borrow() throws SQLException {
         Connection conn;
         while ((conn = idle.poll()) != null) {
@@ -106,7 +72,6 @@ public final class JxPool {
             total.decrementAndGet();
         }
 
-        // CAS garantiza que no se supere maxSize aunque varios hilos lleguen aquí simultáneamente
         int current;
         do {
             current = total.get();
@@ -117,7 +82,6 @@ public final class JxPool {
             catch (SQLException e) { total.decrementAndGet(); throw e; }
         }
 
-        // Esperar a que se libere una conexión
         try {
             conn = idle.poll(timeoutSecs, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
@@ -133,10 +97,6 @@ public final class JxPool {
         return conn;
     }
 
-    /**
-     * Devuelve una conexión al pool.
-     * Llamar siempre después de usar — idealmente con try-with-resources via {@link PooledConnection}.
-     */
     public void release(Connection conn) {
         if (conn == null) return;
         if (!isValid(conn)) { closeQuietly(conn); total.decrementAndGet(); return; }
@@ -148,14 +108,6 @@ public final class JxPool {
     public int maxSize()   { return maxSize; }
     public int active()    { return total.get() - idle.size(); }
 
-    /**
-     * Retorna estadísticas del pool como {@link DBRow} serializable a JSON.
-     *
-     * <pre>
-     *   return Json(GenApi.JsonRow(JxPool.global().stats()));
-     *   // → {"total":5,"idle":3,"active":2,"max":10,"engine":"PSSQL"}
-     * </pre>
-     */
     public DBRow stats() {
         return DBRow.of(
             "total",   total.get(),
@@ -167,13 +119,6 @@ public final class JxPool {
         );
     }
 
-    /**
-     * Valida las conexiones idle y descarta las que el servidor BD cerró por inactividad.
-     * Llamar periódicamente (cada 3-5 minutos) para evitar errores en la primera petición
-     * tras un periodo de inactividad prolongado.
-     *
-     * <p>Invocado automáticamente por el scheduler de {@code MainLxServlet}.
-     */
     public void keepAlive() {
         int size = idle.size();
         for (int i = 0; i < size; i++) {
@@ -186,7 +131,6 @@ public final class JxPool {
                 closeQuietly(conn);
             }
         }
-        // Reponer conexiones si la BD volvió tras una caída
         int target = Math.min(2, maxSize);
         while (total.get() < target && idle.size() < target) {
             int cur = total.get();
@@ -201,19 +145,12 @@ public final class JxPool {
         }
     }
 
-    /**
-     * Cierra todas las conexiones idle del pool.
-     * Las conexiones prestadas (en uso) no se cierran: el caller debe liberarlas
-     * con {@link #release(Connection)} o cerrarlas por su cuenta.
-     */
     public void shutdown() {
         Connection conn;
         while ((conn = idle.poll()) != null) closeQuietly(conn);
         lastValidated.clear();
         total.set(0);
     }
-
-    // ── Privados ──────────────────────────────────────────────────────────
 
     private void prewarm(int count) {
         for (int i = 0; i < count; i++) {

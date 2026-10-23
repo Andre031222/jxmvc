@@ -1,24 +1,8 @@
-/// JxMVC Open-source project 2024 - 2026
-/// -------------------------------------------
-///  coded by : Dr. Ramiro Pedro Laura Murillo
-
 package jxmvc.core;
 
-/**
- * Codificación de salida para prevenir XSS — la defensa correcta se aplica al
- * renderizar, no al recibir la entrada.
- *
- * <p>Expuesto como función EL {@code jx:esc} para usar en JSP:
- * <pre>
- *   &lt;%@ taglib prefix="jx" uri="http://jxmvc/tags" %&gt;
- *   &lt;p&gt;${jx:esc(nombreUsuario)}&lt;/p&gt;
- * </pre>
- */
 public final class JxHtml {
-
     private JxHtml() {}
 
-    /** Escapa texto para insertarlo con seguridad en el cuerpo o atributos HTML. */
     public static String escape(Object value) {
         if (value == null) return "";
         String s = value.toString();

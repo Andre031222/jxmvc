@@ -1,7 +1,4 @@
 #!/usr/bin/env bash
-# Arranque en frío: ms desde lanzar el proceso hasta la 1ª respuesta HTTP 200.
-# uso: measure-startup.sh "<cmd de arranque>" <urlSalud>
-# ej:  measure-startup.sh "java -jar target/app.jar" http://localhost:8080/plaintext
 set -euo pipefail
 CMD="${1:?cmd de arranque requerido}"
 URL="${2:?url de salud requerida}"

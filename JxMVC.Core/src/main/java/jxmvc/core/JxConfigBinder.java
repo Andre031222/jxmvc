@@ -1,45 +1,10 @@
-/// JxMVC Open-source project 2024 - 2026
-/// -------------------------------------------
-///  coded by : Dr. Ramiro Pedro Laura Murillo
-
 package jxmvc.core;
 
 import java.lang.reflect.Field;
 
-/**
- * Vincula propiedades de {@code application.properties} a un POJO anotado con
- * {@link JxMapping.JxConfigProperties}.
- *
- * <pre>
- *   &#64;JxConfigProperties("mail")
- *   &#64;JxService
- *   public class MailConfig {
- *       public String host;          // mail.host
- *       public int    port  = 25;    // mail.port  (25 = default si no existe)
- *       public String from;          // mail.from
- *       public boolean tls = false;  // mail.tls
- *   }
- *
- *   // Obtener manualmente:
- *   MailConfig cfg = JxConfigBinder.bind(MailConfig.class);
- *
- *   // O vía DI (si @JxService):
- *   &#64;JxInject MailConfig mailConfig;
- * </pre>
- *
- * Soporta tipos: {@code String}, {@code int}/{@code Integer}, {@code long}/{@code Long},
- * {@code double}/{@code Double}, {@code float}/{@code Float}, {@code boolean}/{@code Boolean}.
- */
 public final class JxConfigBinder {
-
     private JxConfigBinder() {}
 
-    /**
-     * Crea una instancia de {@code cls} y rellena sus campos con las propiedades
-     * que coincidan con el prefijo definido en {@link JxMapping.JxConfigProperties}.
-     *
-     * @throws IllegalArgumentException si {@code cls} no tiene {@code @JxConfigProperties}
-     */
     public static <T> T bind(Class<T> cls) {
         JxMapping.JxConfigProperties ann = cls.getAnnotation(JxMapping.JxConfigProperties.class);
         if (ann == null)
@@ -47,10 +12,6 @@ public final class JxConfigBinder {
         return bind(cls, ann.value());
     }
 
-    /**
-     * Crea una instancia de {@code cls} y rellena sus campos con las propiedades
-     * que empiecen con {@code prefix}.
-     */
     public static <T> T bind(Class<T> cls, String prefix) {
         T instance;
         try {
@@ -64,12 +25,11 @@ public final class JxConfigBinder {
         for (Field f : collectFields(cls)) {
             f.setAccessible(true);
             String key = pfx + f.getName();
-            // Convierte camelCase a kebab-case como alternativa (ej. mailHost → mail.mail-host)
             String keyKebab = pfx + toKebab(f.getName());
 
             String raw = BaseDbResolver.property(key, null);
             if (raw == null) raw = BaseDbResolver.property(keyKebab, null);
-            if (raw == null) continue;   // usar el valor por defecto del campo
+            if (raw == null) continue;
 
             try {
                 f.set(instance, coerce(raw.trim(), f.getType()));
@@ -81,8 +41,6 @@ public final class JxConfigBinder {
 
         return instance;
     }
-
-    // ── Helpers ───────────────────────────────────────────────────────────
 
     private static Object coerce(String val, Class<?> type) {
         if (type == String.class)                              return val;
@@ -103,7 +61,6 @@ public final class JxConfigBinder {
         return fields;
     }
 
-    /** {@code mailHost} → {@code mail-host} */
     private static String toKebab(String name) {
         StringBuilder sb = new StringBuilder();
         for (char c : name.toCharArray()) {

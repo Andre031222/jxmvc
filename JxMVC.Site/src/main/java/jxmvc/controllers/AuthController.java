@@ -8,21 +8,13 @@ import jxmvc.core.JxLogger;
 import jxmvc.core.JxOAuth;
 import jxmvc.core.JxMapping.*;
 
-/**
- * Autenticación de la aplicación demo: login nativo (correo + contraseña) y
- * "Iniciar sesión con Google" mediante {@link JxOAuth} del core. Muestra en un
- * caso real cómo cualquier app JxMVC integra ambos métodos sin dependencias externas.
- */
 @JxControllerMapping("auth")
 public class AuthController extends BaseController {
-
     private static final JxLogger log = JxLogger.getLogger(AuthController.class);
 
     private static final String SESSION_USER     = "user";
     private static final String SESSION_STATE    = "oauth.state";
     private static final String SESSION_VERIFIER = "oauth.verifier";
-
-    // ── Login nativo ──────────────────────────────────────────────────────
 
     @JxGetMapping("login")
     public ActionResult loginForm() {
@@ -46,8 +38,6 @@ public class AuthController extends BaseController {
         sessionSet(SESSION_USER, user);
         return redirect("/auth/perfil");
     }
-
-    // ── Login con Google (OAuth 2.0 + PKCE) ───────────────────────────────
 
     @JxGetMapping("google")
     public ActionResult google() {
@@ -85,8 +75,6 @@ public class AuthController extends BaseController {
         return redirect("/auth/perfil");
     }
 
-    // ── Perfil protegido y logout ─────────────────────────────────────────
-
     @JxRequireAuth
     @JxGetMapping("perfil")
     public ActionResult perfil() {
@@ -101,29 +89,17 @@ public class AuthController extends BaseController {
         return redirect("/");
     }
 
-    // ── Helpers ───────────────────────────────────────────────────────────
-
     private AppUser currentUser() {
         Object u = sessionGet(SESSION_USER);
         return u instanceof AppUser ? (AppUser) u : null;
     }
 
-    /**
-     * Redirección a una URL absoluta y de confianza (el proveedor OAuth). Se emite
-     * a mano para no pasar por el prefijo de contexto ni por el bloqueo de
-     * redirección externa que aplica a destinos derivados del usuario.
-     */
     private ActionResult external(String url) {
         view.status(302);
         view.header("Location", url);
         return text("");
     }
 
-    /**
-     * URL absoluta del callback. Si {@code jxmvc.oauth.google.redirect-uri} está
-     * configurada (recomendado en producción, detrás de Nginx/HTTPS) se usa tal cual;
-     * de lo contrario se deriva de la petición (útil en local).
-     */
     private String redirectUri() {
         String configured = JxEnvironment.get("jxmvc.oauth.google.redirect-uri", "");
         if (!configured.isBlank()) return configured;

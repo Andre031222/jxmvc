@@ -1,6 +1,6 @@
 <%@page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"
 %><%@ taglib prefix="jx" uri="http://jxmvc/tags"
-%><%-- Reafirmar el status HTTP (el forward puede resetearlo a 200) --%><%
+%><%
     Object code = request.getAttribute("jx_error_code");
     if (code instanceof Integer) response.setStatus((Integer) code);
 %><!DOCTYPE html>

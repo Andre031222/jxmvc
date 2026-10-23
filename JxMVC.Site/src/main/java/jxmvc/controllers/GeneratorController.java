@@ -4,13 +4,8 @@ import jxmvc.core.ActionResult;
 import jxmvc.core.JxMapping.*;
 import jxmvc.service.ProjectZipBuilder;
 
-/**
- * Genera y descarga un proyecto JxMVC personalizado como ZIP.
- * Accesible desde /home/downloads.
- */
 @JxControllerMapping("generate")
 public class GeneratorController extends BaseController {
-
     @JxPostMapping("download")
     public ActionResult download() throws Exception {
         String groupId    = clean(model.param("groupId"),    "com.example");
@@ -18,7 +13,6 @@ public class GeneratorController extends BaseController {
         String appName    = sanitizeAppName(model.param("appName"), artifactId);
         String db         = validDb(model.param("db"));
 
-        // Paquete base: groupId + artifactId limpio (sin guiones ni caracteres especiales)
         String pkgSuffix = artifactId.replaceAll("[^a-zA-Z0-9]", "").toLowerCase();
         String pkg       = validPackage(groupId.replaceAll("[^a-zA-Z0-9.]", "").toLowerCase()
                          + (pkgSuffix.isEmpty() ? "" : "." + pkgSuffix));
@@ -34,7 +28,6 @@ public class GeneratorController extends BaseController {
         return cleaned.isBlank() ? fallback : cleaned;
     }
 
-    /** Lista blanca de nombre visible: letras, números, espacio y {@code . _ -}, máx 60. */
     private static String sanitizeAppName(String value, String fallback) {
         if (value == null) return fallback;
         String cleaned = value.trim().replaceAll("[^\\p{L}\\p{N} ._-]", "").trim();
@@ -49,7 +42,6 @@ public class GeneratorController extends BaseController {
         };
     }
 
-    /** Garantiza un nombre de paquete Java válido: segmentos alfanuméricos que empiezan por letra. */
     private static String validPackage(String pkg) {
         if (pkg == null) return "com.example.app";
         StringBuilder sb = new StringBuilder();

@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>jxmvc</groupId>
     <artifactId>jxmvc-site</artifactId>
-    <version>3.5.1</version>
+    <version>3.6.0</version>
     <packaging>war</packaging>
     <name>JxMVC site</name>
 
@@ -14,7 +14,6 @@
     </properties>
 
     <dependencies>
-        <!-- Jakarta EE (Tomcat 10+) -->
         <dependency>
             <groupId>jakarta.platform</groupId>
             <artifactId>jakarta.jakartaee-api</artifactId>
@@ -22,41 +21,21 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- JxMVC Core -->
         <dependency>
             <groupId>jxmvc</groupId>
             <artifactId>jxmvc-core</artifactId>
-            <version>3.5.1</version>
+            <version>3.6.0</version>
         </dependency>
 
-        <!-- PostgreSQL JDBC -->
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
             <version>42.7.4</version>
         </dependency>
 
-        <!-- MySQL (descomentar si se usa) -->
-        <!--
-        <dependency>
-            <groupId>com.mysql</groupId>
-            <artifactId>mysql-connector-j</artifactId>
-            <version>9.1.0</version>
-        </dependency>
-        -->
-
-        <!-- SQL Server (descomentar si se usa) -->
-        <!--
-        <dependency>
-            <groupId>com.microsoft.sqlserver</groupId>
-            <artifactId>mssql-jdbc</artifactId>
-            <version>12.6.1.jre11</version>
-        </dependency>
-        -->
     </dependencies>
 
     <build>
-        <!-- jxmvc.war -> jxmvc.andre.net.pe + andre.net.pe/jxmvc -->
         <finalName>jxmvc</finalName>
         <plugins>
             <plugin>
@@ -76,7 +55,6 @@
                 <version>3.4.0</version>
             </plugin>
 
-            <!-- mvn cargo:run  →  descarga Tomcat 10 y levanta en localhost:8080 -->
             <plugin>
                 <groupId>org.codehaus.cargo</groupId>
                 <artifactId>cargo-maven3-plugin</artifactId>
@@ -91,7 +69,6 @@
                             <version>10.1.20</version>
                             <type>zip</type>
                         </artifactInstaller>
-                        <!-- Ejecución local en perfil dev (no toca application.properties=prod) -->
                         <systemProperties>
                             <jxmvc.profiles.active>dev</jxmvc.profiles.active>
                         </systemProperties>

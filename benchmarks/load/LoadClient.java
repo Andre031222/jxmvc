@@ -1,10 +1,3 @@
-/// JxMVC benchmarks — generador de carga HTTP en JDK puro (sin dependencias).
-/// Compilar: javac LoadClient.java
-/// Ejecutar: java LoadClient <url> <conexiones> <segundos> [warmupSegs]
-///   ej: java LoadClient http://localhost:8080/plaintext 64 30 5
-/// Reporta: throughput (req/s), latencia media y percentiles p50/p90/p95/p99,
-/// errores y no-2xx, en una línea CSV apta para agregación.
-
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -17,7 +10,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicLong;
 
 public class LoadClient {
-
     public static void main(String[] args) throws Exception {
         if (args.length < 3) {
             System.err.println("uso: java LoadClient <url> <conexiones> <segundos> [warmupSegs]");
@@ -28,7 +20,6 @@ public class LoadClient {
         long   durSecs  = Long.parseLong(args[2]);
         long   warmup   = args.length > 3 ? Long.parseLong(args[3]) : 5;
 
-        // Warmup: deja al JIT alcanzar estado estacionario antes de medir.
         if (warmup > 0) {
             System.err.println("warmup " + warmup + "s ...");
             runPhase(url, conns, warmup, false);
@@ -41,7 +32,6 @@ public class LoadClient {
         double rps   = count / (r.elapsedNanos / 1e9);
         long[] lat   = r.latenciesNanosSorted();
         System.err.printf("req=%d  errores=%d  no2xx=%d  rps=%.0f%n", count, r.errors.get(), r.non2xx.get(), rps);
-        // CSV: url,conns,durSecs,requests,errors,non2xx,rps,meanMs,p50Ms,p90Ms,p95Ms,p99Ms
         System.out.printf("%s,%d,%d,%d,%d,%d,%.1f,%.3f,%.3f,%.3f,%.3f,%.3f%n",
                 url, conns, durSecs, count, r.errors.get(), r.non2xx.get(), rps,
                 r.meanMs(), pctMs(lat, 50), pctMs(lat, 90), pctMs(lat, 95), pctMs(lat, 99));
@@ -115,7 +105,6 @@ public class LoadClient {
         }
     }
 
-    /** Contador simple respaldado por AtomicLong con API mínima. */
     static final class Counter {
         final AtomicLong v = new AtomicLong();
         void increment() { v.incrementAndGet(); }

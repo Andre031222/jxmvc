@@ -1,20 +1,6 @@
-/// JxMVC Open-source project 2024 - 2026
-/// -------------------------------------------
-///  coded by : Dr. Ramiro Pedro Laura Murillo
-
 package jxmvc.core;
 
-/**
- * Excepción HTTP tipada. Lanzar desde cualquier acción del controller.
- *
- * <pre>
- *   throw JxException.notFound("Usuario no existe");
- *   throw JxException.unauthorized("Inicia sesión primero");
- *   throw new JxException(422, "Datos inválidos");
- * </pre>
- */
 public class JxException extends RuntimeException {
-
     private final int status;
 
     public JxException(int status, String message) {

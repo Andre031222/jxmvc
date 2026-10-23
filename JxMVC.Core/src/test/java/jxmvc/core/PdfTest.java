@@ -6,7 +6,6 @@ import java.util.Arrays;
 import java.util.Random;
 
 public class PdfTest {
-
     static int passed = 0;
     static int failed = 0;
 
@@ -17,6 +16,7 @@ public class PdfTest {
 
     public static void main(String[] args) throws Exception {
         testCreateRoundtrip();
+        testWriter();
         testPagination();
         testUnmappableChars();
         testDifferencesAndTJ();
@@ -82,6 +82,36 @@ public class PdfTest {
         eq("create: texto página 2 con escapes", "Página dos (con paréntesis) y \\ barra", doc.page(1));
         eq("create: título", "Constancia ñ", doc.info().get("Title"));
         eq("create: producer", "JxMVC JxPdf", doc.info().get("Producer"));
+    }
+
+    static void testWriter() throws Exception {
+        System.out.println("── escritor JxPdf ──");
+        JxPdf pdf = new JxPdf();
+        pdf.SetFont(JxPdf.HELVETICA_BOLD, 14);
+        pdf.TextXY(40, 40, "Documento Generado con JxPDF (Java)");
+        pdf.SetBackColor(new java.awt.Color(220, 230, 242));
+        pdf.SetFont(JxPdf.HELVETICA, 12);
+        pdf.Cell(150, 30, "Celda con fondo", true, true, 0);
+        pdf.SetBackColor(new java.awt.Color(255, 230, 200));
+        pdf.Cell(150, 30, "Segunda celda", true, true, 1);
+        pdf.Cell(300, 25, "Celda completa sin relleno con salto de línea (ñ)", true, false, 1);
+        byte[] bytes = pdf.GetStream();
+        var doc = JxPdf.read(bytes);
+        eq("escritor: una página", 1, doc.pageCount());
+        String t = doc.text();
+        check("escritor: título", t.contains("Documento Generado con JxPDF (Java)"));
+        check("escritor: celdas en orden", t.indexOf("Celda con fondo") >= 0 && t.indexOf("Celda con fondo") < t.indexOf("Segunda celda"));
+        check("escritor: acentos y paréntesis", t.contains("salto de línea (ñ)"));
+        check("escritor: dos fuentes", new String(bytes, java.nio.charset.StandardCharsets.ISO_8859_1).contains("/BaseFont /Helvetica-Bold"));
+        JxPdf largo = new JxPdf();
+        for (int i = 0; i < 60; i++) largo.Cell(0, 20, "Fila " + i, true, false, 1);
+        var docLargo = JxPdf.read(largo.GetStream());
+        eq("escritor: salto de página automático", 2, docLargo.pageCount());
+        check("escritor: última fila en página 2", docLargo.page(1).contains("Fila 59"));
+        java.nio.file.Path tmp = java.nio.file.Files.createTempFile("jxpdf", ".pdf");
+        pdf.Output(tmp.toString());
+        eq("escritor: Output escribe el archivo", bytes.length, (int) java.nio.file.Files.size(tmp));
+        java.nio.file.Files.deleteIfExists(tmp);
     }
 
     static void testPagination() {

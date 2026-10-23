@@ -1,10 +1,3 @@
-/// JxMVC Open-source project 2024 - 2026
-/// -------------------------------------------
-///  coded by : Dr. Ramiro Pedro Laura Murillo
-///  reborn on : 10/02/2026
-///  dated on  : 19/09/2024
-/// 
-
 package jxmvc.core;
 
 import jakarta.servlet.jsp.JspException;

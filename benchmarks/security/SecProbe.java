@@ -12,7 +12,6 @@ import java.util.Locale;
 import java.util.Map;
 
 public class SecProbe {
-
     static String host = "localhost";
     static String virtualHost = "bench.example";
     static int port = 8080;

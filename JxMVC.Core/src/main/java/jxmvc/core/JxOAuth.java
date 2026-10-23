@@ -1,7 +1,3 @@
-/// JxMVC Open-source project 2024 - 2026
-/// -------------------------------------------
-///  coded by : Dr. Ramiro Pedro Laura Murillo
-
 package jxmvc.core;
 
 import java.math.BigInteger;
@@ -19,41 +15,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- * Inicio de sesión con proveedores OAuth 2.0 / OpenID Connect — cero dependencias
- * externas (usa {@link JxHttp} para las llamadas de servidor y {@link JxJson} para el
- * parseo). Implementa el flujo <i>Authorization Code</i> con PKCE (S256).
- *
- * <p>Trae preconfigurado <b>Google</b>. Las credenciales se leen de
- * {@code application.properties} o de variables de entorno equivalentes:
- * <pre>
- *   jxmvc.oauth.google.client-id     = ...    (env JXMVC_OAUTH_GOOGLE_CLIENT_ID)
- *   jxmvc.oauth.google.client-secret = ...    (env JXMVC_OAUTH_GOOGLE_CLIENT_SECRET)
- *   jxmvc.oauth.google.redirect-uri  = https://mi-app/auth/google/callback
- *   jxmvc.oauth.google.scopes        = openid email profile   (opcional)
- * </pre>
- *
- * <p>Uso típico en un controlador:
- * <pre>
- *   // 1) Redirigir al consentimiento de Google
- *   JxOAuth.Flow flow = JxOAuth.google().start();
- *   sessionSet("oauth.state",    flow.state());
- *   sessionSet("oauth.verifier", flow.codeVerifier());
- *   return redirect(flow.url());
- *
- *   // 2) En el callback (/auth/google/callback?code=...&amp;state=...)
- *   if (!flow.state().equals(sessionGet("oauth.state"))) throw JxException.forbidden("state inválido");
- *   JxOAuth.User user = JxOAuth.google().login(param("code"), (String) sessionGet("oauth.verifier"));
- *   sessionSet("user", user);
- * </pre>
- */
 public final class JxOAuth {
-
     private static final JxLogger log = JxLogger.getLogger(JxOAuth.class);
 
     private static final SecureRandom RANDOM = new SecureRandom();
 
-    /** Endpoints y credenciales de un proveedor OAuth 2.0 / OIDC. */
     public record Provider(
             String authUrl,
             String tokenUrl,
@@ -64,22 +30,17 @@ public final class JxOAuth {
             String scopes,
             String issuer,
             String jwksUrl) {
-
-        /** Compat: proveedor sin verificación de id_token (issuer/jwks vacíos). */
         public Provider(String authUrl, String tokenUrl, String userInfoUrl, String clientId,
                         String clientSecret, String redirectUri, String scopes) {
             this(authUrl, tokenUrl, userInfoUrl, clientId, clientSecret, redirectUri, scopes, "", "");
         }
     }
 
-    /** Datos para arrancar el flujo: URL de consentimiento + secretos a guardar en sesión. */
     public record Flow(String url, String state, String codeVerifier) {}
 
-    /** Respuesta del token endpoint. */
     public record Tokens(String accessToken, String idToken, String refreshToken,
                          String tokenType, long expiresIn) {}
 
-    /** Identidad del usuario autenticado (claims OIDC estándar). */
     public record User(String id, String email, boolean emailVerified, String name,
                        String givenName, String familyName, String picture, String locale) {}
 
@@ -87,20 +48,15 @@ public final class JxOAuth {
 
     private JxOAuth(Provider provider) { this.provider = provider; }
 
-    // ── Fábricas ──────────────────────────────────────────────────────────
-
-    /** Instancia sobre un proveedor arbitrario (GitHub, Microsoft, Keycloak, …). */
     public static JxOAuth of(Provider provider) {
         if (provider == null) throw new IllegalArgumentException("provider no puede ser null");
         return new JxOAuth(provider);
     }
 
-    /** Proveedor Google construido desde la configuración de la aplicación. */
     public static JxOAuth google() {
         return of(googleProvider());
     }
 
-    /** {@code true} si Google tiene client-id y client-secret configurados. */
     public static boolean isGoogleConfigured() {
         return notBlank(JxEnvironment.get("jxmvc.oauth.google.client-id"))
             && notBlank(JxEnvironment.get("jxmvc.oauth.google.client-secret"));
@@ -119,18 +75,10 @@ public final class JxOAuth {
                 "https://www.googleapis.com/oauth2/v3/certs");
     }
 
-    // ── Paso 1: URL de autorización ───────────────────────────────────────
-
-    /**
-     * Arranca el flujo: genera {@code state} anti-CSRF y verificador PKCE, y construye
-     * la URL de consentimiento. Guardar {@code state} y {@code codeVerifier} en la
-     * sesión para validarlos en el callback.
-     */
     public Flow start() {
         return start(provider.redirectUri());
     }
 
-    /** Igual que {@link #start()} pero con un {@code redirectUri} explícito. */
     public Flow start(String redirectUri) {
         String state        = newToken(24);
         String codeVerifier = newToken(48);
@@ -138,7 +86,6 @@ public final class JxOAuth {
         return new Flow(url, state, codeVerifier);
     }
 
-    /** Construye la URL de autorización de bajo nivel (sin gestionar la sesión). */
     public String authorizeUrl(String redirectUri, String state, String codeChallenge) {
         requireConfigured(redirectUri);
         Map<String, String> q = new LinkedHashMap<>();
@@ -157,24 +104,17 @@ public final class JxOAuth {
         return provider.authUrl() + "?" + formEncode(q);
     }
 
-    // ── Paso 2: intercambio de código y datos de usuario ──────────────────
-
-    /** Flujo completo del callback: intercambia el código y devuelve la identidad. */
     public User login(String code, String codeVerifier) {
         return login(code, codeVerifier, provider.redirectUri());
     }
 
-    /** Igual que {@link #login(String, String)} con {@code redirectUri} explícito. */
     public User login(String code, String codeVerifier, String redirectUri) {
         Tokens tokens = exchange(code, codeVerifier, redirectUri);
-        // OIDC: si el proveedor publica JWKS, verificamos la firma del id_token (más
-        // seguro que confiar solo en userinfo). Si no, caemos al userinfo endpoint.
         if (notBlank(provider.jwksUrl()) && notBlank(tokens.idToken()))
             return verifyIdToken(tokens.idToken());
         return userInfo(tokens.accessToken());
     }
 
-    /** Intercambia el {@code authorization_code} por tokens en el token endpoint. */
     public Tokens exchange(String code, String codeVerifier, String redirectUri) {
         requireConfigured(redirectUri);
         if (code == null || code.isBlank())
@@ -209,7 +149,6 @@ public final class JxOAuth {
                 asLong(json.get("expires_in")));
     }
 
-    /** Recupera los claims del usuario desde el userinfo endpoint con el access token. */
     public User userInfo(String accessToken) {
         if (accessToken == null || accessToken.isBlank())
             throw new JxException(502, "El proveedor OAuth no devolvió access token");
@@ -225,17 +164,10 @@ public final class JxOAuth {
         return userFromClaims(asMap(resp.body()));
     }
 
-    // ── Verificación OIDC del id_token (JWT RS256 contra JWKS) ─────────────
-
     private static final ConcurrentHashMap<String, long[]> JWKS_TS = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<String, Map<String, PublicKey>> JWKS_CACHE = new ConcurrentHashMap<>();
     private static final long JWKS_TTL_MS = 3_600_000L;
 
-    /**
-     * Verifica la firma RS256 del {@code id_token} contra el JWKS del proveedor y valida
-     * {@code iss}/{@code aud}/{@code exp}, devolviendo la identidad a partir de sus claims.
-     * Es el camino OIDC estándar — no confía en una llamada a userinfo.
-     */
     public User verifyIdToken(String idToken) {
         if (!notBlank(idToken)) throw new JxException(401, "id_token ausente");
         String kid    = jwtKid(idToken);
@@ -244,10 +176,6 @@ public final class JxOAuth {
         return userFromClaims(verifyJwtClaims(idToken, key, provider.issuer(), provider.clientId(), nowSecs));
     }
 
-    /**
-     * Núcleo criptográfico puro (testeable sin red): valida firma RS256, {@code alg},
-     * {@code iss}, {@code aud} y {@code exp} (con 60 s de tolerancia), y retorna los claims.
-     */
     static Map<String, Object> verifyJwtClaims(String jwt, PublicKey key, String issuer,
                                                String audience, long nowSecs) {
         String[] parts = jwt.split("\\.");
@@ -335,7 +263,6 @@ public final class JxOAuth {
         return str(asMap(new String(b64urlDecode(parts[0]), StandardCharsets.UTF_8)).get("kid"));
     }
 
-    /** Construye una clave pública RSA a partir del módulo y exponente base64url del JWK. */
     static PublicKey rsaKey(String modulusB64, String exponentB64) {
         try {
             BigInteger n = new BigInteger(1, b64urlDecode(modulusB64));
@@ -362,16 +289,12 @@ public final class JxOAuth {
                 str(c.get("locale")));
     }
 
-    // ── Utilidades PKCE / state ───────────────────────────────────────────
-
-    /** Token aleatorio URL-safe de {@code bytes} bytes de entropía. */
     public static String newToken(int bytes) {
         byte[] buf = new byte[bytes];
         RANDOM.nextBytes(buf);
         return Base64.getUrlEncoder().withoutPadding().encodeToString(buf);
     }
 
-    /** {@code code_challenge} PKCE = BASE64URL(SHA-256(code_verifier)). */
     public static String codeChallengeS256(String codeVerifier) {
         try {
             byte[] digest = MessageDigest.getInstance("SHA-256")
@@ -381,8 +304,6 @@ public final class JxOAuth {
             throw new IllegalStateException("SHA-256 no disponible en esta JVM", e);
         }
     }
-
-    // ── Internos ──────────────────────────────────────────────────────────
 
     private void requireConfigured(String redirectUri) {
         if (!notBlank(provider.clientId()) || !notBlank(provider.clientSecret()))

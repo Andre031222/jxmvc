@@ -1,8 +1,3 @@
-/// JxMVC Open-source project 2024 - 2026
-/// -------------------------------------------
-///  coded by : Dr. Ramiro Pedro Laura Murillo
-///  v3.1.1   : R. Andre Vilca Solorzano
-
 package jxmvc.core;
 
 import java.lang.annotation.*;
@@ -13,72 +8,30 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Pattern;
 
-/**
- * Motor de validación sin dependencias externas.
- *
- * <p>Anotar campos del DTO y llamar {@link #validate(Object)}.
- * Si hay errores lanza {@link JxException} 422 con el detalle en JSON.
- *
- * <pre>
- *   public class UserDto {
- *       &#64;JxRequired
- *       &#64;JxMinLength(2) &#64;JxMaxLength(100)
- *       public String nombre;
- *
- *       &#64;JxRequired &#64;JxEmail
- *       public String email;
- *
- *       &#64;JxRange(min = 0, max = 150)
- *       public int edad;
- *
- *       &#64;JxIn({"admin","user","guest"})
- *       public String rol;
- *
- *       &#64;JxPhone
- *       public String telefono;
- *   }
- *
- *   UserDto dto = JxJson.fromJson(model.body(), UserDto.class);
- *   JxValidation.validate(dto);          // lanza 422 si hay errores
- *   List&lt;String&gt; errs = JxValidation.check(dto);  // lista de mensajes
- *   Map&lt;String,String&gt; map = JxValidation.checkMap(dto); // campo → primer error
- * </pre>
- */
 public final class JxValidation {
-
     private JxValidation() {}
 
-    // ── Anotaciones ───────────────────────────────────────────────────────
-
-    /** Campo obligatorio — no puede ser null ni vacío. */
     @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.FIELD, ElementType.PARAMETER})
     public @interface JxRequired { String message() default "es requerido"; }
 
-    /** Campo no puede ser null (permite vacío, solo restringe null). */
     @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.FIELD, ElementType.PARAMETER})
     public @interface JxNotNull { String message() default "no puede ser nulo"; }
 
-    /** Longitud mínima del string. */
     @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.FIELD, ElementType.PARAMETER})
     public @interface JxMinLength { int value(); String message() default ""; }
 
-    /** Longitud máxima del string. */
     @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.FIELD, ElementType.PARAMETER})
     public @interface JxMaxLength { int value(); String message() default ""; }
 
-    /** Longitud exacta del string. */
     @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.FIELD, ElementType.PARAMETER})
     public @interface JxLength { int value(); String message() default ""; }
 
-    /** Valor numérico mínimo. */
     @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.FIELD, ElementType.PARAMETER})
     public @interface JxMin { double value(); String message() default ""; }
 
-    /** Valor numérico máximo. */
     @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.FIELD, ElementType.PARAMETER})
     public @interface JxMax { double value(); String message() default ""; }
 
-    /** Rango numérico min–max en una sola anotación. */
     @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.FIELD, ElementType.PARAMETER})
     public @interface JxRange {
         double min() default Double.MIN_VALUE;
@@ -86,86 +39,52 @@ public final class JxValidation {
         String message() default "";
     }
 
-    /** Formato de email válido. */
     @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.FIELD, ElementType.PARAMETER})
     public @interface JxEmail { String message() default "formato de email inválido"; }
 
-    /** Formato de teléfono — acepta +51 999 999 999, (01) 234-5678, etc. */
     @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.FIELD, ElementType.PARAMETER})
     public @interface JxPhone { String message() default "formato de teléfono inválido"; }
 
-    /** Regex personalizado. */
     @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.FIELD, ElementType.PARAMETER})
     public @interface JxPattern { String value(); String message() default "formato inválido"; }
 
-    /** El valor debe ser mayor que 0. */
     @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.FIELD, ElementType.PARAMETER})
     public @interface JxPositive { String message() default "debe ser mayor que 0"; }
 
-    /** El valor no puede ser un string vacío (pero puede ser null). */
     @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.FIELD, ElementType.PARAMETER})
     public @interface JxNotEmpty { String message() default "no puede estar vacío"; }
 
-    /** El valor debe pertenecer al conjunto indicado (case-sensitive). */
     @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.FIELD, ElementType.PARAMETER})
     public @interface JxIn {
-        /** Valores permitidos. */
         String[] value();
         String message() default "valor no permitido";
     }
 
-    /** El valor debe tener exactamente ese número de dígitos (útil para DNI, RUC). */
     @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.FIELD, ElementType.PARAMETER})
     public @interface JxDigits { int value(); String message() default ""; }
 
-    /** El string no debe contener caracteres especiales peligrosos (SQL injection básico). */
     @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.FIELD, ElementType.PARAMETER})
     public @interface JxSafe { String message() default "contiene caracteres no permitidos"; }
 
-    /** La fecha/hora debe ser estrictamente futura (después del momento de la validación). */
     @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.FIELD, ElementType.PARAMETER})
     public @interface JxFuture { String message() default "debe ser una fecha futura"; }
 
-    /** La fecha/hora debe ser estrictamente pasada (antes del momento de la validación). */
     @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.FIELD, ElementType.PARAMETER})
     public @interface JxPast { String message() default "debe ser una fecha pasada"; }
 
-    /** Formato de URL válido — debe comenzar con http:// o https://. */
     @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.FIELD, ElementType.PARAMETER})
     public @interface JxUrl { String message() default "formato de URL inválido"; }
 
-    /**
-     * Validador personalizado — la clase referenciada debe implementar {@link JxConstraint}.
-     *
-     * <pre>
-     *   public class RucPeruano implements JxConstraint&lt;String&gt; {
-     *       public boolean isValid(String v) { return v != null &amp;&amp; v.matches("\\d{11}"); }
-     *       public String message() { return "RUC debe tener 11 dígitos"; }
-     *   }
-     *
-     *   public class PedidoDto {
-     *       &#64;JxCheck(RucPeruano.class)
-     *       public String ruc;
-     *   }
-     * </pre>
-     */
     @Retention(RetentionPolicy.RUNTIME) @Target({ElementType.FIELD, ElementType.PARAMETER})
     public @interface JxCheck {
         Class<? extends JxConstraint<?>> value();
         String message() default "";
     }
 
-    /**
-     * Interfaz para validadores personalizados usados con {@link JxCheck}.
-     *
-     * @param <T> tipo del valor a validar
-     */
     public interface JxConstraint<T> {
         boolean isValid(T value);
         default String message() { return "valor inválido"; }
     }
-
-    // ── Patrones ──────────────────────────────────────────────────────────
 
     private static final Pattern EMAIL_PATTERN =
             Pattern.compile("^[a-zA-Z0-9._%+\\-]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}$");
@@ -207,12 +126,6 @@ public final class JxValidation {
         return null;
     }
 
-    // ── API principal ─────────────────────────────────────────────────────
-
-    /**
-     * Valida y lanza {@link JxException} 422 con cuerpo JSON si hay errores.
-     * El JSON tiene la forma: {@code {"errors":{"campo":"primer error","campo2":"error2"}}}
-     */
     public static void validate(Object obj) {
         Map<String, String> errors = checkMap(obj);
         if (!errors.isEmpty()) {
@@ -229,9 +142,6 @@ public final class JxValidation {
         }
     }
 
-    /**
-     * Valida y retorna la lista de mensajes de error (vacía si todo OK).
-     */
     public static List<String> check(Object obj) {
         Map<String, String> map = checkMap(obj);
         List<String> list = new ArrayList<>();
@@ -239,9 +149,6 @@ public final class JxValidation {
         return list;
     }
 
-    /**
-     * Valida y retorna {@code Map<campo, primerError>} (vacío si todo OK).
-     */
     public static Map<String, String> checkMap(Object obj) {
         Map<String, String> errors = new LinkedHashMap<>();
         if (obj == null) { errors.put("object", "no puede ser nulo"); return errors; }
@@ -259,58 +166,45 @@ public final class JxValidation {
         return errors;
     }
 
-    // ── Validación por campo ──────────────────────────────────────────────
-
     private static String validateField(Field field, Object value) {
-        // @JxNotNull
         JxNotNull notNull = field.getAnnotation(JxNotNull.class);
         if (notNull != null && value == null) return notNull.message();
 
-        // @JxRequired
         JxRequired req = field.getAnnotation(JxRequired.class);
         if (req != null && isEmpty(value)) return req.message();
 
-        // @JxNotEmpty — debe verificarse antes del early-return por vacío
         JxNotEmpty notEmpty = field.getAnnotation(JxNotEmpty.class);
         if (notEmpty != null && (value == null || String.valueOf(value).isBlank()))
             return notEmpty.message();
 
-        // Si es null/vacío y no es required/notEmpty, saltar el resto
         if (isEmpty(value)) return null;
 
         String str = String.valueOf(value).trim();
 
-        // @JxLength
         JxLength length = field.getAnnotation(JxLength.class);
         if (length != null && str.length() != length.value())
             return "longitud exacta requerida: " + length.value() + " caracteres"
                  + (length.message().isBlank() ? "" : " — " + length.message());
 
-        // @JxMinLength
         JxMinLength minLen = field.getAnnotation(JxMinLength.class);
         if (minLen != null && str.length() < minLen.value())
             return "mínimo " + minLen.value() + " caracteres"
                  + (minLen.message().isBlank() ? "" : " — " + minLen.message());
 
-        // @JxMaxLength
         JxMaxLength maxLen = field.getAnnotation(JxMaxLength.class);
         if (maxLen != null && str.length() > maxLen.value())
             return "máximo " + maxLen.value() + " caracteres"
                  + (maxLen.message().isBlank() ? "" : " — " + maxLen.message());
 
-        // @JxEmail
         JxEmail email = field.getAnnotation(JxEmail.class);
         if (email != null && !EMAIL_PATTERN.matcher(str).matches()) return email.message();
 
-        // @JxPhone
         JxPhone phone = field.getAnnotation(JxPhone.class);
         if (phone != null && !PHONE_PATTERN.matcher(str).matches()) return phone.message();
 
-        // @JxPattern
         JxPattern pat = field.getAnnotation(JxPattern.class);
         if (pat != null && !cachedPattern(pat.value()).matcher(str).matches()) return pat.message();
 
-        // @JxIn
         JxIn in = field.getAnnotation(JxIn.class);
         if (in != null) {
             boolean found = false;
@@ -318,15 +212,12 @@ public final class JxValidation {
             if (!found) return in.message() + " — permitidos: " + String.join(", ", in.value());
         }
 
-        // @JxSafe
         JxSafe safe = field.getAnnotation(JxSafe.class);
         if (safe != null && SAFE_PATTERN.matcher(str).find()) return safe.message();
 
-        // @JxUrl
         JxUrl url = field.getAnnotation(JxUrl.class);
         if (url != null && !URL_PATTERN.matcher(str).matches()) return url.message();
 
-        // @JxDigits
         JxDigits digits = field.getAnnotation(JxDigits.class);
         if (digits != null) {
             if (!DIGITS_ONLY.matcher(str).matches())
@@ -336,34 +227,29 @@ public final class JxValidation {
                      + (digits.message().isBlank() ? "" : " — " + digits.message());
         }
 
-        // @JxFuture — soporta LocalDate y LocalDateTime
         JxFuture future = field.getAnnotation(JxFuture.class);
         if (future != null) {
             if (value instanceof LocalDate d      && !d.isAfter(LocalDate.now()))       return future.message();
             if (value instanceof LocalDateTime dt && !dt.isAfter(LocalDateTime.now()))  return future.message();
         }
 
-        // @JxPast — soporta LocalDate y LocalDateTime
         JxPast past = field.getAnnotation(JxPast.class);
         if (past != null) {
             if (value instanceof LocalDate d      && !d.isBefore(LocalDate.now()))      return past.message();
             if (value instanceof LocalDateTime dt && !dt.isBefore(LocalDateTime.now())) return past.message();
         }
 
-        // @JxCheck — validador personalizado
         JxCheck check = field.getAnnotation(JxCheck.class);
         if (check != null) {
             String err = runCustomConstraint(check, value);
             if (err != null) return err;
         }
 
-        // Numéricos
         if (value instanceof Number num) {
             double d = num.doubleValue();
             String err = checkNumeric(field, d);
             if (err != null) return err;
         } else {
-            // Intentar parsear String a número para @JxMin/@JxMax/@JxRange/@JxPositive
             JxMin min = field.getAnnotation(JxMin.class);
             JxMax max = field.getAnnotation(JxMax.class);
             JxRange range = field.getAnnotation(JxRange.class);
@@ -401,8 +287,6 @@ public final class JxValidation {
 
         return null;
     }
-
-    // ── Helpers ───────────────────────────────────────────────────────────
 
     private static List<Field> collectFields(Class<?> cls) {
         List<Field> fields = new ArrayList<>();

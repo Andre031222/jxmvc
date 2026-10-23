@@ -1,44 +1,10 @@
-/// JxMVC Open-source project 2024 - 2026
-/// -------------------------------------------
-///  coded by : Dr. Ramiro Pedro Laura Murillo
-///  improved : R. Andre Vilca Solorzano
-
 package jxmvc.core;
 
 import java.lang.reflect.*;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-/**
- * Generador automático de especificación OpenAPI 3.0 — cero dependencias externas.
- * Escanea los controladores anotados y construye el JSON del spec.
- *
- * <p>Disponible en {@code GET /jx/openapi}.
- *
- * <p>Configurable en {@code application.properties}:
- * <pre>
- *   jxmvc.openapi.title=Mi API
- *   jxmvc.openapi.version=1.0.0
- *   jxmvc.openapi.description=Descripción de la API
- *   jxmvc.openapi.server=http://localhost:8080/app
- * </pre>
- *
- * <p>Ejemplo de spec generado:
- * <pre>
- * {
- *   "openapi": "3.0.3",
- *   "info": { "title": "Mi API", "version": "1.0.0" },
- *   "paths": {
- *     "/api/users": {
- *       "get": { "summary": "list", "operationId": "UserController_list",
- *                "parameters": [...], "responses": { "200": {...} } }
- *     }
- *   }
- * }
- * </pre>
- */
 public final class JxOpenApi {
-
     private static final JxLogger log = JxLogger.getLogger(JxOpenApi.class);
 
     private JxOpenApi() {}
@@ -46,9 +12,6 @@ public final class JxOpenApi {
     private static volatile String cachedSpec = null;
     private static final AtomicBoolean built  = new AtomicBoolean(false);
 
-    /**
-     * Genera (o retorna del caché) la especificación OpenAPI 3.0 como JSON.
-     */
     public static String generate() {
         if (built.get() && cachedSpec != null) return cachedSpec;
         synchronized (JxOpenApi.class) {
@@ -59,13 +22,10 @@ public final class JxOpenApi {
         return cachedSpec;
     }
 
-    /** Fuerza la regeneración del spec (llamar si los controladores cambian en runtime). */
     public static void invalidate() {
         built.set(false);
         cachedSpec = null;
     }
-
-    // ── Construcción ──────────────────────────────────────────────────────
 
     private static String build() {
         String title   = BaseDbResolver.property("jxmvc.openapi.title",   "JxMVC API");
@@ -101,11 +61,8 @@ public final class JxOpenApi {
         return sb.toString();
     }
 
-    // ── Escaneo de controladores ──────────────────────────────────────────
-
     @SuppressWarnings("unchecked")
     private static Map<String, Map<String, String>> collectPaths() {
-        // TreeMap para orden alfabético
         Map<String, Map<String, String>> paths = new TreeMap<>();
 
         String pkg = BaseDbResolver.controllerPackage();
@@ -147,7 +104,6 @@ public final class JxOpenApi {
         for (Method m : cls.getDeclaredMethods()) {
             if (!Modifier.isPublic(m.getModifiers()) || Modifier.isStatic(m.getModifiers())) continue;
 
-            // Detectar verbo y path de la anotación
             String verb  = null;
             String mPath = null;
 
@@ -167,7 +123,6 @@ public final class JxOpenApi {
             else continue;
 
             String fullPath = buildPath(base, m.getName(), mPath);
-            // Convertir {var} → OpenAPI {var} (ya es compatible)
             String oaPath = fullPath;
 
             paths.computeIfAbsent(oaPath, k -> new TreeMap<>())
@@ -181,17 +136,14 @@ public final class JxOpenApi {
         op.append(",\"operationId\":\"")
           .append(esc(cls.getSimpleName() + "_" + m.getName())).append("\"");
 
-        // Tags — nombre del controlador sin "Controller"
         String tag = cls.getSimpleName().replace("Controller", "");
         op.append(",\"tags\":[\"").append(esc(tag)).append("\"]");
 
-        // @JxAuth
         if (m.isAnnotationPresent(JxMapping.JxAuth.class) ||
             cls.isAnnotationPresent(JxMapping.JxAuth.class)) {
             op.append(",\"security\":[{\"bearerAuth\":[]}]");
         }
 
-        // Parámetros
         op.append(",\"parameters\":[");
         Parameter[] params = m.getParameters();
         boolean firstParam = true;
@@ -218,14 +170,12 @@ public final class JxOpenApi {
         }
         op.append("]");
 
-        // Request body
         boolean hasBody = Arrays.stream(params)
                 .anyMatch(p -> p.isAnnotationPresent(JxMapping.JxBody.class));
         if (hasBody && ("POST".equals(verb) || "PUT".equals(verb) || "PATCH".equals(verb))) {
             op.append(",\"requestBody\":{\"required\":true,\"content\":{\"application/json\":{\"schema\":{\"type\":\"object\"}}}}");
         }
 
-        // Respuestas
         op.append(",\"responses\":{");
         JxMapping.JxResponseStatus rs = m.getAnnotation(JxMapping.JxResponseStatus.class);
         int successCode = rs != null ? rs.value() : ("POST".equals(verb) ? 201 : 200);
@@ -237,8 +187,6 @@ public final class JxOpenApi {
 
         return op.toString();
     }
-
-    // ── Helpers ───────────────────────────────────────────────────────────
 
     private static String resolveBase(Class<? extends JxController> cls) {
         JxMapping.JxControllerMapping cm = cls.getAnnotation(JxMapping.JxControllerMapping.class);

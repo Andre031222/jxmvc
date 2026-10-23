@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Map;
 
 public class JsonTest {
-
     static int passed = 0;
     static int failed = 0;
 
@@ -36,7 +35,6 @@ public class JsonTest {
     }
 
     static void testPojoRoundtrip() {
-        // JxJson.reflectToJson usa getters — Person tiene getName()/getAge()
         Person p = new Person("Ana", 30);
         String json = JxJson.toJson(p);
         check("pojo has name", json.contains("\"name\"") || json.contains("\"Ana\""));
@@ -55,7 +53,6 @@ public class JsonTest {
     }
 
     static void testNestedPojo() {
-        // Usa Map para garantizar serialización correcta sin depender de getters
         Map<String,Object> w = Map.of("label", "outer", "value", 42);
         String json = JxJson.toJson(w);
         check("map has outer key",   json.contains("\"label\""));
@@ -111,7 +108,6 @@ public class JsonTest {
         check("null de nivel superior", JxJson.fromJson("null", Object.class) == null);
     }
 
-    // Bean con getters para reflectToJson
     public static class Person {
         public String name;
         public int    age;

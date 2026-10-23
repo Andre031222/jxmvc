@@ -1,4 +1,3 @@
-# Quarkus compilado a binario NATIVO con GraalVM/Mandrel (arranque en ms, RSS mínimo).
 FROM quay.io/quarkus/ubi-quarkus-mandrel-builder-image:jdk-21 AS build
 USER root
 WORKDIR /a
@@ -6,9 +5,6 @@ RUN curl -sL https://archive.apache.org/dist/maven/maven-3/3.9.9/binaries/apache
       | tar xz -C /opt && ln -s /opt/apache-maven-3.9.9/bin/mvn /usr/local/bin/mvn
 COPY pom.xml .
 COPY src ./src
-# H2 y /db se quitan: la referencia nativa solo mide /plaintext y /json.
-# -Dquarkus.native.enabled=true activa el build nativo directamente (este pom no define el
-# profile `native`, así que el atajo -Dnative se ignoraría). -B (no -q) para ver errores reales.
 RUN rm src/main/java/bench/Db.java \
     && sed -i '/Path("\/db")/,+1d' src/main/java/bench/BenchResource.java \
     && sed -i '/com.h2database/d' pom.xml

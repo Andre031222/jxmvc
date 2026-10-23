@@ -1,7 +1,3 @@
-/// JxMVC Open-source project 2024 - 2026
-/// -------------------------------------------
-///  coded by : Dr. Ramiro Pedro Laura Murillo
-
 package jxmvc.core;
 
 import java.io.File;
@@ -13,48 +9,15 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-/**
- * Registro global de {@code @JxControllerAdvice} — manejo de excepciones transversal.
- *
- * <pre>
- *   &#64;JxControllerAdvice
- *   public class GlobalHandler {
- *
- *       &#64;JxExceptionHandler(JxException.class)
- *       public ActionResult onJxError(JxException ex) {
- *           return ActionResult.json(Map.of("error", ex.getMessage())).status(ex.getStatus());
- *       }
- *
- *       &#64;JxExceptionHandler(Exception.class)
- *       public ActionResult onGeneral(Exception ex) {
- *           return ActionResult.json(Map.of("error", "Error interno")).status(500);
- *       }
- *   }
- * </pre>
- *
- * Se auto-escanea el paquete de controladores al primer uso.
- * También se puede registrar manualmente:
- * <pre>
- *   JxAdviceRegistry.register(new GlobalHandler());
- * </pre>
- */
 public final class JxAdviceRegistry {
-
     private static final JxLogger     log     = JxLogger.getLogger(JxAdviceRegistry.class);
     private static final List<Object> advices = new CopyOnWriteArrayList<>();
     private static volatile boolean scanned = false;
 
     private JxAdviceRegistry() {}
 
-    /** Registra un advice manualmente. */
     public static void register(Object advice) { advices.add(advice); }
 
-    /**
-     * Busca un método {@code @JxExceptionHandler} en todos los advices registrados
-     * capaz de manejar la excepción dada e invoca el primero que coincida.
-     *
-     * @return {@link ActionResult} producido por el handler, o {@code null} si no hay handler.
-     */
     public static ActionResult handle(Throwable cause) {
         ensureScanned();
         Class<? extends Throwable> exType = cause.getClass();
@@ -81,8 +44,6 @@ public final class JxAdviceRegistry {
         }
         return null;
     }
-
-    // ── Escaneo automático ────────────────────────────────────────────────
 
     private static void ensureScanned() {
         if (scanned) return;

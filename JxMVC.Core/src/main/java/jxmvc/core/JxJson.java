@@ -1,7 +1,3 @@
-/// JxMVC Open-source project 2024 - 2026
-/// -------------------------------------------
-///  coded by : Dr. Ramiro Pedro Laura Murillo
-
 package jxmvc.core;
 
 import java.lang.reflect.Field;
@@ -14,33 +10,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Serializador JSON ligero — cero dependencias externas.
- * Soporta: null, String, Number, Boolean, DBRow, DBRowSet,
- *          List, Map y cualquier POJO con getters públicos.
- *
- * <pre>
- *   String json = JxJson.toJson(dbRowSet);
- *   String json = JxJson.toJson(Map.of("ok", true, "count", 5));
- * </pre>
- */
 public final class JxJson {
-
     private static final JxLogger log = JxLogger.getLogger(JxJson.class);
 
     private JxJson() {}
 
-    // ── Deserialización ───────────────────────────────────────────────────
-
-    /**
-     * Deserializa JSON a un POJO, tipo primitivo boxeado, {@link Map} o {@link List}.
-     *
-     * <pre>
-     *   UserDto dto  = JxJson.fromJson(body, UserDto.class);
-     *   List&lt;?&gt; list = JxJson.fromJson(body, List.class);
-     * </pre>
-     */
-    private static final int MAX_JSON_BYTES = 10 * 1024 * 1024; // 10 MB
+    private static final int MAX_JSON_BYTES = 10 * 1024 * 1024;
 
     @SuppressWarnings("unchecked")
     public static <T> T fromJson(String json, Class<T> type) {
@@ -130,8 +105,6 @@ public final class JxJson {
             && !java.lang.reflect.Modifier.isTransient(m)
             && !f.isSynthetic();
     }
-
-    // ── Parser JSON interno ────────────────────────────────────────────────
 
     private static final class JsonParser {
         private static final int MAX_DEPTH = 64;
@@ -292,8 +265,6 @@ public final class JxJson {
         }
     }
 
-    // ── Serialización ─────────────────────────────────────────────────────
-
     public static String toJson(Object value) {
         if (value == null)                          return "null";
         if (value instanceof String s)              return quote(s);
@@ -312,18 +283,10 @@ public final class JxJson {
         return reflectToJson(value);
     }
 
-    // ── Internos ──────────────────────────────────────────────────────────
-
     static String quote(String s) {
         return "\"" + escape(s) + "\"";
     }
 
-    /**
-     * Escapa una cadena para insertarla en JSON de forma segura.
-     * Además de los escapes estándar, neutraliza {@code <} y {@code >} (evita romper
-     * el contexto {@code </script>} cuando el JSON se incrusta en HTML), los separadores
-     * de línea U+2028/U+2029 (que rompen literales JS) y todo carácter de control.
-     */
     static String escape(String s) {
         if (s == null) return "";
         StringBuilder sb = new StringBuilder(s.length() + 8);

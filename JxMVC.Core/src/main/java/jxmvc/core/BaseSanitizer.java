@@ -1,36 +1,12 @@
-/// JxMVC Open-source project 2024 - 2026
-/// -------------------------------------------
-///  coded by : Dr. Ramiro Pedro Laura Murillo
-///  v3.1.1   : R. Andre Vilca Solorzano
-
 package jxmvc.core;
 
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.util.regex.Pattern;
 
-/**
- * Limpieza de entradas para prevenir XSS y ataques de inyección.
- * Se aplica automáticamente en {@link JxRequest#param} y {@link JxRequest#arg}.
- * Usar {@code paramRaw()} / {@code argRaw()} para datos sin limpiar.
- *
- * <p>Vectores cubiertos:
- * <ul>
- *   <li>Script injection: {@code <script>alert(1)</script>}
- *   <li>Event handlers: {@code onerror=}, {@code onclick=}
- *   <li>JavaScript protocol: {@code javascript:void(0)}
- *   <li>Data URI: {@code data:text/html,...}
- *   <li>CSS injection: {@code <style>...}
- *   <li>HTML tags genéricos
- *   <li>Doble URL encoding: {@code %253Cscript%253E}
- *   <li>Entidades HTML: {@code &lt;script&gt;}
- * </ul>
- */
 public final class BaseSanitizer {
-
     private BaseSanitizer() {}
 
-    // Patterns pre-compilados — Pattern.compile() es costoso, compartir entre hilos es seguro
     private static final Pattern P_SCRIPT   = Pattern.compile("(?is)<script[^>]*>.*?</script>");
     private static final Pattern P_STYLE    = Pattern.compile("(?is)<style[^>]*>.*?</style>");
     private static final Pattern P_IFRAME   = Pattern.compile("(?is)<iframe[^>]*>.*?</iframe>");
@@ -65,10 +41,6 @@ public final class BaseSanitizer {
         return v;
     }
 
-    /**
-     * Versión ligera para campos que no son HTML — solo decodifica y normaliza.
-     * Más rápido que {@link #clean} para IDs, emails, números.
-     */
     public static String cleanBasic(String input) {
         if (input == null) return null;
         return input.trim()
@@ -77,8 +49,6 @@ public final class BaseSanitizer {
                     .replace("\"", "")
                     .replace("'", "");
     }
-
-    // ── Privados ──────────────────────────────────────────────────────────
 
     private static String decodeRepeatedly(String input) {
         String current = input;

@@ -7,7 +7,6 @@ import java.util.List;
 @JxControllerMain
 @JxControllerMapping("home")
 public class HomeController extends BaseController {
-
     @JxGetMapping("index")
     public ActionResult index() {
         return view("home/index");
@@ -15,8 +14,8 @@ public class HomeController extends BaseController {
 
     @JxGetMapping({"/about", "about"})
     public ActionResult about() {
-        model.setVar("title",     "About · JxMVC 3.5.1");
-        model.setVar("framework", "JxMVC 3.5.1 (JxMVC)");
+        model.setVar("title",     "About · JxMVC 3.6.0");
+        model.setVar("framework", "JxMVC 3.6.0 (JxMVC)");
         return view("home/about");
     }
 
@@ -27,19 +26,19 @@ public class HomeController extends BaseController {
 
     @JxGetMapping({"docs", "/docs"})
     public ActionResult docs() {
-        model.setVar("title", "Docs · JxMVC 3.5.1");
+        model.setVar("title", "Docs · JxMVC 3.6.0");
         return view("home/docs");
     }
 
     @JxGetMapping({"errors", "/errors"})
     public ActionResult errors() {
-        model.setVar("title", "Pruebas de errores · JxMVC 3.5.1");
+        model.setVar("title", "Pruebas de errores · JxMVC 3.6.0");
         return view("home/errors");
     }
 
     @JxGetMapping({"downloads", "/downloads"})
     public ActionResult downloads() {
-        model.setVar("title", "Descargas · JxMVC 3.5.1");
+        model.setVar("title", "Descargas · JxMVC 3.6.0");
         return view("home/downloads");
     }
 
@@ -60,7 +59,7 @@ public class HomeController extends BaseController {
 
     @JxGetMapping({"bd", "/bd"})
     public ActionResult bd() {
-        model.setVar("title", "BD · JxMVC 3.5.1");
+        model.setVar("title", "BD · JxMVC 3.6.0");
 
         try (JxDB db = db()) {
             String connState = db.isConnected() ? "Conectado" : "Sin conexión";
@@ -113,7 +112,6 @@ public class HomeController extends BaseController {
         return text("test0:" + model.arg(0));
     }
 
-    // Demo REST (GET absoluto y POST)
     @JxGetMapping("/nee/solo-get")
     public ActionResult soloGet() { return text("solo GET OK"); }
 

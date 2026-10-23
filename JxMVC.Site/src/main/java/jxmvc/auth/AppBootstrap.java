@@ -10,14 +10,8 @@ import jxmvc.core.JxOAuth;
 import jxmvc.core.JxProfile;
 import jxmvc.core.JxSecurity;
 
-/**
- * Arranque de la aplicación: registra el proveedor de autenticación de JxMVC.
- * A partir de aquí {@code @JxRequireAuth} y {@code @JxRequireRole} quedan activos
- * y validan contra el {@link AppUser} guardado en la sesión.
- */
 @WebListener
 public class AppBootstrap implements ServletContextListener {
-
     private static final JxLogger log = JxLogger.getLogger(AppBootstrap.class);
 
     @Override

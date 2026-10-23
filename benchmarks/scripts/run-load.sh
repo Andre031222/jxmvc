@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
-# Mide throughput/latencia con el generador JDK. Repite N veces y reporta cada corrida en CSV.
-# uso: run-load.sh <baseUrl> <conexiones> <segundos> [repeticiones]
 set -euo pipefail
 BASE="${1:?baseUrl requerido (ej http://localhost:8080)}"
 CONNS="${2:-64}"

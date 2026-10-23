@@ -1,4 +1,3 @@
-# Contexto de build = raíz del repo (bench.sh lo invoca así), para compilar JxMVC.Core.
 FROM maven:3.9-eclipse-temurin-17 AS build
 WORKDIR /src
 COPY JxMVC.Core /src/JxMVC.Core

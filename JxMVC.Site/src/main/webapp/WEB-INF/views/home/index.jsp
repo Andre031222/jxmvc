@@ -5,9 +5,9 @@
   <div class="s-wrap">
     <div class="s-hero-grid">
       <div>
-        <p class="s-eyebrow">JxMVC 3.5.1 · Jakarta EE 10 · Java 17+</p>
+        <p class="s-eyebrow">JxMVC 3.6.0 · Jakarta EE 10 · Java 17+</p>
         <h1 class="s-h1">El framework MVC para Jakarta EE que es <span class="s-accent">seguro por defecto</span> y no trae dependencias.</h1>
-        <p class="s-lead" style="margin-top:20px">Un solo JAR de 298 KB con routing, acceso a datos, pool de conexiones, JSON, caché, tareas programadas, WebSocket, OpenAPI, OpenID Connect y lectura de PDF. Las protecciones se aplican en cada petición, antes de tu código, sin módulos adicionales.</p>
+        <p class="s-lead" style="margin-top:20px">Un solo JAR de 301 KB con routing, acceso a datos, pool de conexiones, JSON, caché, tareas programadas, WebSocket, OpenAPI, OpenID Connect y lectura de PDF. Las protecciones se aplican en cada petición, antes de tu código, sin módulos adicionales.</p>
         <div class="s-actions">
           <a class="s-btn s-btn-primary" href="${pageContext.request.contextPath}/downloads">Descargar</a>
           <a class="s-btn s-btn-ghost" href="${pageContext.request.contextPath}/docs">Documentación</a>
@@ -20,7 +20,7 @@
         <p class="s-small" style="margin-top:10px">Instala el core en tu repositorio Maven y crea un proyecto. En Windows usa el comando de PowerShell de <a class="s-accent" href="${pageContext.request.contextPath}/downloads">Descargas</a>.</p>
       </div>
       <div class="s-code">
-        <div class="s-code-top"><span>NoteController.java</span><span>compila con 3.5.1</span></div>
+        <div class="s-code-top"><span>NoteController.java</span><span>compila con 3.6.0</span></div>
 <pre><span class="a">@JxControllerMapping</span>(<span class="s">"notes"</span>)
 <span class="k">public class</span> <span class="t">NoteController</span> <span class="k">extends</span> <span class="t">JxController</span> {
 
@@ -48,10 +48,10 @@
     </div>
 
     <div class="s-stats">
-      <div class="s-stat"><b>298 KB</b><span>un JAR de 55 clases</span></div>
+      <div class="s-stat"><b>301 KB</b><span>un JAR de 55 clases</span></div>
       <div class="s-stat"><b>0</b><span>dependencias de terceros</span></div>
       <div class="s-stat"><b>17 / 18</b><span>ataques bloqueados sin configurar nada</span></div>
-      <div class="s-stat"><b>425</b><span>comprobaciones de prueba</span></div>
+      <div class="s-stat"><b>433</b><span>comprobaciones de prueba</span></div>
     </div>
   </div>
 </section>

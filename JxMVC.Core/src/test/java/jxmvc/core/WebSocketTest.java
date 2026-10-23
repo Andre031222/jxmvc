@@ -7,7 +7,6 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public class WebSocketTest {
-
     static int passed = 0;
     static int failed = 0;
 

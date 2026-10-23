@@ -33,9 +33,7 @@
     <session-config>
         <session-timeout>30</session-timeout>
         <cookie-config>
-            <!-- HttpOnly: la cookie no es accesible desde JavaScript (proteccion XSS) -->
             <http-only>true</http-only>
-            <!-- Secure: se activa por perfil en AppBootstrap (true en prod, false en dev/http) -->
         </cookie-config>
         <tracking-mode>COOKIE</tracking-mode>
     </session-config>

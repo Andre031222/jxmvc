@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
-# Tamaño de los artefactos desplegables (bytes y KB/MB legible).
-# Pásale las rutas de cada artefacto a medir; sin args, mide los de JxMVC del repo.
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 

@@ -2,19 +2,19 @@
 
 <img src="docs/jxmvc-logo.png" width="104" alt="JxMVC" />
 
-# JxMVC — a 298 kB, zero-dependency MVC framework for Jakarta EE
+# JxMVC — a 301 kB, zero-dependency MVC framework for Jakarta EE
 
-Full-stack MVC for Jakarta EE 10 in a **298 kB JAR of 55 classes** with **zero
+Full-stack MVC for Jakarta EE 10 in a **301 kB JAR of 55 classes** with **zero
 third-party runtime dependencies**, and **security applied by default** in a
 fixed fifteen-stage request pipeline.
 
 [![Site](https://img.shields.io/badge/site-jxmvc.ginit.dev-0071E3?style=flat-square&logo=googlechrome&logoColor=white)](https://jxmvc.ginit.dev)
-[![Version](https://img.shields.io/badge/version-3.5.1-1565C0?style=flat-square)](https://github.com/Andre031222/jxmvc/releases)
+[![Version](https://img.shields.io/badge/version-3.6.0-1565C0?style=flat-square)](https://github.com/Andre031222/jxmvc/releases)
 [![License: MIT](https://img.shields.io/badge/license-MIT-15803d?style=flat-square)](LICENSE)
 [![Java 17+](https://img.shields.io/badge/Java-17%2B-007396?style=flat-square&logo=openjdk&logoColor=white)](https://openjdk.org/)
 [![Jakarta EE 10](https://img.shields.io/badge/Jakarta_EE-10-EE2A24?style=flat-square&logo=jakartaee&logoColor=white)](https://jakarta.ee/)
 [![Runtime deps](https://img.shields.io/badge/runtime_deps-0-2E7D32?style=flat-square)](#design-point)
-[![Tests](https://img.shields.io/badge/tests-425_passing-C21325?style=flat-square)](#reproducing-the-benchmarks)
+[![Tests](https://img.shields.io/badge/tests-433_passing-C21325?style=flat-square)](#reproducing-the-benchmarks)
 [![Paper](https://img.shields.io/badge/paper-in_preparation-64748b?style=flat-square)](#paper)
 [![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.21896136-1d4ed8?style=flat-square)](https://doi.org/10.5281/zenodo.21896136)
 
@@ -33,10 +33,11 @@ transitive-dependency trees, and broad attack surfaces for developer convenience
 occupies a different point in the design space: it implements routing, dependency
 injection, connection pooling, JSON, caching, scheduling, WebSocket, OpenAPI, metrics,
 validation, rate limiting, CSRF, password hashing (PBKDF2), and a complete OAuth 2.0 /
-OpenID Connect client (authorization code + PKCE, RS256/JWKS verification) **from scratch
+OpenID Connect client (authorization code + PKCE, RS256/JWKS verification), and PDF reading
+and generation **from scratch
 on top of the JDK and the Jakarta Servlet API alone**.
 
-The result is a **298 kB JAR of 55 classes with zero third-party runtime dependencies**
+The result is a **301 kB JAR of 55 classes with zero third-party runtime dependencies**
 (the only additional production requirement is the JDBC driver of your database), small
 enough to read and audit end to end.
 
@@ -46,7 +47,7 @@ enough to read and audit end to end.
 | Property | JxMVC | Mainstream stacks |
 |---|---|---|
 | Runtime dependencies | **0** | dozens to hundreds (transitive) |
-| Core artifact size | **298 kB** | MB-scale |
+| Core artifact size | **301 kB** | MB-scale |
 | Security | **by default, structural** (pipeline) | opt-in (a starter you add) |
 | JSON / pooling / OIDC | **own**, JDK-only | delegated to libraries |
 | Readability | whole core auditable in one sitting | tracing across generated code |
@@ -137,7 +138,7 @@ mvn package cargo:run     # http://localhost:8080
 mvn package               # target/myapp.war, deployable on Tomcat 10.1+
 ```
 
-Drop `new myapp` to install only the framework. Set `JXMVC_VERSION=v3.5.1` to pin a release. The installer downloads the prebuilt `jxmvc-core-<version>.jar` from the release and installs it with `mvn install:install-file`; the same JAR is available at https://github.com/Andre031222/jxmvc/releases/latest/download/jxmvc-core.jar.
+Drop `new myapp` to install only the framework. Set `JXMVC_VERSION=v3.6.0` to pin a release. The installer downloads the prebuilt `jxmvc-core-<version>.jar` from the release and installs it with `mvn install:install-file`; the same JAR is available at https://github.com/Andre031222/jxmvc/releases/latest/download/jxmvc-core.jar.
 
 * * *
 
@@ -181,6 +182,19 @@ authenticated user is present. Rate limiting is opt-in per action with `@JxRateL
 session-token CSRF is enabled with `jxmvc.security.csrf=true`. Live demo and docs:
 <https://jxmvc.ginit.dev>.
 
+Generating a PDF needs no library either:
+
+```java
+JxPdf pdf = new JxPdf();
+pdf.SetFont(JxPdf.HELVETICA_BOLD, 14);
+pdf.TextXY(40, 40, "Report");
+pdf.SetFont(JxPdf.HELVETICA, 12);
+pdf.SetBackColor(new Color(220, 230, 242));
+pdf.Cell(150, 30, "Cell with background", true, true, 0);
+pdf.Cell(150, 30, "Next cell", true, false, 1);
+pdf.Output("report.pdf");
+```
+
 ### Build from source
 
 ```bash
@@ -206,7 +220,7 @@ Results are written to [`benchmarks/results/`](benchmarks/results/) (`RESULTS-do
 plus the raw per-run CSV). For publication-quality numbers, run on bare-metal Linux with
 pinned cores; see [`benchmarks/docker/RUN-DB.md`](benchmarks/docker/RUN-DB.md).
 
-The core is verified by a **425-check test suite written without any external testing
+The core is verified by a **433-check test suite written without any external testing
 framework** — consistent with the zero-dependency principle.
 
 * * *

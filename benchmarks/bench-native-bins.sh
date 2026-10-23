@@ -1,9 +1,4 @@
 #!/usr/bin/env bash
-# Corre binarios YA construidos (extraídos de las imágenes Docker, compilados con Java 17) de
-# forma nativa en Linux, sin compilar aquí. Mide arranque, RSS y throughput/latencia.
-# Espera los artefactos en $BINS: javalin-app.jar spring-app.jar micronaut-app.jar quarkus/ ROOT.war
-#
-# Uso: JAVA=/ruta/java PORT=8099 BINS=/root/bins ./bench-native-bins.sh [conns] [dur] [reps]
 set -uo pipefail
 JAVA="${JAVA:-java}"
 PORT="${PORT:-8099}"

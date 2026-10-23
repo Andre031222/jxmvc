@@ -11,7 +11,6 @@ import java.net.URI;
 
 @Path("")
 public class BenchResource {
-
     @GET @Path("/plaintext") @Produces("text/plain")
     public String plaintext() { return "OK"; }
 

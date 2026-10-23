@@ -3,7 +3,6 @@ package jxmvc.core;
 import java.lang.reflect.Field;
 
 public class SchedulerCronTest {
-
     static int passed = 0;
     static int failed = 0;
 

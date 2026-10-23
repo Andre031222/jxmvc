@@ -12,9 +12,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-/** Verificaciones del hardening v3.3.0: CSRF, open redirect, body cap, router y métricas. */
 public class HardeningV33Test {
-
     static int passed = 0;
     static int failed = 0;
 
@@ -34,8 +32,6 @@ public class HardeningV33Test {
         System.out.printf("HardeningV33Test: pass=%d fail=%d%n", passed, failed);
     }
 
-    // ── CSRF ──────────────────────────────────────────────────────────────
-
     static void testCsrf() {
         Map<String, Object> session = new ConcurrentHashMap<>();
 
@@ -54,8 +50,6 @@ public class HardeningV33Test {
         check("csrf: sin sesión falla",      !JxCsrf.validate(request("POST", null, token, null)));
     }
 
-    // ── Open redirect ─────────────────────────────────────────────────────
-
     static void testRedirectGuard() {
         check("redirect: relativo pasa",     "/inicio".equals(JxResponse.checkRedirect("/inicio")));
         check("redirect: null → /",          "/".equals(JxResponse.checkRedirect(null)));
@@ -68,8 +62,6 @@ public class HardeningV33Test {
         try { r.run(); return false; }
         catch (JxException e) { return e.getStatus() == 400; }
     }
-
-    // ── Body cap ──────────────────────────────────────────────────────────
 
     static void testBodyCap() {
         String small = "{\"ok\":true}";
@@ -86,8 +78,6 @@ public class HardeningV33Test {
         catch (JxException e) { return e.getStatus() == 413; }
     }
 
-    // ── Métricas ──────────────────────────────────────────────────────────
-
     static void testMetricsMinMaxStatus() {
         JxMetrics.record("/h33/min", "GET", 200, 10);
         JxMetrics.record("/h33/min", "GET", 200, 20);
@@ -100,16 +90,12 @@ public class HardeningV33Test {
         check("metrics: clases de estado",   json.contains("\"2xx\":") && json.contains("\"4xx\":"));
     }
 
-    // ── Rate limiter: ventanas largas sobreviven la limpieza ─────────────
-
     static void testRateLimiterLongWindows() {
         for (int i = 0; i < 3; i++) JxRateLimiter.allow("ipL", "GET:h33#larga", 5, 3600);
         JxRateLimiter.cleanupExpired();
         check("ratelimiter: ventana larga intacta tras limpieza",
                 JxRateLimiter.remaining("ipL", "GET:h33#larga", 5, 3600) == 2);
     }
-
-    // ── Router: extraArgs por segmentos ───────────────────────────────────
 
     static void testExtraArgsSegments() throws Exception {
         Object dispatcher = newDispatcher();
@@ -136,8 +122,6 @@ public class HardeningV33Test {
         return ctor.newInstance();
     }
 
-    // ── metricKey: colapso de segmentos variables ─────────────────────────
-
     static void testMetricKeyCardinality() throws Exception {
         MainLxServlet servlet = new MainLxServlet();
         Method m = MainLxServlet.class.getDeclaredMethod("metricKey", String.class);
@@ -149,15 +133,11 @@ public class HardeningV33Test {
         check("metricKey: texto queda","/users/perfil".equals(m.invoke(servlet, "/users/perfil")));
     }
 
-    // ── JxHtml ────────────────────────────────────────────────────────────
-
     static void testHtmlEscape() {
         check("esc: html neutralizado",
                 "&lt;b&gt;&#39;x&#39;&quot;&amp;&#47;".equals(JxHtml.escape("<b>'x'\"&/")));
         check("esc: null → vacío", "".equals(JxHtml.escape(null)));
     }
-
-    // ── Stubs ─────────────────────────────────────────────────────────────
 
     static HttpServletRequest request(String method, Map<String, Object> sessionAttrs,
                                       String headerToken, String paramToken) {

@@ -7,7 +7,6 @@ import java.util.Arrays;
 import java.util.zip.GZIPInputStream;
 
 public class GzipTest {
-
     static int passed = 0;
     static int failed = 0;
 

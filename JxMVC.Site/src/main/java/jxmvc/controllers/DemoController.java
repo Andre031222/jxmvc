@@ -7,15 +7,12 @@ import java.nio.file.Paths;
 
 @JxControllerMapping("demo")
 public class DemoController extends BaseController {
-
     private static final String DB_UNAVAILABLE = "Base de datos de demostración no configurada";
-
-    // ── Demo básico ───────────────────────────────────────────────────────
 
     @JxGetMapping("index")
     public String index() {
         view.contentType("text/html;charset=UTF-8");
-        return "Demo JxMVC 3.5.1 — <b>funcionando</b>";
+        return "Demo JxMVC 3.6.0 — <b>funcionando</b>";
     }
 
     @JxGetMapping("salud")
@@ -25,10 +22,8 @@ public class DemoController extends BaseController {
 
     @JxGetMapping("ping")
     public ActionResult ping() {
-        return json(GenApi.JsonStr("pong", true, "version", "3.5.1"));
+        return json(GenApi.JsonStr("pong", true, "version", "3.6.0"));
     }
-
-    // ── CORS ──────────────────────────────────────────────────────────────
 
     @JxCors(origins = {"http://localhost:5173","http://127.0.0.1:5173"}, hosts = {"127.0.0.1","::1"}, methods = {"GET"})
     @JxGetMapping("cors-local")
@@ -48,8 +43,6 @@ public class DemoController extends BaseController {
         return json("{\"scope\":\"public\",\"ok\":true}");
     }
 
-    // ── Sesiones ──────────────────────────────────────────────────────────
-
     @JxGetMapping("crear")
     public ActionResult crear() {
         sessionSet("t1", "valor creado");
@@ -61,8 +54,6 @@ public class DemoController extends BaseController {
         String val = (String) sessionGet("t1");
         return text(val != null ? "t1 = " + val : "nulo");
     }
-
-    // ── Base de datos (solo perfil dev) ───────────────────────────────────
 
     @JxGetMapping("/inscrips")
     public void inscrips() {
@@ -108,8 +99,6 @@ public class DemoController extends BaseController {
             return db.isConnected() ? text("Conexión remota OK") : text(DB_UNAVAILABLE);
         }
     }
-
-    // ── CRUD (solo dev; mutaciones por POST) ──────────────────────────────
 
     @JxGetMapping("test-list")
     public ActionResult testList() {
@@ -194,8 +183,6 @@ public class DemoController extends BaseController {
         }
     }
 
-    // ── Subida de archivos ────────────────────────────────────────────────
-
     @JxGetMapping("upload")
     public ActionResult uploadForm() { requireDev(); return view("demo/upload"); }
 
@@ -208,8 +195,6 @@ public class DemoController extends BaseController {
 
     @JxGetMapping("testdb")
     public ActionResult testDb() { requireDev(); return view("demo/testdb"); }
-
-    // ── Helpers ───────────────────────────────────────────────────────────
 
     private JxDB demoDb() {
         String url  = BaseDbResolver.property("jxmvc.demo.db.url",  "");

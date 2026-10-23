@@ -1,7 +1,3 @@
-/// JxMVC Open-source project 2024 - 2026
-/// -------------------------------------------
-///  coded by : Dr. Ramiro Pedro Laura Murillo
-
 package jxmvc.core;
 
 import java.net.URI;
@@ -13,35 +9,12 @@ import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Cliente HTTP ligero — cero dependencias externas (usa {@link HttpClient} de Java 11+).
- * Soporta GET, POST, PUT, DELETE, PATCH con cabeceras y cuerpo personalizados.
- *
- * <pre>
- *   // GET simple
- *   JxHttp.Response r = JxHttp.get("https://api.example.com/users");
- *   if (r.isOk()) { UserDto[] users = r.as(UserDto[].class); }
- *
- *   // POST JSON
- *   JxHttp.Response r = JxHttp.postJson("https://api.example.com/users",
- *                                        Map.of("name", "Ana", "email", "ana@mail.com"));
- *
- *   // Petición completa
- *   JxHttp.Response r = JxHttp.builder("PUT", "https://api.example.com/users/1")
- *                              .header("Authorization", "Bearer " + token)
- *                              .body(JxJson.toJson(dto))
- *                              .send();
- * </pre>
- */
 public final class JxHttp {
-
     private static final HttpClient CLIENT = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(10))
             .build();
 
     private JxHttp() {}
-
-    // ── Métodos de conveniencia ───────────────────────────────────────────
 
     public static Response get(String url) {
         return builder("GET", url).send();
@@ -70,12 +43,9 @@ public final class JxHttp {
         return builder("DELETE", url).send();
     }
 
-    /** Inicia una petición fluida. */
     public static Builder builder(String method, String url) {
         return new Builder(method, url);
     }
-
-    // ── Builder ───────────────────────────────────────────────────────────
 
     public static final class Builder {
         private final String              method;
@@ -84,7 +54,7 @@ public final class JxHttp {
         private String                    body    = "";
         private int                       timeoutSecs = 30;
 
-        private static final int MAX_RESPONSE_BYTES = 10 * 1024 * 1024; // 10 MB
+        private static final int MAX_RESPONSE_BYTES = 10 * 1024 * 1024;
 
         private Builder(String method, String url) {
             String scheme = URI.create(url).getScheme();
@@ -131,18 +101,12 @@ public final class JxHttp {
                     bodyStr = new String(bytes, StandardCharsets.UTF_8);
                 }
                 return new Response(resp.statusCode(), bodyStr, resp.headers().map());
-
             } catch (Exception e) {
                 return new Response(-1, e.getMessage(), Map.of());
             }
         }
     }
 
-    // ── Response ──────────────────────────────────────────────────────────
-
-    /**
-     * Respuesta HTTP con código, cuerpo y cabeceras.
-     */
     public static final class Response {
         private final int                          status;
         private final String                       body;
@@ -163,10 +127,8 @@ public final class JxHttp {
         public boolean isServerError() { return status >= 500; }
         public boolean isError()    { return status < 0 || status >= 400; }
 
-        /** Deserializa el cuerpo JSON al tipo indicado. */
         public <T> T as(Class<T> type) { return JxJson.fromJson(body, type); }
 
-        /** Primer valor de la cabecera dada, o {@code null}. */
         public String header(String name) {
             List<String> vals = headers.get(name.toLowerCase());
             return (vals != null && !vals.isEmpty()) ? vals.get(0) : null;

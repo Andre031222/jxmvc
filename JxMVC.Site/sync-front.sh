@@ -1,10 +1,4 @@
 #!/usr/bin/env bash
-# Hot-reload del frontend: copia JSP/CSS/JS/assets del source al webapp que
-# Tomcat ya tiene desplegado. Tomcat recompila las JSP en caliente y sirve los
-# estáticos al vuelo — no hace falta 'mvn package' ni reiniciar el contenedor.
-#
-#   Uso:  ./sync-front.sh        (una vez, tras editar el front)
-#         ./sync-front.sh watch  (re-sincroniza cada 2 s automáticamente)
 set -euo pipefail
 cd "$(dirname "$0")"
 

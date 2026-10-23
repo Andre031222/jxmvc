@@ -14,7 +14,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Logger;
 
 public class Driver implements java.sql.Driver {
-
     public static final AtomicInteger opened          = new AtomicInteger();
     public static final AtomicInteger validationCalls = new AtomicInteger();
     public static final Set<Connection> closed =

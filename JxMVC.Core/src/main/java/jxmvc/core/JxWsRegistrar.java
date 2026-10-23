@@ -1,8 +1,3 @@
-/// JxMVC Open-source project 2024 - 2026
-/// -------------------------------------------
-///  coded by : Dr. Ramiro Pedro Laura Murillo
-///  v3.1.1   : R. Andre Vilca Solorzano
-
 package jxmvc.core;
 
 import jakarta.servlet.ServletContext;
@@ -19,42 +14,8 @@ import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 
-/**
- * Registra automáticamente los endpoints WebSocket anotados con
- * {@link JxMapping.JxWsEndpoint} al arrancar la aplicación.
- *
- * <p>No requiere configuración manual. Se activa automáticamente como
- * {@code @WebListener}. Para cada clase que extienda {@link JxWebSocket}
- * y tenga {@code @JxWsEndpoint}, se registra el endpoint en el contenedor.
- *
- * <p>Ejemplo de endpoint completo:
- * <pre>
- *   &#64;JxMapping.JxWsEndpoint("/ws/chat/{sala}")
- *   public class ChatEndpoint extends JxWebSocket {
- *
- *       &#64;Override
- *       protected void onOpen(Session session, String... pathVars) {
- *           joinRoom(pathVars[0], session);
- *           broadcast(pathVars[0], session.getId() + " conectado");
- *       }
- *
- *       &#64;Override
- *       protected void onMessage(Session session, String message) {
- *           String sala = (String) session.getUserProperties().get("sala");
- *           broadcast(sala, session.getId() + ": " + message);
- *       }
- *
- *       &#64;Override
- *       protected void onClose(Session session) {
- *           String sala = (String) session.getUserProperties().get("sala");
- *           leaveRoom(sala, session);
- *       }
- *   }
- * </pre>
- */
 @WebListener
 public final class JxWsRegistrar implements ServletContextListener {
-
     private static final JxLogger log = JxLogger.getLogger(JxWsRegistrar.class);
 
     @Override
@@ -89,7 +50,6 @@ public final class JxWsRegistrar implements ServletContextListener {
                 wsContainer.addEndpoint(builder.build());
                 log.info("[WS] Registrado: {} → {}", cls.getSimpleName(), path);
                 registered++;
-
             } catch (DeploymentException e) {
                 log.error("[WS] Error registrando {}: {}", cls.getSimpleName(), e.getMessage());
             }
@@ -101,8 +61,6 @@ public final class JxWsRegistrar implements ServletContextListener {
 
     @Override
     public void contextDestroyed(ServletContextEvent sce) {}
-
-    // ── Scanner ───────────────────────────────────────────────────────────
 
     private List<Class<?>> scanWsEndpoints(ServletContext ctx) {
         List<Class<?>> result = new ArrayList<>();

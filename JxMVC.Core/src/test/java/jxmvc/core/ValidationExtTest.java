@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.Map;
 
 public class ValidationExtTest {
-
     static int passed = 0;
     static int failed = 0;
 
@@ -119,8 +118,6 @@ public class ValidationExtTest {
         check("JxUrl http passes",   validate(new UrlBean("http://example.com")).isEmpty());
         check("JxUrl https passes",  validate(new UrlBean("https://example.com/path")).isEmpty());
     }
-
-    // --- Bean helpers ---
 
     static class ReqBean  { @JxValidation.JxRequired String v; ReqBean(String v){this.v=v;} }
     static class NnBean   { @JxValidation.JxNotNull  Object v; NnBean(Object v){this.v=v;} }

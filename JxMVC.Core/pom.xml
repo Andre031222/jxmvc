@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>jxmvc</groupId>
     <artifactId>jxmvc-core</artifactId>
-    <version>3.5.1</version>
+    <version>3.6.0</version>
     <packaging>jar</packaging>
     <name>JxMVC.Core</name>
     <description>Lux — Lightweight Java MVC framework — Jakarta EE 10, zero heavy dependencies.</description>
@@ -36,9 +36,6 @@
                 </configuration>
             </plugin>
 
-            <!-- Ejecuta el runner propio (275 verificaciones sin framework externo)
-                 en la fase test. Corre en una JVM aparte: si algún test falla,
-                 JxTestSuite hace System.exit(1) y la build falla. Se respeta -DskipTests. -->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>exec-maven-plugin</artifactId>

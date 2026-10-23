@@ -14,11 +14,10 @@
 
 <section class="s-wrap" style="padding-top:20px;padding-bottom:40px">
 
-    <%-- ── Encabezado ─────────────────────────────────────────────── --%>
     <div class="max-w-3xl mb-10 jx-reveal jx-delay-1">
         <p class="text-xs font-mono uppercase tracking-[0.25em] text-muted dark:text-[#86868b] mb-3" data-i18n="dl.tag">Generador de proyectos</p>
         <h1 class="text-4xl md:text-5xl font-bold tracking-tight text-ink dark:text-[#f5f5f7] mb-3">
-            JxMVC <span class="text-apple">3.5.1</span>
+            JxMVC <span class="text-apple">3.6.0</span>
         </h1>
         <p class="text-base text-muted dark:text-[#86868b] leading-relaxed" data-i18n="dl.subtitle">
             Instala con un comando, genera un proyecto o descarga el JAR directamente.
@@ -29,10 +28,8 @@
         </div>
     </div>
 
-    <%-- ── Detección de plataforma ─────────────────────────────────── --%>
     <div class="mb-10 bg-white dark:bg-white/[0.05] border border-black/[0.06] dark:border-white/[0.06] rounded-2xl overflow-hidden jx-reveal jx-delay-2">
 
-        <%-- Cabecera con detección + cards de plataforma --%>
         <div class="px-5 pt-4 pb-4 border-b border-black/[0.06] dark:border-white/[0.06]">
             <p class="text-[10px] font-mono uppercase tracking-[0.2em] text-muted dark:text-[#86868b] mb-3">
                 <span data-i18n="dl.detect">Plataforma detectada</span>:
@@ -40,7 +37,6 @@
             </p>
             <div class="grid grid-cols-3 gap-2">
 
-                <%-- Windows — logo oficial: 4 paneles azul #0078D4 --%>
                 <button data-os="win" class="jx-os-tab flex flex-col items-center gap-2 py-4 rounded-2xl border-2 border-transparent bg-black/[0.03] dark:bg-white/[0.04] hover:bg-black/[0.05] dark:hover:bg-white/[0.07] transition-all" onclick="jxSwitchOs('win')">
                     <svg class="w-7 h-7 jx-os-icon" viewBox="0 0 24 24" fill="#0078D4">
                         <path d="M0 3.449L9.75 2.1V11.551H0ZM10.949 1.9L24 0V11.4H10.949ZM0 12.6H9.75V22.051L0 20.699ZM10.949 12.6H24V24L10.949 22.051Z"/>
@@ -48,7 +44,6 @@
                     <span class="text-[10px] font-mono jx-os-label text-muted dark:text-[#636366]" data-i18n="dl.os.win">Windows</span>
                 </button>
 
-                <%-- macOS — logo Apple original: monocromo (negro en claro, plata en oscuro) --%>
                 <button data-os="mac" class="jx-os-tab flex flex-col items-center gap-2 py-4 rounded-2xl border-2 border-transparent bg-black/[0.03] dark:bg-white/[0.04] hover:bg-black/[0.05] dark:hover:bg-white/[0.07] transition-all" onclick="jxSwitchOs('mac')">
                     <svg class="w-7 h-7 jx-os-icon text-[#1D1D1F] dark:text-[#F5F5F7]" viewBox="0 0 24 24" fill="currentColor">
                         <path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/>
@@ -56,7 +51,6 @@
                     <span class="text-[10px] font-mono jx-os-label text-muted dark:text-[#636366]" data-i18n="dl.os.mac">macOS</span>
                 </button>
 
-                <%-- Linux — Tux con sus colores originales (cuerpo negro, panza blanca, pico y patas naranjas) --%>
                 <button data-os="lin" class="jx-os-tab flex flex-col items-center gap-2 py-4 rounded-2xl border-2 border-transparent bg-black/[0.03] dark:bg-white/[0.04] hover:bg-black/[0.05] dark:hover:bg-white/[0.07] transition-all" onclick="jxSwitchOs('lin')">
                     <svg class="w-7 h-7 jx-os-icon" viewBox="0 0 24 24">
                         <ellipse cx="8.6"  cy="21.6" rx="2.6" ry="1.5" fill="#F5A623"/>
@@ -76,14 +70,13 @@
             </div>
         </div>
 
-        <%-- Windows --%>
         <div id="jxOs-win" class="jx-os-panel px-5 py-5">
             <p class="text-xs text-muted dark:text-[#86868b] mb-3">
                 Requisitos: Java 17+ y Maven 3.8+. Un solo comando en <strong class="text-ink dark:text-[#f5f5f7]">PowerShell</strong>:
             </p>
             <div class="jx-code">
                 <div class="jx-code-label">PowerShell</div>
-                <pre># Instala JxMVC 3.5.1 y crea tu proyecto
+                <pre># Instala JxMVC 3.6.0 y crea tu proyecto
 &amp; ([scriptblock]::Create((irm https://raw.githubusercontent.com/Andre031222/jxmvc/main/install.ps1))) new mi-app
 
 # Compila y arranca (Tomcat se descarga solo)
@@ -92,14 +85,13 @@ mvn package cargo:run</pre>
             </div>
         </div>
 
-        <%-- macOS --%>
         <div id="jxOs-mac" class="jx-os-panel hidden px-5 py-5">
             <p class="text-xs text-muted dark:text-[#86868b] mb-3">
                 Requisitos: <code class="text-apple font-mono">brew install openjdk@17 maven</code>. Un solo comando en <strong class="text-ink dark:text-[#f5f5f7]">Terminal</strong>:
             </p>
             <div class="jx-code">
                 <div class="jx-code-label">Terminal — zsh / bash</div>
-                <pre># Instala JxMVC 3.5.1 y crea tu proyecto
+                <pre># Instala JxMVC 3.6.0 y crea tu proyecto
 curl -fsSL https://raw.githubusercontent.com/Andre031222/jxmvc/main/install.sh | sh -s -- new mi-app
 
 # Compila y arranca (Tomcat se descarga solo)
@@ -107,14 +99,13 @@ cd mi-app &amp;&amp; mvn package cargo:run</pre>
             </div>
         </div>
 
-        <%-- Linux --%>
         <div id="jxOs-lin" class="jx-os-panel hidden px-5 py-5">
             <p class="text-xs text-muted dark:text-[#86868b] mb-3">
                 Requisitos: <code class="text-apple font-mono">sudo apt install openjdk-17-jdk maven</code>. Un solo comando en <strong class="text-ink dark:text-[#f5f5f7]">bash</strong>:
             </p>
             <div class="jx-code">
                 <div class="jx-code-label">bash / zsh</div>
-                <pre># Instala JxMVC 3.5.1 y crea tu proyecto
+                <pre># Instala JxMVC 3.6.0 y crea tu proyecto
 curl -fsSL https://raw.githubusercontent.com/Andre031222/jxmvc/main/install.sh | sh -s -- new mi-app
 
 # Compila y arranca (Tomcat se descarga solo)
@@ -124,12 +115,10 @@ cd mi-app &amp;&amp; mvn package cargo:run</pre>
 
     </div>
 
-    <%-- ── Formulario generador ────────────────────────────────────── --%>
     <form method="post"
           action="${pageContext.request.contextPath}/generate/download"
           class="grid md:grid-cols-2 gap-6 mb-10 jx-reveal jx-delay-3">
 
-        <%-- Columna izquierda: identidad del proyecto --%>
         <div class="bg-white dark:bg-white/[0.05] border border-black/[0.06] dark:border-white/[0.06] rounded-2xl p-6 flex flex-col gap-5">
 
             <p class="text-xs font-mono uppercase tracking-[0.25em] text-muted dark:text-[#86868b]" data-i18n="dl.form.label">Proyecto</p>
@@ -159,7 +148,6 @@ cd mi-app &amp;&amp; mvn package cargo:run</pre>
             </div>
         </div>
 
-        <%-- Columna derecha: base de datos + botón --%>
         <div class="flex flex-col gap-5">
 
             <div class="bg-white dark:bg-white/[0.05] border border-black/[0.06] dark:border-white/[0.06] rounded-2xl p-6 flex flex-col gap-4">
@@ -213,13 +201,12 @@ cd mi-app &amp;&amp; mvn package cargo:run</pre>
         </div>
     </form>
 
-    <%-- ── Descarga directa del JAR ──────────────────────────────────── --%>
     <div id="jar" style="border-top:1px solid var(--line);padding-top:40px">
         <p class="s-eyebrow">Descarga directa</p>
         <div class="s-split" style="align-items:start">
             <div>
                 <h2 class="s-h2">El framework es un solo JAR.</h2>
-                <p class="s-p" style="margin-top:12px">jxmvc-core 3.5.1 · 298 KB · Java 17+ · Jakarta EE 10 · sin dependencias de terceros. El enlace siempre entrega la última versión publicada.</p>
+                <p class="s-p" style="margin-top:12px">jxmvc-core 3.6.0 · 301 KB · Java 17+ · Jakarta EE 10 · sin dependencias de terceros. El enlace siempre entrega la última versión publicada.</p>
                 <div class="s-actions">
                     <a class="s-btn s-btn-primary" href="https://github.com/Andre031222/jxmvc/releases/latest/download/jxmvc-core.jar">Descargar jxmvc-core.jar</a>
                     <a class="s-btn s-btn-ghost" href="https://github.com/Andre031222/jxmvc/releases/latest" target="_blank" rel="noopener">Notas de la versión</a>
@@ -230,11 +217,11 @@ cd mi-app &amp;&amp; mvn package cargo:run</pre>
                 <div class="s-item">
                     <h3 class="s-h3">Con Maven</h3>
                     <p class="s-p">Instala el JAR descargado en tu repositorio local y declara la dependencia.</p>
-                    <div class="d-code"><span>Terminal</span><pre>mvn install:install-file -Dfile=jxmvc-core.jar -DgroupId=jxmvc -DartifactId=jxmvc-core -Dversion=3.5.1 -Dpackaging=jar</pre></div>
+                    <div class="d-code"><span>Terminal</span><pre>mvn install:install-file -Dfile=jxmvc-core.jar -DgroupId=jxmvc -DartifactId=jxmvc-core -Dversion=3.6.0 -Dpackaging=jar</pre></div>
                     <div class="d-code"><span>pom.xml</span><pre>&lt;dependency&gt;
   &lt;groupId&gt;jxmvc&lt;/groupId&gt;
   &lt;artifactId&gt;jxmvc-core&lt;/artifactId&gt;
-  &lt;version&gt;3.5.1&lt;/version&gt;
+  &lt;version&gt;3.6.0&lt;/version&gt;
 &lt;/dependency&gt;</pre></div>
                 </div>
                 <div class="s-item">

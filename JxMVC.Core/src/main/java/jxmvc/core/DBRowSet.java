@@ -1,24 +1,9 @@
-/// JxMVC Open-source project 2024 - 2026
-/// -------------------------------------------
-///  coded by : Dr. Ramiro Pedro Laura Murillo
-
 package jxmvc.core;
 
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Conjunto de filas devuelto por una consulta.
- *
- * <pre>
- *   DBRowSet rows = db.getTable("users");
- *   for (DBRow row : rows.result()) { ... }
- *   DBRow first = rows.first();
- *   boolean empty = rows.isEmpty();
- * </pre>
- */
 public class DBRowSet {
-
     private final List<DBRow> rows = new ArrayList<>();
 
     public DBRowSet() {}
@@ -31,7 +16,6 @@ public class DBRowSet {
     public Iterable<DBRow> result()  { return rows; }
     public List<DBRow> asList()      { return List.copyOf(rows); }
 
-    // ── API PascalCase — primera clase ───────────────────────────────────
     public void            Add(DBRow r)   { add(r); }
     public DBRow           Get(int i)     { return get(i); }
     public DBRow           First()        { return first(); }

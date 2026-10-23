@@ -1,7 +1,6 @@
 package jxmvc.core;
 
 public class OAuthTest {
-
     static int passed = 0;
     static int failed = 0;
 
@@ -20,8 +19,6 @@ public class OAuthTest {
         testIdTokenVerification();
         System.out.printf("OAuthTest: pass=%d fail=%d%n", passed, failed);
     }
-
-    // ── Verificación OIDC del id_token (JWT RS256) ─────────────────────────
 
     interface ThrowingRunnable { void run() throws Exception; }
 
@@ -88,8 +85,6 @@ public class OAuthTest {
         }
     }
 
-    // ── JxPasswords ────────────────────────────────────────────────────────
-
     static void testPasswordRoundtrip() {
         String hash = JxPasswords.hash("s3cr3t!");
         check("verify acepta la correcta",      JxPasswords.verify("s3cr3t!", hash));
@@ -116,9 +111,6 @@ public class OAuthTest {
         check("iteraciones no numéricas", !JxPasswords.verify("x", "pbkdf2$sha256$xx$YWJj$YWJj"));
     }
 
-    // ── JxOAuth ────────────────────────────────────────────────────────────
-
-    // Vector de prueba PKCE del RFC 7636, Apéndice B.
     static void testPkceChallengeVector() {
         String verifier  = "dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk";
         String expected  = "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM";

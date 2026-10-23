@@ -1,8 +1,3 @@
-/// JxMVC Open-source project 2024 - 2026
-/// -------------------------------------------
-///  coded by : Dr. Ramiro Pedro Laura Murillo
-///  improved : R. Andre Vilca Solorzano
-
 package jxmvc.core;
 
 import jakarta.servlet.ServletException;
@@ -18,39 +13,10 @@ import java.lang.reflect.Parameter;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-/**
- * Servlet principal de JxMVC. Captura todas las rutas y las despacha
- * al controlador y acción correspondientes.
- *
- * <p>Transversal a toda respuesta (en {@code service()}, antes del pipeline): cabeceras
- * de seguridad ({@code applySecurityHeaders}) y compresión gzip condicional ({@link JxGzip}).
- *
- * <p><b>Pipeline por petición</b> (orden real de {@code serviceInternal}):
- * <ol>
- *   <li>Endpoints internos: {@code /jx/health}, {@code /jx/info}, {@code /jx/metrics}, {@code /jx/openapi}</li>
- *   <li>Métricas — inicio del timer</li>
- *   <li>Resolución de ruta ({@link BaseDispatcher} → {@link BaseDispatchPlan})</li>
- *   <li>Rate limiting ({@code @JxRateLimit}) — clave por acción resuelta {@code VERBO:ctrl#accion}</li>
- *   <li>Verificación auth ({@link JxSecurity}) — <i>fail-closed</i></li>
- *   <li>Protección CSRF ({@link JxCsrf}) en verbos mutadores, salvo {@code @JxCsrfExempt}</li>
- *   <li>CORS ({@link BaseCorsResolver}) — corta el preflight {@code OPTIONS}</li>
- *   <li>Construcción de contexto ({@link JxRequest} / {@link JxResponse})</li>
- *   <li>Filtros {@code before} ({@link JxFilters})</li>
- *   <li>Instanciación del controlador + DI ({@link JxServiceRegistry})</li>
- *   <li>Interceptores {@code @JxBeforeAction}</li>
- *   <li>Atributos del modelo {@code @JxModelAttr}</li>
- *   <li>Invocación: async ({@code @JxAsync}) o con retry ({@code @JxRetry}); dentro se aplican
- *       {@code @JxCacheable}/{@code @JxCacheEvict} y {@code @JxTransactional}</li>
- *   <li>Interceptores {@code @JxAfterAction} + filtros {@code after}</li>
- *   <li>Negociación de contenido + renderizado; registro de métricas en {@code finally}</li>
- * </ol>
- */
 @MultipartConfig(maxFileSize = 20_971_520, maxRequestSize = 41_943_040)
 public class MainLxServlet extends HttpServlet {
+    public static final String VERSION = "3.6.0";
 
-    public static final String VERSION = "3.5.1";
-
-    /** Confiar en X-Forwarded-For/X-Real-IP solo si la app está detrás de un proxy de confianza. */
     private static final boolean TRUST_PROXY = BaseDbResolver.propertyBool("jxmvc.trustProxy", false);
 
     private static final JxLogger log = JxLogger.getLogger(MainLxServlet.class);
@@ -59,13 +25,8 @@ public class MainLxServlet extends HttpServlet {
     private final BaseCorsResolver corsResolver = new BaseCorsResolver();
     private ExecutorService asyncExecutor;
 
-    // ── Ciclo de vida ─────────────────────────────────────────────────────
-
     @Override
     public void init() throws ServletException {
-        // Crear el directorio tmp que Tomcat exige para @MultipartConfig
-        // Ruta: {catalina.base}/work/Catalina/localhost/{context}/tmp
-        // Fallback: derivar de java.io.tmpdir (que Tomcat apunta a {base}/temp)
         java.io.File multipartTmp = null;
         String catalinaBase = System.getProperty("catalina.base");
         String contextName  = getServletContext().getContextPath().replaceAll("^/+", "");
@@ -74,14 +35,12 @@ public class MainLxServlet extends HttpServlet {
             multipartTmp = new java.io.File(catalinaBase,
                     "work/Catalina/localhost/" + contextName + "/tmp");
         } else {
-            // Cargo: java.io.tmpdir = {tomcatHome}/temp  →  parent = {tomcatHome}
             java.io.File tomcatHome = new java.io.File(System.getProperty("java.io.tmpdir")).getParentFile();
             multipartTmp = new java.io.File(tomcatHome,
                     "work/Catalina/localhost/" + contextName + "/tmp");
         }
         multipartTmp.mkdirs();
 
-        // Asegurar también el javax.servlet.context.tempdir si no está seteado
         if (getServletContext().getAttribute("javax.servlet.context.tempdir") == null) {
             java.io.File up = multipartTmp.getParentFile();
             up.mkdirs();
@@ -95,9 +54,6 @@ public class MainLxServlet extends HttpServlet {
         int asyncSize = BaseDbResolver.propertyInt("jxmvc.async.threads", 8);
         asyncExecutor = buildAsyncExecutor(asyncSize);
 
-        // La limpieza del rate limiter la hace su propio daemon interno (cada 10 min).
-
-        // Keepalive del pool: valida conexiones idle cada 3 minutos
         JxScheduler.scheduleAtFixedRate(() -> {
             JxPool pool = JxPool.global();
             if (pool != null) pool.keepAlive();
@@ -124,20 +80,15 @@ public class MainLxServlet extends HttpServlet {
         log.info("JxMVC detenido correctamente");
     }
 
-    // ── Servicio ──────────────────────────────────────────────────────────
-
     @Override
     protected void service(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-
         String path  = req.getRequestURI();
         String ctx   = req.getContextPath();
         String local = path.startsWith(ctx) ? path.substring(ctx.length()) : path;
 
-        // ── Security headers (todas las respuestas) ───────────────────────
         applySecurityHeaders(resp);
 
-        // ── GZIP — solo si el cliente acepta y GZIP está habilitado ──────────
         if (JxGzip.ENABLED) {
             String ae = req.getHeader("Accept-Encoding");
             if (ae != null && ae.contains("gzip")) {
@@ -155,8 +106,6 @@ public class MainLxServlet extends HttpServlet {
 
     private void serviceInternal(HttpServletRequest req, HttpServletResponse resp, String local)
             throws ServletException, IOException {
-
-        // ── Endpoints internos ────────────────────────────────────────────
         if ("/jx/health".equals(local)) { handleHealth(resp); return; }
         if ("/jx/info".equals(local) || "/jx/metrics".equals(local) || "/jx/openapi".equals(local)) {
             if (!internalEndpointsExposed()) { sendError(req, resp, 404, "Ruta no encontrada"); return; }
@@ -178,12 +127,9 @@ public class MainLxServlet extends HttpServlet {
         try {
             plan = dispatcher.resolve(req);
 
-            // ── Rate limit ────────────────────────────────────────────────
             JxMapping.JxRateLimit rl = resolveRateLimit(plan);
             if (rl != null) {
                 String clientIp = getClientIp(req);
-                // Clave por acción resuelta, no por URI cruda: /api/1/x y /api/2/x
-                // comparten bucket (la URI permitiría evadir el límite rotando el {id}).
                 String routeKey = req.getMethod().toUpperCase() + ":"
                         + plan.controller() + "#" + plan.action();
                 if (!JxRateLimiter.allow(clientIp, routeKey, rl.requests(), rl.window())) {
@@ -195,21 +141,18 @@ public class MainLxServlet extends HttpServlet {
                 }
             }
 
-            // ── Auth ──────────────────────────────────────────────────────
             if (!checkAuth(req, plan)) {
                 sendError(req, resp, 401, "No autorizado");
                 statusCode = 401;
                 return;
             }
 
-            // ── CSRF (verbos mutadores, si jxmvc.security.csrf=true) ──────
             if (JxCsrf.enabled() && !csrfExempt(plan) && !JxCsrf.validate(req)) {
                 sendError(req, resp, 403, "Token CSRF ausente o inválido");
                 statusCode = 403;
                 return;
             }
 
-            // ── CORS ──────────────────────────────────────────────────────
             if (!corsResolver.applyAndCheck(req, resp, plan.controllerClass(), plan.actionMethod())) {
                 sendError(req, resp, 403, "Acceso denegado por política CORS");
                 statusCode = 403;
@@ -220,21 +163,17 @@ public class MainLxServlet extends HttpServlet {
                 return;
             }
 
-            // ── Contexto ──────────────────────────────────────────────────
             model = new JxRequest(req, resp, plan.args(), plan.pathVars());
             view  = new JxResponse(req, resp, req.getContextPath());
 
-            // ── Filtros before ────────────────────────────────────────────
             JxFilterContext filterCtx = new JxFilterContext(model, view,
                     plan.controller(), plan.action());
             if (!JxFilters.runBefore(filterCtx)) return;
 
-            // ── Instanciación + DI ────────────────────────────────────────
             JxController controller = dispatcher.newInstance(plan.controllerClass());
             JxServiceRegistry.inject(controller);
             controller.bindContext(model, view);
 
-            // ── @JxBeforeAction ───────────────────────────────────────────
             ActionResult beforeResult = runBeforeActions(controller, plan.action(),
                     plan, model, req, resp);
             if (beforeResult != null) {
@@ -242,13 +181,9 @@ public class MainLxServlet extends HttpServlet {
                 return;
             }
 
-            // ── @JxModelAttr ──────────────────────────────────────────────
             populateModelAttrs(controller, plan.action(), req);
 
-            // ── @JxAsync — responde 202 y ejecuta en background ───────────
             if (plan.actionMethod().isAnnotationPresent(JxMapping.JxAsync.class)) {
-                // Los argumentos se resuelven AQUÍ, con el request todavía vivo:
-                // el hilo de fondo no debe tocar req/model (Tomcat recicla el objeto al retornar).
                 final BaseDispatchPlan  fp     = plan;
                 final JxController      fc     = controller;
                 final Object[]          fargs  = buildArgs(plan, plan.actionMethod().getParameters(), model, req);
@@ -276,7 +211,6 @@ public class MainLxServlet extends HttpServlet {
                 return;
             }
 
-            // ── Invocación con retry ──────────────────────────────────────
             Object result = invokeWithRetry(plan, controller, model, req);
             runAfterActions(controller, plan.action());
             JxFilters.runAfter(filterCtx);
@@ -287,35 +221,28 @@ public class MainLxServlet extends HttpServlet {
                 render(plan, result, statusOverride, req, resp);
                 statusCode = resp.getStatus() > 0 ? resp.getStatus() : 200;
             }
-
         } catch (JxException ex) {
             statusCode = ex.getStatus();
             tryExceptionHandler(plan, ex, req, resp);
-
         } catch (ClassNotFoundException | NoSuchMethodException ex) {
             statusCode = 404;
             sendError(req, resp, 404, "Ruta no encontrada");
-
         } catch (IllegalArgumentException ex) {
             statusCode = 400;
             log.warn("Petición inválida en {}: {}", local, ex.getMessage());
             sendError(req, resp, 400, safeMessage(ex.getMessage(), "Solicitud inválida"));
-
         } catch (InvocationTargetException ex) {
             Throwable cause = ex.getTargetException() != null ? ex.getTargetException() : ex;
             statusCode = cause instanceof JxException jx ? jx.getStatus() : 500;
             tryExceptionHandler(plan, cause, req, resp);
-
         } catch (ReflectiveOperationException ex) {
             statusCode = 500;
             log.error("Error de reflexión: {}", ex.getMessage(), ex);
             sendError(req, resp, 500, safeMessage(ex.getMessage(), "Error interno del servidor"));
-
         } catch (Exception ex) {
             statusCode = 500;
             log.error("Error inesperado: {}", ex.getMessage(), ex);
             sendError(req, resp, 500, safeMessage(ex.getMessage(), "Error interno del servidor"));
-
         } finally {
             long durationMs = System.currentTimeMillis() - startMs;
             JxMetrics.record(metricKey(local), req.getMethod(), statusCode, durationMs);
@@ -324,8 +251,6 @@ public class MainLxServlet extends HttpServlet {
             }
         }
     }
-
-    // ── Cache de métodos anotados por clase (evita escanear en cada request) ──
 
     private static final java.util.concurrent.ConcurrentHashMap<Class<?>, Method[]> BEFORE_CACHE    = new java.util.concurrent.ConcurrentHashMap<>();
     private static final java.util.concurrent.ConcurrentHashMap<Class<?>, Method[]> AFTER_CACHE     = new java.util.concurrent.ConcurrentHashMap<>();
@@ -342,8 +267,6 @@ public class MainLxServlet extends HttpServlet {
         });
     }
 
-    // ── @JxBeforeAction ───────────────────────────────────────────────────
-
     private ActionResult runBeforeActions(JxController ctrl, String action,
                                           BaseDispatchPlan plan, JxRequest model,
                                           HttpServletRequest req, HttpServletResponse resp) {
@@ -357,7 +280,6 @@ public class MainLxServlet extends HttpServlet {
                 if (Boolean.FALSE.equals(result))
                     return ActionResult.json("{\"blocked\":true}").status(403);
             } catch (Exception e) {
-                // BUG FIX: before action ya no es silencioso
                 Throwable cause = e instanceof InvocationTargetException ite
                         && ite.getTargetException() != null ? ite.getTargetException() : e;
                 log.warn("@JxBeforeAction '{}' falló: {}", m.getName(), cause.getMessage());
@@ -367,8 +289,6 @@ public class MainLxServlet extends HttpServlet {
         return null;
     }
 
-    // ── @JxAfterAction ────────────────────────────────────────────────────
-
     private void runAfterActions(JxController ctrl, String action) {
         for (Method m : annotatedMethods(AFTER_CACHE, ctrl.getClass(), JxMapping.JxAfterAction.class)) {
             JxMapping.JxAfterAction ann = m.getAnnotation(JxMapping.JxAfterAction.class);
@@ -376,7 +296,6 @@ public class MainLxServlet extends HttpServlet {
             try {
                 m.invoke(ctrl);
             } catch (Exception e) {
-                // BUG FIX: after action ya no es silencioso
                 Throwable cause = e instanceof InvocationTargetException ite
                         && ite.getTargetException() != null ? ite.getTargetException() : e;
                 log.warn("@JxAfterAction '{}' falló: {}", m.getName(), cause.getMessage());
@@ -390,8 +309,6 @@ public class MainLxServlet extends HttpServlet {
         for (String o : only)  { if (o.equalsIgnoreCase(action)) return true;  }
         return false;
     }
-
-    // ── @JxModelAttr ─────────────────────────────────────────────────────
 
     private void populateModelAttrs(JxController ctrl, String action, HttpServletRequest req) {
         for (Method m : annotatedMethods(MODELATTR_CACHE, ctrl.getClass(), JxMapping.JxModelAttr.class)) {
@@ -416,8 +333,6 @@ public class MainLxServlet extends HttpServlet {
         }
     }
 
-    // ── @JxRateLimit ─────────────────────────────────────────────────────
-
     private boolean csrfExempt(BaseDispatchPlan plan) {
         return plan.actionMethod().isAnnotationPresent(JxMapping.JxCsrfExempt.class)
             || plan.controllerClass().isAnnotationPresent(JxMapping.JxCsrfExempt.class);
@@ -428,12 +343,6 @@ public class MainLxServlet extends HttpServlet {
         return m != null ? m : plan.controllerClass().getAnnotation(JxMapping.JxRateLimit.class);
     }
 
-    /**
-     * IP del cliente para rate limiting.
-     * Solo confía en {@code X-Forwarded-For}/{@code X-Real-IP} cuando
-     * {@code jxmvc.trustProxy=true} (app detrás de un reverse proxy de confianza);
-     * de lo contrario usa {@code getRemoteAddr()} para no ser evadible por cabecera falsa.
-     */
     private String getClientIp(HttpServletRequest req) {
         if (TRUST_PROXY) {
             String ip = req.getHeader("X-Forwarded-For");
@@ -447,17 +356,10 @@ public class MainLxServlet extends HttpServlet {
         return req.getRemoteAddr();
     }
 
-    /**
-     * Clave de métrica normalizada: colapsa segmentos variables (números, UUIDs,
-     * hashes hex largos) a {@code {n}} para que {@code /users/123} y
-     * {@code /users/a1b2…} no exploten la cardinalidad del mapa.
-     */
     private String metricKey(String local) {
         if (local == null || local.isEmpty()) return "/";
         return local.replaceAll("/(\\d+|[0-9a-fA-F-]{16,}|[0-9a-fA-F]{8,})(?=/|$)", "/{n}");
     }
-
-    // ── Auth ──────────────────────────────────────────────────────────────
 
     private boolean checkAuth(HttpServletRequest req, BaseDispatchPlan plan) {
         Method m   = plan.actionMethod();
@@ -487,8 +389,6 @@ public class MainLxServlet extends HttpServlet {
         return JxSecurity.getProvider().check(req, roles);
     }
 
-    // ── @JxResponseStatus ─────────────────────────────────────────────────
-
     private int resolveResponseStatus(Method method, Class<?> cls) {
         JxMapping.JxResponseStatus m = method.getAnnotation(JxMapping.JxResponseStatus.class);
         if (m != null) return m.value();
@@ -496,12 +396,9 @@ public class MainLxServlet extends HttpServlet {
         return c != null ? c.value() : 0;
     }
 
-    // ── @JxRetry ─────────────────────────────────────────────────────────
-
     private Object invokeWithRetry(BaseDispatchPlan plan, JxController ctrl,
                                    JxRequest model, HttpServletRequest raw)
             throws ReflectiveOperationException {
-
         JxMapping.JxRetry retry = plan.actionMethod().getAnnotation(JxMapping.JxRetry.class);
         if (retry == null) return invoke(plan, ctrl, model, raw);
 
@@ -543,16 +440,12 @@ public class MainLxServlet extends HttpServlet {
         return false;
     }
 
-    // ── Invocación ────────────────────────────────────────────────────────
-
     private Object invoke(BaseDispatchPlan plan, JxController ctrl,
                           JxRequest model, HttpServletRequest raw)
             throws ReflectiveOperationException {
-
         Method    method = plan.actionMethod();
         Parameter[] params = method.getParameters();
 
-        // ── @JxCacheable — solo en GET ────────────────────────────────────
         JxMapping.JxCacheable cacheable = method.getAnnotation(JxMapping.JxCacheable.class);
         if (cacheable != null && "GET".equalsIgnoreCase(raw.getMethod())) {
             String ckey = cacheable.key().isBlank()
@@ -571,7 +464,6 @@ public class MainLxServlet extends HttpServlet {
 
         Object result = doInvoke(plan, ctrl, params, model, raw);
 
-        // ── @JxCacheEvict — tras mutaciones ──────────────────────────────
         JxMapping.JxCacheEvict evict = method.getAnnotation(JxMapping.JxCacheEvict.class);
         if (evict != null) {
             if (evict.key().isBlank()) JxCache.evictAll(evict.value());
@@ -585,7 +477,6 @@ public class MainLxServlet extends HttpServlet {
     private Object doInvoke(BaseDispatchPlan plan, JxController ctrl,
                              Parameter[] params, JxRequest model, HttpServletRequest raw)
             throws ReflectiveOperationException {
-
         boolean tx = plan.actionMethod().isAnnotationPresent(JxMapping.JxTransactional.class)
                   || plan.controllerClass().isAnnotationPresent(JxMapping.JxTransactional.class);
 
@@ -611,7 +502,6 @@ public class MainLxServlet extends HttpServlet {
         return result[0];
     }
 
-    /** Invoca la acción con argumentos ya resueltos (usado por @JxAsync, sin tocar el request). */
     private void invokeResolved(BaseDispatchPlan plan, JxController ctrl, Object[] args)
             throws ReflectiveOperationException {
         boolean tx = plan.actionMethod().isAnnotationPresent(JxMapping.JxTransactional.class)
@@ -645,14 +535,12 @@ public class MainLxServlet extends HttpServlet {
                 String val  = plan.pathVars().get(name);
                 if (val == null && posIdx < plan.args().length) val = plan.args()[posIdx++];
                 args[i] = val != null ? convert(val, p.getType(), i) : defaultValue(p.getType());
-
             } else if (qParam != null) {
                 String name = qParam.value().isBlank() ? p.getName() : qParam.value();
                 String val  = model.param(name);
                 if (val == null && qParam.required())
                     throw new JxException(400, "Parámetro requerido: " + name);
                 args[i] = val != null ? convert(val, p.getType(), i) : defaultValue(p.getType());
-
             } else if (body != null) {
                 String ct = raw.getContentType();
                 boolean json = ct != null
@@ -664,21 +552,18 @@ public class MainLxServlet extends HttpServlet {
                     JxValidation.validate(parsed);
                 }
                 args[i] = parsed;
-
             } else if (hdr != null) {
                 String val = raw.getHeader(hdr.value());
                 if (val == null) val = hdr.defaultValue();
                 if (val.isEmpty() && hdr.required())
                     throw new JxException(400, "Cabecera requerida: " + hdr.value());
                 args[i] = convert(val, p.getType(), i);
-
             } else if (cookie != null) {
                 String val = findCookie(raw, cookie.value());
                 if (val == null) val = cookie.defaultValue();
                 if (val.isEmpty() && cookie.required())
                     throw new JxException(400, "Cookie requerida: " + cookie.value());
                 args[i] = convert(val, p.getType(), i);
-
             } else {
                 String val = posIdx < plan.args().length ? plan.args()[posIdx++] : "";
                 args[i] = convert(val, p.getType(), i);
@@ -718,8 +603,6 @@ public class MainLxServlet extends HttpServlet {
         if (type == char.class) return '\0';
         return null;
     }
-
-    // ── Manejo de excepciones ─────────────────────────────────────────────
 
     private void tryExceptionHandler(BaseDispatchPlan plan, Throwable cause,
                                      HttpServletRequest req, HttpServletResponse resp)
@@ -766,12 +649,9 @@ public class MainLxServlet extends HttpServlet {
         return null;
     }
 
-    // ── Renderizado con negociación de contenido ──────────────────────────
-
     private void render(BaseDispatchPlan plan, Object result, int statusOverride,
                         HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-
         if (result == null) {
             if (statusOverride > 0) resp.setStatus(statusOverride);
             forwardView(plan.controller() + "/" + plan.action(), req, resp);
@@ -795,7 +675,6 @@ public class MainLxServlet extends HttpServlet {
             return;
         }
 
-        // Negociación de contenido: Accept header
         String accept = req.getHeader("Accept");
         if (statusOverride > 0) resp.setStatus(statusOverride);
 
@@ -809,7 +688,6 @@ public class MainLxServlet extends HttpServlet {
                        .forward(req, resp);
                     return;
                 } catch (Exception e) {
-                    // Si el JSP ya escribió bytes antes de fallar, no anexar el fallback JSON.
                     if (resp.isCommitted()) {
                         log.error("Vista {} falló con respuesta ya comprometida: {}", viewPath, e.getMessage());
                         return;
@@ -820,7 +698,6 @@ public class MainLxServlet extends HttpServlet {
             return;
         }
 
-        // Default: JSON
         write(resp, "application/json;charset=UTF-8", JxJson.toJson(result));
     }
 
@@ -861,8 +738,6 @@ public class MainLxServlet extends HttpServlet {
         if (resp.getContentType() == null) resp.setContentType(contentType);
         resp.getWriter().write(body);
     }
-
-    // ── Endpoints internos (/jx/*) ────────────────────────────────────────
 
     private void handleHealth(HttpServletResponse resp) throws IOException {
         boolean schedOk = JxScheduler.isRunning();
@@ -913,34 +788,16 @@ public class MainLxServlet extends HttpServlet {
         write(resp, "application/json;charset=UTF-8", JxOpenApi.generate());
     }
 
-    // ── Security headers ──────────────────────────────────────────────────
-
-    /**
-     * Aplica cabeceras de seguridad HTTP a todas las respuestas.
-     * Configurable en application.properties:
-     * <pre>
-     *   jxmvc.security.frame-options = DENY          # DENY | SAMEORIGIN | false
-     *   jxmvc.security.hsts          = true          # Strict-Transport-Security
-     *   jxmvc.security.hsts.maxage   = 31536000      # segundos (1 año)
-     *   jxmvc.security.csp           = default-src 'self'   # Content-Security-Policy
-     *                                                       # por defecto: base-uri 'self'; object-src 'none';
-     *                                                       # frame-ancestors según frame-options; false la quita
-     * </pre>
-     */
     private void applySecurityHeaders(HttpServletResponse resp) {
-        // Evita MIME sniffing: el navegador respeta el Content-Type declarado
         resp.setHeader("X-Content-Type-Options", "nosniff");
 
-        // Referrer: solo el origen, sin path ni query en requests cross-origin
         resp.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
 
-        // Clickjacking: configurable, por defecto SAMEORIGIN
         String frameOpt = BaseDbResolver.property("jxmvc.security.frame-options", "SAMEORIGIN");
         if (!"false".equalsIgnoreCase(frameOpt)) {
             resp.setHeader("X-Frame-Options", frameOpt.toUpperCase());
         }
 
-        // HSTS: solo activar si la app corre bajo HTTPS
         if ("true".equalsIgnoreCase(BaseDbResolver.property("jxmvc.security.hsts", "false"))) {
             String maxAge = BaseDbResolver.property("jxmvc.security.hsts.maxage", "31536000");
             resp.setHeader("Strict-Transport-Security",
@@ -959,22 +816,13 @@ public class MainLxServlet extends HttpServlet {
         return base + "; frame-ancestors 'self'";
     }
 
-    // ── Errores ───────────────────────────────────────────────────────────
-
-    /**
-     * Crea el executor para {@code @JxAsync}.
-     * En Java 21+ usa Virtual Threads automáticamente (cero config).
-     * En Java 17–20 usa un pool de plataforma con el tamaño configurado.
-     */
     private static ExecutorService buildAsyncExecutor(int platformPoolSize) {
         try {
-            // Reflección para no romper compilación con --release 17
             java.lang.reflect.Method m = Executors.class.getMethod("newVirtualThreadPerTaskExecutor");
             ExecutorService vt = (ExecutorService) m.invoke(null);
             log.info("@JxAsync usando Virtual Threads (Java 21+)");
             return vt;
         } catch (NoSuchMethodException ignored) {
-            // Java 17/18/19/20 — platform threads
         } catch (Exception e) {
             log.warn("Virtual Threads no disponibles: {}", e.getMessage());
         }

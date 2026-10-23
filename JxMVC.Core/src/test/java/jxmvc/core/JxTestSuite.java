@@ -4,7 +4,6 @@ import java.lang.reflect.Method;
 import java.util.*;
 
 public class JxTestSuite {
-
     private static final List<String> SUITES = List.of(
         "jxmvc.core.CoreV3Test",
         "jxmvc.core.CorsSmokeTest",
@@ -31,7 +30,6 @@ public class JxTestSuite {
         for (String suite : SUITES) {
             try {
                 Class<?> cls = Class.forName(suite);
-                // Reset counters (getDeclaredField para campos package-private)
                 try { var fP = cls.getDeclaredField("passed"); fP.setAccessible(true); fP.set(null, 0); } catch (Exception ignored) {}
                 try { var fF = cls.getDeclaredField("failed"); fF.setAccessible(true); fF.set(null, 0); } catch (Exception ignored) {}
 
@@ -47,7 +45,6 @@ public class JxTestSuite {
                 String name = cls.getSimpleName();
                 System.out.printf("  %-24s  pass=%-3d fail=%d%n", name, p, f);
                 if (f > 0) failures.add(name);
-
             } catch (ClassNotFoundException e) {
                 System.out.printf("  %-24s  SKIP (no encontrado)%n", suite.substring(suite.lastIndexOf('.') + 1));
             } catch (Exception e) {

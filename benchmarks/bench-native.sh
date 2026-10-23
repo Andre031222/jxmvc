@@ -1,12 +1,4 @@
 #!/usr/bin/env bash
-# Benchmark NATIVO (sin Docker) para Linux — arranca cada framework como proceso JVM en un
-# puerto propio, mide arranque en frío, RSS y throughput/latencia, y escribe RESULTS-server.md.
-# Pensado para correr en el VPS en un puerto que NO choque con producción.
-#
-# Requisitos: JDK + Maven en el host. El core jxmvc-core:3.4.0 debe estar en el repo local
-# de Maven (instalar antes con: mvn install:install-file ...). Descarga un Tomcat propio para JxMVC.
-#
-# Uso: PORT=8099 ./bench-native.sh [conexiones] [segundos] [repeticiones]
 set -uo pipefail
 PORT="${PORT:-8099}"
 CONNS="${1:-48}"
@@ -38,7 +30,6 @@ pid_on_port() { ss -ltnp "sport = :$PORT" 2>/dev/null | grep -oP 'pid=\K[0-9]+' 
 rss_of() { local p="$1"; [ -r "/proc/$p/status" ] && awk '/VmRSS/{printf "%.1f", $2/1024}' "/proc/$p/status" || echo 0; }
 free_port() { local p; p=$(pid_on_port); [ -n "$p" ] && kill "$p" 2>/dev/null; sleep 2; p=$(pid_on_port); [ -n "$p" ] && kill -9 "$p" 2>/dev/null; sleep 1; }
 
-# Descarga un Tomcat propio (solo para JxMVC), en puerto $PORT.
 setup_tomcat() {
   local t="$WORK/tomcat"
   if [ ! -x "$t/bin/catalina.sh" ]; then
@@ -70,7 +61,6 @@ run_app() {  # $1=nombre  $2=comando-de-arranque
   free_port
 }
 
-# ── Builds + corridas ──────────────────────────────────────────────────────
 echo "== compilando apps (Maven) =="
 for fw in javalin spring quarkus micronaut; do
   ( cd "$APPS/$fw" && mvn -q -DskipTests package ) || echo "  build $fw FALLÓ"
@@ -81,7 +71,6 @@ run_app spring    "java -jar '$APPS/spring/target/app.jar' --server.port=$PORT"
 run_app quarkus   "java -Dquarkus.http.port=$PORT -jar '$APPS/quarkus/target/quarkus-app/quarkus-run.jar'"
 run_app micronaut "java -Dmicronaut.server.port=$PORT -jar '$APPS/micronaut/target/app.jar'"
 
-# JxMVC: build WAR + Tomcat propio
 ( cd "$APPS/jxmvc/app" && mvn -q -DskipTests package ) || echo "  build jxmvc FALLÓ"
 if setup_tomcat && [ -f "$APPS/jxmvc/app/target/ROOT.war" ]; then
   cp "$APPS/jxmvc/app/target/ROOT.war" "$WORK/tomcat/webapps/ROOT.war"
@@ -90,7 +79,6 @@ else echo "  jxmvc: no se pudo preparar Tomcat/WAR"; fi
 
 echo "CSV -> $CSV"
 
-# ── Tabla (mediana de rps por framework/endpoint) ──────────────────────────
 {
   echo "# Resultados nativos (bare-metal Linux, sin Docker)"
   echo

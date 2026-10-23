@@ -3,7 +3,6 @@
 
 <section class="s-wrap" style="padding-top:20px;padding-bottom:40px;max-width:960px">
 
-    <%-- Encabezado --%>
     <p class="text-xs font-mono uppercase tracking-[0.25em] text-muted dark:text-[#86868b] jx-reveal jx-delay-1">
         Framework · HTTP
     </p>
@@ -14,7 +13,6 @@
         Respuestas controladas para verificar que el framework distingue correctamente cada código HTTP.
     </p>
 
-    <%-- Tabla de pruebas --%>
     <div class="mt-10 bg-white dark:bg-white/[0.05] border border-black/[0.06] dark:border-white/[0.06] rounded-2xl overflow-hidden divide-y divide-black/[0.05] dark:divide-white/[0.05] jx-reveal jx-delay-4">
 
         <%
@@ -46,7 +44,6 @@
         </div>
         <% } %>
 
-        <%-- 405 requiere form POST --%>
         <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between px-5 py-3.5 gap-3 sm:gap-0 hover:bg-black/[0.02] dark:hover:bg-white/[0.02] transition-colors">
             <div class="flex items-center gap-5">
                 <span class="text-xs font-mono font-semibold text-apple w-8">405</span>
@@ -65,7 +62,6 @@
 
     </div>
 
-    <%-- Nota técnica --%>
     <p class="mt-6 text-xs text-muted dark:text-[#86868b] jx-reveal jx-delay-4 leading-relaxed">
         Las respuestas de error renderizan
         <code class="font-mono bg-black/[0.05] dark:bg-white/[0.05] px-1.5 py-0.5 rounded">WEB-INF/views/shared/error.jsp</code>

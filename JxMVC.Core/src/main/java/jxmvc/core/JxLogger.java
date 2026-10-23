@@ -1,36 +1,10 @@
-/// JxMVC Open-source project 2024 - 2026
-/// -------------------------------------------
-///  coded by : Dr. Ramiro Pedro Laura Murillo
-
 package jxmvc.core;
 
 import java.io.PrintStream;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
-/**
- * Logger estructurado — cero dependencias externas.
- * Salida por {@code stdout} (INFO/DEBUG) y {@code stderr} (WARN/ERROR).
- * Usa la sintaxis {@code {}} de SLF4J para los argumentos.
- *
- * <pre>
- *   private static final JxLogger log = JxLogger.getLogger(UserService.class);
- *
- *   log.info("Usuario creado: id={}, email={}", id, email);
- *   log.warn("Intento fallido de login para {}", username);
- *   log.error("Error al procesar pago", exception);
- *   log.debug("Consulta: {}", sql);
- * </pre>
- *
- * Nivel global configurable en {@code application.properties}:
- * <pre>
- *   jxmvc.log.level=DEBUG   # DEBUG | INFO | WARN | ERROR
- * </pre>
- */
 public final class JxLogger {
-
-    // ── Niveles ───────────────────────────────────────────────────────────
-
     public enum Level { DEBUG, INFO, WARN, ERROR }
 
     private static volatile Level GLOBAL_LEVEL = resolveGlobalLevel();
@@ -44,12 +18,8 @@ public final class JxLogger {
         catch (IllegalArgumentException e) { return Level.INFO; }
     }
 
-    // ── Formato ───────────────────────────────────────────────────────────
-
     private static final DateTimeFormatter FMT =
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS");
-
-    // ── Instancia ─────────────────────────────────────────────────────────
 
     private final String name;
 
@@ -57,8 +27,6 @@ public final class JxLogger {
 
     public static JxLogger getLogger(Class<?> cls)  { return new JxLogger(cls.getSimpleName()); }
     public static JxLogger getLogger(String name)   { return new JxLogger(name); }
-
-    // ── Métodos de log ────────────────────────────────────────────────────
 
     public void debug(String msg, Object... args) { log(Level.DEBUG, msg, null, args); }
     public void info (String msg, Object... args) { log(Level.INFO,  msg, null, args); }
@@ -70,8 +38,6 @@ public final class JxLogger {
 
     public boolean isDebugEnabled() { return Level.DEBUG.ordinal() >= GLOBAL_LEVEL.ordinal(); }
     public boolean isInfoEnabled()  { return Level.INFO.ordinal()  >= GLOBAL_LEVEL.ordinal(); }
-
-    // ── Implementación ────────────────────────────────────────────────────
 
     private void log(Level level, String msg, Throwable t, Object... args) {
         if (level.ordinal() < GLOBAL_LEVEL.ordinal()) return;
@@ -86,10 +52,6 @@ public final class JxLogger {
         if (t != null) t.printStackTrace(out);
     }
 
-    /**
-     * Reemplaza {@code {}} con los argumentos en orden, al estilo SLF4J.
-     * Los argumentos sobrantes se descartan; los faltantes dejan {@code {}}.
-     */
     private static String format(String msg, Object[] args) {
         if (msg == null) return "null";
         if (args == null || args.length == 0) return msg;

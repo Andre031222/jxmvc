@@ -1,7 +1,6 @@
 package jxmvc.core;
 
 public class SecurityTest {
-
     static int passed = 0;
     static int failed = 0;
 

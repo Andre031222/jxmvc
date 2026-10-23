@@ -17,7 +17,6 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 public final class TestStubs {
-
     private TestStubs() {}
 
     public static Object defaultValue(Class<?> type) {

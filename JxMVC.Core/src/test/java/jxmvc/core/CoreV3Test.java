@@ -5,24 +5,17 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Tests completos v3.1.1 — sin framework externo.
- */
 public class CoreV3Test {
-
     static int passed = 0;
     static int failed = 0;
 
     public static void main(String[] args) {
-        // DBRow
         testDbRowGetters();
         testDbRowTyped();
         testDbRowBigDecimal();
         testDbRowToJson();
         testDbRowOf();
-        // DBRowSet
         testDbRowSet();
-        // GenApi
         testGenApiJsonStr();
         testGenApiNested();
         testGenApiJsonArray();
@@ -32,7 +25,6 @@ public class CoreV3Test {
         testGenApiSpecialChars();
         testGenApiNullValues();
         testGenApiToJson();
-        // JxValidation
         testValidationRequired();
         testValidationNotNull();
         testValidationEmail();
@@ -42,19 +34,14 @@ public class CoreV3Test {
         testValidationDigits();
         testValidationSafe();
         testValidationStructured();
-        // BaseSanitizer
         testSanitizerXss();
         testSanitizerBasic();
-        // BaseDbResolver
         testDbResolverDefaults();
-        // JxDB named params parser
         testNamedParams();
 
         System.out.println("\n=== Resultado: " + passed + " pasaron, " + failed + " fallaron ===");
         if (failed > 0) System.exit(1);
     }
-
-    // ── DBRow ─────────────────────────────────────────────────────────────
 
     static void testDbRowGetters() {
         DBRow r = DBRow.of("id", 5, "nombre", "Ana", "activo", true, "saldo", 99.5, "ts", 1000L);
@@ -95,8 +82,6 @@ public class CoreV3Test {
         eq("of get",  "dos", r.GetString("b"));
     }
 
-    // ── DBRowSet ──────────────────────────────────────────────────────────
-
     static void testDbRowSet() {
         DBRowSet rs = new DBRowSet();
         eq("IsEmpty ini", true,  rs.IsEmpty());
@@ -109,8 +94,6 @@ public class CoreV3Test {
         eq("First id",    1,     rs.First().GetInt("id"));
         eq("Get(1) id",   2,     rs.Get(1).GetInt("id"));
     }
-
-    // ── GenApi ────────────────────────────────────────────────────────────
 
     static void testGenApiJsonStr() {
         String j = GenApi.JsonStr("ok", true, "id", 5, "nombre", "Ana");
@@ -186,8 +169,6 @@ public class CoreV3Test {
         eq("toJson bool",   "true",  GenApi.toJson(true));
         eq("toJson string", "\"hi\"",GenApi.toJson("hi"));
     }
-
-    // ── JxValidation ─────────────────────────────────────────────────────
 
     static class UserDto {
         @JxValidation.JxRequired public String nombre;
@@ -293,10 +274,8 @@ public class CoreV3Test {
     static void testValidationStructured() {
         UserDto dto = new UserDto();
         dto.noNulo = "ok";
-        // Todo vacío — múltiples errores
         var errs = JxValidation.checkMap(dto);
         eq("multiples errores", true, errs.size() >= 2);
-        // validate() lanza JxException con JSON
         try {
             JxValidation.validate(dto);
             eq("validate no lanzó excepción", false, true);
@@ -305,8 +284,6 @@ public class CoreV3Test {
             eq("validate json errors", true, e.getMessage().contains("\"errors\""));
         }
     }
-
-    // ── BaseSanitizer ─────────────────────────────────────────────────────
 
     static void testSanitizerXss() {
         String xss1 = BaseSanitizer.clean("<script>alert('xss')</script>hola");
@@ -330,10 +307,7 @@ public class CoreV3Test {
         eq("cleanBasic",   "test", BaseSanitizer.cleanBasic("<test>"));
     }
 
-    // ── BaseDbResolver ────────────────────────────────────────────────────
-
     static void testDbResolverDefaults() {
-        // Sin application.properties en test classpath, deben devolver defaults
         String url  = BaseDbResolver.url();
         String user = BaseDbResolver.user();
         eq("url no null",  true, url  != null && !url.isBlank());
@@ -342,10 +316,7 @@ public class CoreV3Test {
         eq("pool size 10", 10,    BaseDbResolver.poolSize());
     }
 
-    // ── JxDB named params ─────────────────────────────────────────────────
-
     static void testNamedParams() {
-        // Probar el parser de named params sin conexión real — via reflexión
         try {
             var m = JxDB.class.getDeclaredMethod("parseNamed", String.class, Map.class);
             m.setAccessible(true);
@@ -364,8 +335,6 @@ public class CoreV3Test {
             eq("named params reflex " + e.getMessage(), true, false);
         }
     }
-
-    // ── Helpers ───────────────────────────────────────────────────────────
 
     static void eq(String name, Object expected, Object actual) {
         boolean ok = expected == null ? actual == null : expected.equals(actual);

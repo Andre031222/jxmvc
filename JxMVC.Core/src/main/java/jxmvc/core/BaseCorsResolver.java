@@ -1,7 +1,3 @@
-/// JxMVC Open-source project 2024 - 2026
-/// -------------------------------------------
-///  coded by : Dr. Ramiro Pedro Laura Murillo
-
 package jxmvc.core;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -9,13 +5,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 
-/**
- * Resuelve y aplica la política CORS por controlador o método.
- * Sin anotación {@code @JxCors}: peticiones cross-origin son bloqueadas.
- * Peticiones same-origin (sin cabecera Origin) siempre pasan.
- */
 public final class BaseCorsResolver {
-
     private static final String[] DEFAULT_METHODS  = {"GET","POST","PUT","DELETE","PATCH","OPTIONS"};
     private static final String[] DEFAULT_ORIGINS  = {};
     private static final String[] DEFAULT_HOSTS    = {};
@@ -23,20 +13,18 @@ public final class BaseCorsResolver {
     public boolean applyAndCheck(
             HttpServletRequest req, HttpServletResponse resp,
             Class<?> controllerClass, Method actionMethod) {
-
         JxMapping.JxCors methodPolicy     = actionMethod.getAnnotation(JxMapping.JxCors.class);
         JxMapping.JxCors controllerPolicy = controllerClass.getAnnotation(JxMapping.JxCors.class);
         boolean hasAnnotation              = methodPolicy != null || controllerPolicy != null;
 
         String origin = safe(req.getHeader("Origin"));
 
-        if (origin.isBlank()) return true;   // same-origin sin cabecera, siempre OK
-        if (isSameHost(req, origin)) {       // mismo host:puerto → same-origin
-            // La respuesta depende de Origin: que las cachés intermedias no la reutilicen cross-origin.
+        if (origin.isBlank()) return true;
+        if (isSameHost(req, origin)) {
             resp.addHeader("Vary", "Origin");
             return true;
         }
-        if (!hasAnnotation)   return false;  // cross-origin sin política → bloquear
+        if (!hasAnnotation)   return false;
 
         CorsPolicy policy = resolvePolicy(methodPolicy, controllerPolicy);
         String method = requestedMethod(req);
@@ -117,22 +105,13 @@ public final class BaseCorsResolver {
         return matches(allowed, method);
     }
 
-    /**
-     * True si el Origin apunta al mismo host que el servidor.
-     * Compara solo la parte host (ignorando esquema y puerto) para funcionar
-     * correctamente detrás de un reverse proxy (Apache/Nginx) donde el esquema
-     * interno es http:8080 pero el Origin llega como https:443.
-     * ProxyPreserveHost On garantiza que req.getServerName() == host público.
-     */
     private boolean isSameHost(HttpServletRequest req, String origin) {
         if (origin.isBlank()) return true;
         try {
-            // Extraer solo el host del Origin (sin esquema ni puerto)
             String originHost = origin
                     .replaceFirst("^https?://", "")
                     .replaceFirst(":\\d+$", "")
                     .trim();
-            // req.getServerName() devuelve el Host header (preservado por ProxyPreserveHost)
             String serverName = safe(req.getServerName());
             return !originHost.isEmpty() && originHost.equalsIgnoreCase(serverName);
         } catch (Exception e) {

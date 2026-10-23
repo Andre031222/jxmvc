@@ -7,22 +7,7 @@ import jakarta.servlet.http.HttpServletResponseWrapper;
 import java.io.*;
 import java.util.zip.GZIPOutputStream;
 
-/**
- * Compresión GZIP opt-in.
- * Activar: {@code jxmvc.gzip.enabled=true} en {@code application.properties}.
- *
- * <pre>
- * # application.properties
- * jxmvc.gzip.enabled=true
- * jxmvc.gzip.minBytes=860
- * jxmvc.gzip.maxBytes=1048576
- * </pre>
- *
- * Respuestas que superan {@code maxBytes} se envían sin comprimir en streaming
- * directo, evitando retener respuestas grandes en memoria.
- */
 final class JxGzip {
-
     private static final JxLogger log = JxLogger.getLogger(JxGzip.class);
 
     static final boolean ENABLED;
@@ -39,7 +24,6 @@ final class JxGzip {
     private JxGzip() {}
 
     static final class GzipWrapper extends HttpServletResponseWrapper {
-
         private final ByteArrayOutputStream buffer = new ByteArrayOutputStream(2048);
         private final int         maxBytes;
         private PrintWriter       writer;

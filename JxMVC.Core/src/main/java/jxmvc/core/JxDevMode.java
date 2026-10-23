@@ -1,8 +1,3 @@
-/// JxMVC Open-source project 2024 - 2026
-/// -------------------------------------------
-///  coded by : Dr. Ramiro Pedro Laura Murillo
-///  v3.1.1   : R. Andre Vilca Solorzano
-
 package jxmvc.core;
 
 import java.io.IOException;
@@ -12,23 +7,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Modo desarrollo — recarga automática de clases cuando cambia un .class.
- *
- * <p>Se activa automáticamente cuando el perfil activo es {@code dev}:
- * <pre>
- *   # application.properties
- *   jxmvc.profile = dev
- * </pre>
- *
- * <p>En modo dev el servidor detecta cambios en {@code /WEB-INF/classes}
- * e imprime aviso por log. La recarga real requiere soporte del contenedor
- * (Tomcat hot deploy) o reinicio manual con {@code mvn cargo:run}.
- *
- * <p>En producción ({@code jxmvc.profile = prod}) este módulo no hace nada.
- */
 public final class JxDevMode {
-
     private static final JxLogger log = JxLogger.getLogger(JxDevMode.class);
 
     private static volatile boolean active = false;
@@ -36,9 +15,6 @@ public final class JxDevMode {
 
     private JxDevMode() {}
 
-    /**
-     * Llamado desde {@link MainLxServlet#init()} — activa el modo dev si el perfil lo indica.
-     */
     public static void init() {
         String profile = JxProfile.active();
         if (!"dev".equalsIgnoreCase(profile) && !"development".equalsIgnoreCase(profile)) return;
@@ -66,8 +42,6 @@ public final class JxDevMode {
     public static void shutdown() {
         if (watcher != null) watcher.shutdownNow();
     }
-
-    // ── Watcher interno ───────────────────────────────────────────────────
 
     private static void startWatcher(Path dir) {
         watcher = Executors.newSingleThreadScheduledExecutor(r -> {

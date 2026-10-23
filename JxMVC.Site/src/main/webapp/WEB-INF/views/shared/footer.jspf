@@ -2,11 +2,10 @@
     </main>
 
     <style>
-        /* Padding propio (el Tailwind del sitio es precompilado: pt-14/pb-28 pueden no existir).
-           En móvil deja aire extra abajo para que la barra de navegación fija no tape el pie. */
+        
         .jx-foot-wrap { padding-top:56px; padding-bottom:56px; }
         @media (max-width:767px) { .jx-foot-wrap { padding-bottom:116px; } }
-        /* Grid propio (el Tailwind del sitio es precompilado: las clases arbitrarias no existen). */
+        
         .jx-foot-grid { display:grid; grid-template-columns:1fr 1fr; gap:40px 40px; }
         .jx-foot-brand { grid-column:1 / -1; max-width:24rem; }
         @media (min-width:768px)  { .jx-foot-grid { grid-template-columns:repeat(3,1fr); } }
@@ -30,7 +29,6 @@
         <div class="s-wrap jx-foot-wrap">
             <div class="jx-foot-grid">
 
-                <%-- Marca --%>
                 <div class="jx-foot-brand">
                     <div class="flex items-center gap-2.5 mb-4">
                         <svg viewBox="0 0 256 256" class="w-7 h-7" aria-hidden="true">
@@ -47,17 +45,16 @@
                         <span class="font-semibold text-[16px] tracking-tight text-ink dark:text-[#F5F5F7]">JxMVC</span>
                     </div>
                     <p class="text-[13px] leading-relaxed text-muted dark:text-[#8E8E93] max-w-xs mb-5">
-                        Framework MVC para Jakarta EE. Un JAR de 298 KB, cero dependencias externas
+                        Framework MVC para Jakarta EE. Un JAR de 301 KB, cero dependencias externas
                         y seguridad activa por defecto. Simple, directo y en español.
                     </p>
                     <div class="flex flex-wrap gap-2">
-                        <span class="jx-foot-badge bg-apple/10 text-apple">v3.5.1</span>
-                        <span class="jx-foot-badge" style="background:rgba(48,209,88,.12);color:#1a9c3e">425 tests</span>
+                        <span class="jx-foot-badge bg-apple/10 text-apple">v3.6.0</span>
+                        <span class="jx-foot-badge" style="background:rgba(48,209,88,.12);color:#1a9c3e">433 tests</span>
                         <span class="jx-foot-badge bg-black/[0.05] dark:bg-white/[0.06] text-muted dark:text-[#8E8E93]">MIT</span>
                     </div>
                 </div>
 
-                <%-- Producto --%>
                 <div>
                     <p class="jx-foot-h">Producto</p>
                     <ul class="space-y-2.5">
@@ -69,7 +66,6 @@
                     </ul>
                 </div>
 
-                <%-- Endpoints --%>
                 <div>
                     <p class="jx-foot-h">Recursos</p>
                     <ul class="space-y-2.5">
@@ -80,7 +76,6 @@
                     </ul>
                 </div>
 
-                <%-- Proyecto --%>
                 <div>
                     <p class="jx-foot-h">Proyecto</p>
                     <ul class="space-y-2.5">
@@ -92,7 +87,6 @@
                 </div>
             </div>
 
-            <%-- Barra inferior --%>
             <div class="mt-12 pt-7 border-t border-black/[0.06] dark:border-white/[0.06]
                         flex flex-col md:flex-row items-start md:items-center justify-between gap-5">
                 <div>

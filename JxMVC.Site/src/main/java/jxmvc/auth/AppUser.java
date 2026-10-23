@@ -2,13 +2,7 @@ package jxmvc.auth;
 
 import java.io.Serializable;
 
-/**
- * Identidad de un usuario autenticado, sea por correo/contraseña o por un proveedor
- * OAuth (Google). Se guarda en la sesión bajo la clave {@code "user"}; el
- * {@code AppBootstrap} la lee para resolver {@code @JxRequireAuth} y {@code @JxRequireRole}.
- */
 public class AppUser implements Serializable {
-
     private String id;
     private String email;
     private String name;

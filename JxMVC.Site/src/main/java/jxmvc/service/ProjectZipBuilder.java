@@ -5,28 +5,15 @@ import java.nio.charset.StandardCharsets;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-/**
- * Genera un proyecto JxMVC listo para usar como archivo ZIP en memoria.
- * Sin dependencias externas — usa java.util.zip del JDK.
- */
 public final class ProjectZipBuilder {
-
     private ProjectZipBuilder() {}
 
-    /**
-     * @param groupId    ej: com.miempresa
-     * @param artifactId ej: mi-app
-     * @param pkg        ej: com.miempresa.miapp  (paquete base limpio)
-     * @param db         "none" | "postgresql" | "mysql" | "sqlserver"
-     * @param appName    ej: Mi Aplicacion
-     */
     public static byte[] build(String groupId, String artifactId,
                                 String pkg, String db, String appName) throws Exception {
         String pkgPath = pkg.replace('.', '/');
 
         ByteArrayOutputStream buf = new ByteArrayOutputStream();
         try (ZipOutputStream zip = new ZipOutputStream(buf)) {
-
             add(zip, "pom.xml",                                          pom(groupId, artifactId, db));
             add(zip, "src/main/resources/application.properties",        props2(pkg, db));
             add(zip, "src/main/webapp/WEB-INF/web.xml",                  webXml());
@@ -56,8 +43,6 @@ public final class ProjectZipBuilder {
         zip.write(content.getBytes(StandardCharsets.UTF_8));
         zip.closeEntry();
     }
-
-    // ── Templates ─────────────────────────────────────────────────────────
 
     private static String pom(String groupId, String artifactId, String db) {
         String dbDep = switch (db) {
@@ -109,7 +94,7 @@ public final class ProjectZipBuilder {
                         <dependency>
                             <groupId>jxmvc</groupId>
                             <artifactId>jxmvc-core</artifactId>
-                            <version>3.5.1</version>
+                            <version>3.6.0</version>
                         </dependency>
                 %s
                     </dependencies>
@@ -161,13 +146,13 @@ public final class ProjectZipBuilder {
             default -> "# Sin base de datos configurada\n";
         };
 
-        return "# JxMVC 3.5.1\n"
+        return "# JxMVC 3.6.0\n"
              + "jxmvc.controllers.package = " + pkg + "\n\n"
              + "# Base de datos\n" + dbSection + "\n"
              + "jxmvc.log.level           = INFO\n"
              + "jxmvc.profile             = dev\n"
              + "jxmvc.async.threads       = 8\n\n"
-             + "# Seguridad y endurecimiento (v3.5.1)\n"
+             + "# Seguridad y endurecimiento (v3.6.0)\n"
              + "jxmvc.security.frame-options = SAMEORIGIN\n"
              + "jxmvc.security.hsts          = false\n"
              + "jxmvc.security.csrf          = false      # token CSRF por sesión (jx:csrf en JSP)\n"
@@ -226,7 +211,6 @@ public final class ProjectZipBuilder {
                 import jxmvc.core.JxJson;
 
                 public abstract class BaseController extends JxController {
-
                     protected JxDB db() { return new JxDB(); }
 
                     protected ActionResult jsonOk(Object data) {
@@ -258,11 +242,10 @@ public final class ProjectZipBuilder {
                 @JxControllerMain
                 @JxControllerMapping("home")
                 public class HomeController extends BaseController {
-
                     @JxGetMapping("index")
                     public ActionResult index() {
                         model.setVar("appName", "%s");
-                        model.setVar("version", "3.5.1");
+                        model.setVar("version", "3.6.0");
                         return view("home/index");
                     }
 
@@ -338,7 +321,7 @@ public final class ProjectZipBuilder {
         return """
                     </main>
                     <footer class="text-center text-xs text-slate-400 py-8">
-                        Powered by <strong>JxMVC 3.5.1</strong>
+                        Powered by <strong>JxMVC 3.6.0</strong>
                     </footer>
                 </body>
                 </html>
@@ -399,7 +382,7 @@ public final class ProjectZipBuilder {
         );
 
         return "# " + appName + "\n\n"
-             + "Generated with **[JxMVC](https://jxmvc.ginit.dev) 3.5.1** — "
+             + "Generated with **[JxMVC](https://jxmvc.ginit.dev) 3.6.0** — "
              + "a zero-dependency MVC framework for Jakarta EE.\n\n"
              + "---\n\n"
              + "## Prerequisites\n\n"

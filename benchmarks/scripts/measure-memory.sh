@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
-# RSS (memoria residente) de un proceso en estado estacionario, en MB.
-# Ejecutar TRAS el warmup de carga. uso: measure-memory.sh <pid>
 set -euo pipefail
 PID="${1:?pid requerido}"
 if [ -r "/proc/$PID/status" ]; then

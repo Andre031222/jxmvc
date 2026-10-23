@@ -1,7 +1,3 @@
-/// JxMVC Open-source project 2024 - 2026
-/// -------------------------------------------
-///  coded by : Dr. Ramiro Pedro Laura Murillo
-
 package jxmvc.core;
 
 import java.sql.*;
@@ -11,28 +7,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-/**
- * Capa de acceso a datos JDBC — PostgreSQL, MySQL y SQL Server.
- * Implementa {@link AutoCloseable}: usar con try-with-resources.
- *
- * <pre>
- *   // Conexión desde application.properties
- *   try (JxDB db = new JxDB()) {
- *       DBRowSet rows = db.getTable("users", "status = ?", "active");
- *       long id = db.insert("users", DBRow.of("name","Ana","age",25));
- *       db.update("users", DBRow.of("name","Ana M."), "id = ?", id);
- *       db.delete("users", "id = ?", id);
- *   }
- *
- *   // Conexión personalizada
- *   JxDB db = new JxDB("postgresql://host:5432/db", "user", "pass");
- *
- *   // Query SQL directo
- *   DBRowSet r = db.query("SELECT * FROM orders WHERE total > ? ORDER BY date DESC", 100);
- * </pre>
- */
 public class JxDB implements AutoCloseable {
-
     private Connection conn;
     private boolean    borrowedFromPool;
     private final String connUrl;
@@ -41,9 +16,6 @@ public class JxDB implements AutoCloseable {
     private final String engine;
     private String lastError;
 
-    // ── Constructores ─────────────────────────────────────────────────────
-
-    /** Usa la conexión configurada en {@code application.properties}. */
     public JxDB() {
         this.connUrl = BaseDbResolver.url();
         this.user    = BaseDbResolver.user();
@@ -51,19 +23,6 @@ public class JxDB implements AutoCloseable {
         this.engine  = detectEngine(this.connUrl);
     }
 
-    /**
-     * Datasource por nombre (registrado con {@link JxDataSourceRegistry}) o URL JDBC directa.
-     * Si {@code nameOrUrl} coincide con un datasource registrado se usa ese;
-     * si no, se trata como URL JDBC.
-     *
-     * <pre>
-     *   // Datasource registrado:
-     *   try (JxDB db = new JxDB("reporting")) { ... }
-     *
-     *   // URL directa:
-     *   try (JxDB db = new JxDB("jdbc:postgresql://host/db")) { ... }
-     * </pre>
-     */
     public JxDB(String nameOrUrl) {
         JxDataSourceRegistry.DSConfig ds = JxDataSourceRegistry.get(nameOrUrl);
         if (ds != null) {
@@ -78,15 +37,12 @@ public class JxDB implements AutoCloseable {
         this.engine = detectEngine(this.connUrl);
     }
 
-    /** URL + credenciales explícitas. */
     public JxDB(String url, String user, String pass) {
         this.connUrl = toJdbc(url);
         this.user    = user;
         this.pass    = pass;
         this.engine  = detectEngine(this.connUrl);
     }
-
-    // ── Estado ────────────────────────────────────────────────────────────
 
     public boolean isConnected() {
         return Boolean.TRUE.equals(withConn(c -> c.isValid(2), Boolean.FALSE));
@@ -99,28 +55,14 @@ public class JxDB implements AutoCloseable {
     @Override
     public void close() {
         if (conn == null) return;
-        // La conexión administrada por JxTransaction (ThreadLocal) la libera JxTransaction.
         if (conn == JxTransaction.current()) { conn = null; return; }
         releaseRetained();
     }
 
-    // ── SELECT ────────────────────────────────────────────────────────────
-
-    /** {@code SELECT * FROM table} */
     public DBRowSet getTable(String table) {
         return exec_("SELECT * FROM " + qt(table));
     }
 
-    /**
-     * {@code SELECT * FROM table WHERE filter}
-     * El filtro puede contener {@code ?} y los valores se pasan como params.
-     *
-     * <pre>
-     *   db.getTable("users", "status = ?", "active")
-     *   db.getTable("users", "age > ? AND city = ?", 18, "Lima")
-     *   db.getTable("orders", "ORDER BY date DESC")   // sin WHERE, solo cláusula
-     * </pre>
-     */
     public DBRowSet getTable(String table, String filter, Object... params) {
         if (filter == null || filter.isBlank()) return getTable(table);
         String upper = filter.stripLeading().toUpperCase();
@@ -130,13 +72,6 @@ public class JxDB implements AutoCloseable {
         return exec_("SELECT * FROM " + qt(table) + " WHERE " + filter, params);
     }
 
-    /**
-     * {@code SELECT * FROM table WHERE filter clause}
-     *
-     * <pre>
-     *   db.getTable("orders", "user_id = ?", "ORDER BY date DESC", userId)
-     * </pre>
-     */
     public DBRowSet getTable(String table, String filter, String clause, Object... params) {
         String sql = "SELECT * FROM " + qt(table);
         if (filter != null && !filter.isBlank()) sql += " WHERE " + filter;
@@ -144,13 +79,6 @@ public class JxDB implements AutoCloseable {
         return exec_(sql, params);
     }
 
-    /**
-     * Devuelve la primera fila que cumpla el filtro, o {@code null}.
-     *
-     * <pre>
-     *   DBRow user = db.getRow("users", "email = ?", email);
-     * </pre>
-     */
     public DBRow getRow(String table, String filter, Object... params) {
         String sql = "MSSQL".equals(engine)
             ? "SELECT TOP 1 * FROM " + qt(table) + " WHERE " + filter
@@ -159,49 +87,19 @@ public class JxDB implements AutoCloseable {
         return rs.isEmpty() ? null : rs.get(0);
     }
 
-    /**
-     * Llama a una función de tabla PostgreSQL.
-     *
-     * <pre>
-     *   DBRowSet result = db.getFuncTable("fn_reporte", userId, year);
-     * </pre>
-     */
     public DBRowSet getFuncTable(String funcName, Object... args) {
         StringBuilder ph = new StringBuilder();
         for (int i = 0; i < args.length; i++) { if (i > 0) ph.append(','); ph.append('?'); }
         return exec_("SELECT * FROM " + qt(funcName) + "(" + ph + ")", args);
     }
 
-    /**
-     * SQL SELECT libre con parámetros.
-     *
-     * <pre>
-     *   DBRowSet rows = db.query("SELECT id, name FROM users WHERE age > ? ORDER BY name", 18);
-     * </pre>
-     */
     public DBRowSet query(String sql, Object... params) { return exec_(sql, params); }
 
-    /**
-     * Devuelve la primera fila de un SQL SELECT libre, o {@code null}.
-     *
-     * <pre>
-     *   DBRow row = db.queryRow("SELECT * FROM users WHERE id = ?", id);
-     * </pre>
-     */
     public DBRow queryRow(String sql, Object... params) {
         DBRowSet rs = exec_(sql, params);
         return rs.isEmpty() ? null : rs.get(0);
     }
 
-    // ── INSERT ────────────────────────────────────────────────────────────
-
-    /**
-     * Inserta una fila y retorna el ID generado (0 si no aplica).
-     *
-     * <pre>
-     *   long id = db.insert("users", DBRow.of("name","Ana","age",25));
-     * </pre>
-     */
     public long insert(String table, DBRow fields) {
         lastError = "";
         if (fields == null || fields.isEmpty()) return 0;
@@ -229,15 +127,6 @@ public class JxDB implements AutoCloseable {
         }, 0L);
     }
 
-    // ── UPDATE ────────────────────────────────────────────────────────────
-
-    /**
-     * Actualiza filas que cumplan la condición.
-     *
-     * <pre>
-     *   db.update("users", DBRow.of("name","Pedro"), "id = ?", userId);
-     * </pre>
-     */
     public void update(String table, DBRow fields, String condition, Object... condParams) {
         lastError = "";
         if (fields == null || fields.isEmpty()) return;
@@ -261,23 +150,12 @@ public class JxDB implements AutoCloseable {
         }, -1);
     }
 
-    /** Versión con {@link Map} en lugar de {@link DBRow}. */
     public void update(String table, Map<String, Object> fields, String condition, Object... condParams) {
         DBRow row = new DBRow();
         fields.forEach(row::add);
         update(table, row, condition, condParams);
     }
 
-    // ── DELETE ────────────────────────────────────────────────────────────
-
-    /**
-     * Elimina filas que cumplan la condición.
-     *
-     * <pre>
-     *   db.delete("users", "id = ?", userId);
-     *   db.delete("logs",  "created_at < ?", cutoffDate);
-     * </pre>
-     */
     public void delete(String table, String condition, Object... params) {
         lastError = "";
         String base = "DELETE FROM " + qt(table);
@@ -291,67 +169,21 @@ public class JxDB implements AutoCloseable {
         }, -1);
     }
 
-    // ── Parámetros con nombre (:param) ────────────────────────────────────
-
-    /**
-     * SELECT con parámetros nombrados {@code :name} en lugar de {@code ?}.
-     *
-     * <pre>
-     *   DBRowSet rows = db.queryNamed(
-     *       "SELECT * FROM users WHERE name = :name AND age > :age",
-     *       Map.of("name", "Ana", "age", 18)
-     *   );
-     * </pre>
-     */
     public DBRowSet queryNamed(String sql, Map<String, Object> params) {
         NamedQuery nq = parseNamed(sql, params);
         return exec_(nq.sql, nq.params);
     }
 
-    /**
-     * SELECT una fila con parámetros nombrados.
-     *
-     * <pre>
-     *   DBRow user = db.queryRowNamed(
-     *       "SELECT * FROM users WHERE email = :email",
-     *       Map.of("email", "ana@mail.com")
-     *   );
-     * </pre>
-     */
     public DBRow queryRowNamed(String sql, Map<String, Object> params) {
         DBRowSet rs = queryNamed(sql, params);
         return rs.isEmpty() ? null : rs.get(0);
     }
 
-    /**
-     * DML con parámetros nombrados.
-     *
-     * <pre>
-     *   db.execNamed(
-     *       "UPDATE users SET name = :name WHERE id = :id",
-     *       Map.of("name", "Pedro", "id", 5)
-     *   );
-     * </pre>
-     */
     public int execNamed(String sql, Map<String, Object> params) {
         NamedQuery nq = parseNamed(sql, params);
         return exec(nq.sql, nq.params);
     }
 
-    // ── INSERT por lote ───────────────────────────────────────────────────
-
-    /**
-     * Inserta múltiples filas en una sola operación batch.
-     * Retorna el array de filas afectadas por cada INSERT.
-     *
-     * <pre>
-     *   db.insertBatch("users", List.of(
-     *       DBRow.of("nombre", "Ana",   "email", "ana@mail.com"),
-     *       DBRow.of("nombre", "Pedro", "email", "pedro@mail.com"),
-     *       DBRow.of("nombre", "Luis",  "email", "luis@mail.com")
-     *   ));
-     * </pre>
-     */
     public int[] insertBatch(String table, List<DBRow> rows) {
         lastError = "";
         if (rows == null || rows.isEmpty()) return new int[0];
@@ -378,13 +210,6 @@ public class JxDB implements AutoCloseable {
         }, new int[0]);
     }
 
-    /**
-     * INSERT o UPDATE en lote según el campo PK: si pk es 0/null hace INSERT, si no UPDATE.
-     *
-     * <pre>
-     *   db.upsertBatch("productos", "id", productos);
-     * </pre>
-     */
     public void upsertBatch(String table, String pkField, List<DBRow> rows) {
         List<DBRow> inserts = new ArrayList<>();
         List<DBRow> updates = new ArrayList<>();
@@ -404,18 +229,6 @@ public class JxDB implements AutoCloseable {
         }
     }
 
-    // ── Paginación ────────────────────────────────────────────────────────
-
-    /**
-     * SELECT paginado con COUNT total.
-     *
-     * <pre>
-     *   JxPageResult page = db.getTablePaged("users", "status = ?", 0, 20, "active");
-     *   // page.getData()       → DBRowSet con los 20 registros
-     *   // page.getTotal()      → 150 (total sin paginar)
-     *   // page.getTotalPages() → 8
-     * </pre>
-     */
     public JxPageResult getTablePaged(String table, String filter, int page, int size, Object... params) {
         page = Math.max(0, page);
         size = Math.max(1, size);
@@ -427,12 +240,10 @@ public class JxDB implements AutoCloseable {
 
         String dataSql;
         if ("MSSQL".equals(engine)) {
-            // SQL Server: requiere ORDER BY para OFFSET/FETCH
             dataSql = "SELECT * FROM " + qtTable + where
                     + " ORDER BY (SELECT NULL)"
                     + " OFFSET " + offset + " ROWS FETCH NEXT " + size + " ROWS ONLY";
         } else {
-            // PostgreSQL / MySQL
             dataSql = "SELECT * FROM " + qtTable + where
                     + " LIMIT " + size + " OFFSET " + offset;
         }
@@ -447,24 +258,10 @@ public class JxDB implements AutoCloseable {
         return JxPageResult.of(data, page, size, total);
     }
 
-    // ── Transacciones ─────────────────────────────────────────────────────
-
-    /**
-     * Ejecuta {@code work} en una transacción JDBC.
-     * Alternativa programática a {@code @JxTransactional}.
-     *
-     * <pre>
-     *   db.transaction(() -> {
-     *       db.insert("orders",    DBRow.of("user_id", 1, "total", 99.9));
-     *       db.update("inventory", DBRow.of("stock", 9), "sku = ?", "PROD-1");
-     *   });
-     * </pre>
-     */
     public void transaction(Runnable work) {
         JxTransaction.run(work);
     }
 
-    /** Abre una transacción manual sobre una conexión retenida por esta instancia. */
     public void beginTransaction() {
         if (JxTransaction.current() != null) return;
         try {
@@ -487,16 +284,6 @@ public class JxDB implements AutoCloseable {
         finally { releaseRetained(); }
     }
 
-    // ── DML crudo ─────────────────────────────────────────────────────────
-
-    /**
-     * Ejecuta cualquier sentencia DML (INSERT/UPDATE/DELETE/CREATE...).
-     * Retorna el número de filas afectadas o -1 si hubo error.
-     *
-     * <pre>
-     *   db.exec("UPDATE config SET value = ? WHERE key = ?", "dark", "theme");
-     * </pre>
-     */
     public int exec(String sql, Object... params) {
         return withConn(c -> {
             try (PreparedStatement stmt = c.prepareStatement(sql)) {
@@ -505,8 +292,6 @@ public class JxDB implements AutoCloseable {
             }
         }, -1);
     }
-
-    // ── Privados ──────────────────────────────────────────────────────────
 
     private DBRowSet exec_(String sql, Object... params) {
         return withConn(c -> {
@@ -530,15 +315,6 @@ public class JxDB implements AutoCloseable {
     @FunctionalInterface
     private interface ConnUse<T> { T apply(Connection c) throws SQLException; }
 
-    /**
-     * Ejecuta {@code body} con una conexión.
-     * <ul>
-     *   <li>Dentro de una transacción (ThreadLocal de {@link JxTransaction} o transacción
-     *       manual de esta instancia) reutiliza esa conexión y no la libera.
-     *   <li>Fuera de transacción toma una conexión efímera del pool (o directa), la usa
-     *       y la libera de inmediato — sin fugas ni estado compartido entre hilos.
-     * </ul>
-     */
     private <T> T withConn(ConnUse<T> body, T onError) {
         lastError = "";
         Connection managed = activeConn();
@@ -564,7 +340,6 @@ public class JxDB implements AutoCloseable {
         }
     }
 
-    /** Conexión de transacción activa (ThreadLocal global o transacción manual), o {@code null}. */
     private Connection activeConn() {
         Connection tx = JxTransaction.current();
         return tx != null ? tx : conn;
@@ -594,7 +369,6 @@ public class JxDB implements AutoCloseable {
         try { c.close(); } catch (SQLException ignored) {}
     }
 
-    /** Para uso exclusivo de {@link JxTransaction} — no llamar externamente. */
     Connection rawConnection() throws SQLException {
         if (conn == null) conn = acquire();
         return conn;
@@ -640,10 +414,8 @@ public class JxDB implements AutoCloseable {
     private String safeId(String id) {
         if (id == null || id.isBlank()) throw new IllegalArgumentException("Identificador SQL vacío");
         String clean = id.trim().replaceAll("^\"|\"$", "");
-        // Permite schema.tabla (punto como separador) y nombres con guión bajo
         if (!clean.matches("[A-Za-z_][A-Za-z0-9_.]*"))
             throw new IllegalArgumentException("Identificador SQL inválido: " + id);
-        // Verificar cada parte del identificador (antes y después del punto)
         for (String part : clean.split("\\.")) {
             String lower = part.toLowerCase();
             for (String w : RESERVED) {
@@ -652,8 +424,6 @@ public class JxDB implements AutoCloseable {
         }
         return clean;
     }
-
-    // ── Named parameters helper ───────────────────────────────────────────
 
     private record NamedQuery(String sql, Object[] params) {}
 
@@ -691,61 +461,41 @@ public class JxDB implements AutoCloseable {
         return (url != null && !url.startsWith("jdbc:")) ? "jdbc:" + url : url;
     }
 
-    // ── API PascalCase (estilo JxMVC) ────────────────────────────────────
-    // Equivalente completo a los métodos camelCase — usar el que prefieras.
-
     public boolean  IsConnected()                                          { return isConnected(); }
 
-    /** {@code SELECT * FROM table} */
     public DBRowSet GetTable(String table)                                 { return getTable(table); }
 
-    /** {@code SELECT * FROM table WHERE filter} — acepta {@code ?} como placeholder. */
     public DBRowSet GetTable(String table, String filter, Object... params){ return getTable(table, filter, params); }
 
-    /** {@code SELECT * FROM table WHERE filter clause} */
     public DBRowSet GetTable(String table, String filter, String clause, Object... params) { return getTable(table, filter, clause, params); }
 
-    /** Primera fila que cumpla el filtro, o {@code null}. Acepta {@code ?} como placeholder. */
     public DBRow    GetRow(String table, String filter, Object... params)  { return getRow(table, filter, params); }
 
-    /** Llama a una función de tabla (PostgreSQL). */
     public DBRowSet GetFuncTable(String funcName, Object... args)          { return getFuncTable(funcName, args); }
 
-    /** SQL SELECT libre. */
     public DBRowSet Query(String sql, Object... params)                    { return query(sql, params); }
 
-    /** Primera fila de un SQL SELECT libre, o {@code null}. */
     public DBRow    QueryRow(String sql, Object... params)                 { return queryRow(sql, params); }
 
-    /** Inserta una fila. Retorna el ID generado. */
     public long     Insert(String table, DBRow fields)                     { return insert(table, fields); }
 
-    /** Actualiza filas que cumplan la condición. */
     public void     Update(String table, DBRow fields, String condition, Object... params) { update(table, fields, condition, params); }
 
-    /** Elimina filas que cumplan la condición. */
     public void     Delete(String table, String condition, Object... params){ delete(table, condition, params); }
 
-    /** Ejecuta DML crudo. Retorna filas afectadas. */
     public int      Exec(String sql, Object... params)                     { return exec(sql, params); }
 
-    /** SELECT paginado. */
     public JxPageResult GetTablePaged(String table, String filter, int page, int size, Object... params) {
         return getTablePaged(table, filter, page, size, params);
     }
 
-    /** SELECT con parámetros nombrados {@code :name}. */
     public DBRowSet QueryNamed(String sql, Map<String, Object> params) { return queryNamed(sql, params); }
 
-    /** SELECT una fila con parámetros nombrados. */
     public DBRow QueryRowNamed(String sql, Map<String, Object> params) { return queryRowNamed(sql, params); }
 
-    /** DML con parámetros nombrados. */
     public int ExecNamed(String sql, Map<String, Object> params) { return execNamed(sql, params); }
 
-    /** INSERT en lote. */
     public int[] InsertBatch(String table, List<DBRow> rows) { return insertBatch(table, rows); }
 
-    /** INSERT o UPDATE en lote. */
     public void UpsertBatch(String table, String pkField, List<DBRow> rows) { upsertBatch(table, pkField, rows); }
 }
