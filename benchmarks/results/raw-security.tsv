@@ -1,0 +1,91 @@
+framework	id	verdict	detail
+jxmvc	H1	PASS	X-Content-Type-Options=nosniff
+jxmvc	H2	PASS	X-Frame-Options=SAMEORIGIN
+jxmvc	H3	PASS	Referrer-Policy=strict-origin-when-cross-origin
+jxmvc	H4	PASS	CSP=base-uri 'self'; object-src 'none'; frame-ancestors 'self'
+jxmvc	H5	PASS	Server= X-Powered-By=
+jxmvc	B1	PASS	20 MiB -> 413
+jxmvc	B2	PASS	anidamiento 100000 -> 400
+jxmvc	B3	PASS	JSON truncado -> 400
+jxmvc	E1	PASS	excepción -> 500
+jxmvc	C1	PASS	POST entre sitios -> 403
+jxmvc	R1	PASS	redirect -> 302 /https://evil.example/
+jxmvc	X1	PASS	parámetro reflejado -> 200
+jxmvc	T1	PASS	rutas con .. -> 400 400 404 400 400
+jxmvc	M1	PASS	TRACE -> 405
+jxmvc	I1	PASS	expuestos: ninguno
+jxmvc	L1	FAIL	300 intentos de login -> 0 respuestas 429
+jxmvc	L2	PASS	cabecera de 200 KB -> 400
+jxmvc	S1	PASS	TE+CL ambiguos -> 200
+spring	H1	FAIL	X-Content-Type-Options=
+spring	H2	FAIL	X-Frame-Options=
+spring	H3	FAIL	Referrer-Policy=
+spring	H4	FAIL	CSP=
+spring	H5	PASS	Server= X-Powered-By=
+spring	B1	FAIL	20 MiB -> 200
+spring	B2	PASS	anidamiento 100000 -> 400
+spring	B3	PASS	JSON truncado -> 400
+spring	E1	PASS	excepción -> 500
+spring	C1	FAIL	POST entre sitios -> 200
+spring	R1	FAIL	redirect -> 302 https://evil.example/
+spring	X1	FAIL	parámetro reflejado -> 200
+spring	T1	PASS	rutas con .. -> 400 400 404 400 400
+spring	M1	PASS	TRACE -> 405
+spring	I1	PASS	expuestos: ninguno
+spring	L1	FAIL	300 intentos de login -> 0 respuestas 429
+spring	L2	PASS	cabecera de 200 KB -> 400
+spring	S1	PASS	TE+CL ambiguos -> 200
+quarkus	H1	FAIL	X-Content-Type-Options=
+quarkus	H2	FAIL	X-Frame-Options=
+quarkus	H3	FAIL	Referrer-Policy=
+quarkus	H4	FAIL	CSP=
+quarkus	H5	PASS	Server= X-Powered-By=
+quarkus	B1	PASS	20 MiB -> 413
+quarkus	B2	N/A	sin binding JSON en la app mínima
+quarkus	B3	N/A	sin binding JSON en la app mínima
+quarkus	E1	PASS	excepción -> 500
+quarkus	C1	FAIL	POST entre sitios -> 200
+quarkus	R1	FAIL	redirect -> 302 https://evil.example/
+quarkus	X1	FAIL	parámetro reflejado -> 200
+quarkus	T1	PASS	rutas con .. -> 404 404 404 404 404
+quarkus	M1	PASS	TRACE -> 405
+quarkus	I1	PASS	expuestos: ninguno
+quarkus	L1	FAIL	300 intentos de login -> 0 respuestas 429
+quarkus	L2	PASS	cabecera de 200 KB -> 431
+quarkus	S1	PASS	TE+CL ambiguos -> 200
+micronaut	H1	FAIL	X-Content-Type-Options=
+micronaut	H2	FAIL	X-Frame-Options=
+micronaut	H3	FAIL	Referrer-Policy=
+micronaut	H4	FAIL	CSP=
+micronaut	H5	PASS	Server= X-Powered-By=
+micronaut	B1	PASS	20 MiB -> 413
+micronaut	B2	PASS	anidamiento 100000 -> 400
+micronaut	B3	PASS	JSON truncado -> 400
+micronaut	E1	FAIL	excepción -> 500 (filtra detalle interno)
+micronaut	C1	FAIL	POST entre sitios -> 200
+micronaut	R1	FAIL	redirect -> 301 https://evil.example/
+micronaut	X1	FAIL	parámetro reflejado -> 200
+micronaut	T1	PASS	rutas con .. -> 404 404 404 404 404
+micronaut	M1	PASS	TRACE -> 405
+micronaut	I1	PASS	expuestos: ninguno
+micronaut	L1	FAIL	300 intentos de login -> 0 respuestas 429
+micronaut	L2	PASS	cabecera de 200 KB -> 413
+micronaut	S1	PASS	TE+CL ambiguos -> 400
+javalin	H1	FAIL	X-Content-Type-Options=
+javalin	H2	FAIL	X-Frame-Options=
+javalin	H3	FAIL	Referrer-Policy=
+javalin	H4	FAIL	CSP=
+javalin	H5	PASS	Server= X-Powered-By=
+javalin	B1	PASS	20 MiB -> 413
+javalin	B2	N/A	sin binding JSON en la app mínima
+javalin	B3	N/A	sin binding JSON en la app mínima
+javalin	E1	PASS	excepción -> 500
+javalin	C1	FAIL	POST entre sitios -> 200
+javalin	R1	FAIL	redirect -> 302 https://evil.example/
+javalin	X1	FAIL	parámetro reflejado -> 200
+javalin	T1	PASS	rutas con .. -> 400 400 404 400 400
+javalin	M1	PASS	TRACE -> 404
+javalin	I1	PASS	expuestos: ninguno
+javalin	L1	FAIL	300 intentos de login -> 0 respuestas 429
+javalin	L2	PASS	cabecera de 200 KB -> 431
+javalin	S1	PASS	TE+CL ambiguos -> 400
