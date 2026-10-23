@@ -2,20 +2,20 @@
 
 <img src="docs/jxmvc-logo.png" width="104" alt="JxMVC" />
 
-# JxMVC — a 253 kB, zero-dependency MVC framework for Jakarta EE
+# JxMVC — a 298 kB, zero-dependency MVC framework for Jakarta EE
 
-Full-stack MVC for Jakarta EE 10 in a **253 kB JAR of 54 classes** with **zero
+Full-stack MVC for Jakarta EE 10 in a **298 kB JAR of 55 classes** with **zero
 third-party runtime dependencies**, and **security applied by default** in a
 fixed fifteen-stage request pipeline.
 
 [![Site](https://img.shields.io/badge/site-jxmvc.ginit.dev-0071E3?style=flat-square&logo=googlechrome&logoColor=white)](https://jxmvc.ginit.dev)
-[![Version](https://img.shields.io/badge/version-3.4.0-1565C0?style=flat-square)](https://github.com/Andre031222/jxmvc/releases)
+[![Version](https://img.shields.io/badge/version-3.5.0-1565C0?style=flat-square)](https://github.com/Andre031222/jxmvc/releases)
 [![License: MIT](https://img.shields.io/badge/license-MIT-15803d?style=flat-square)](LICENSE)
 [![Java 17+](https://img.shields.io/badge/Java-17%2B-007396?style=flat-square&logo=openjdk&logoColor=white)](https://openjdk.org/)
 [![Jakarta EE 10](https://img.shields.io/badge/Jakarta_EE-10-EE2A24?style=flat-square&logo=jakartaee&logoColor=white)](https://jakarta.ee/)
 [![Runtime deps](https://img.shields.io/badge/runtime_deps-0-2E7D32?style=flat-square)](#design-point)
-[![Tests](https://img.shields.io/badge/tests-347_passing-C21325?style=flat-square)](#reproducing-the-benchmarks)
-[![Paper](https://img.shields.io/badge/paper-under_review_(JSS)-64748b?style=flat-square)](#paper)
+[![Tests](https://img.shields.io/badge/tests-425_passing-C21325?style=flat-square)](#reproducing-the-benchmarks)
+[![Paper](https://img.shields.io/badge/paper-in_preparation-64748b?style=flat-square)](#paper)
 [![DOI](https://img.shields.io/badge/DOI-10.5281%2Fzenodo.21896137-1d4ed8?style=flat-square)](https://doi.org/10.5281/zenodo.21896137)
 
 </div>
@@ -36,7 +36,7 @@ validation, rate limiting, CSRF, password hashing (PBKDF2), and a complete OAuth
 OpenID Connect client (authorization code + PKCE, RS256/JWKS verification) **from scratch
 on top of the JDK and the Jakarta Servlet API alone**.
 
-The result is a **253 kB JAR of 54 classes with zero third-party runtime dependencies**
+The result is a **298 kB JAR of 55 classes with zero third-party runtime dependencies**
 (the only additional production requirement is the JDBC driver of your database), small
 enough to read and audit end to end.
 
@@ -46,7 +46,7 @@ enough to read and audit end to end.
 | Property | JxMVC | Mainstream stacks |
 |---|---|---|
 | Runtime dependencies | **0** | dozens to hundreds (transitive) |
-| Core artifact size | **253 kB** | MB-scale |
+| Core artifact size | **298 kB** | MB-scale |
 | Security | **by default, structural** (pipeline) | opt-in (a starter you add) |
 | JSON / pooling / OIDC | **own**, JDK-only | delegated to libraries |
 | Readability | whole core auditable in one sitting | tracing across generated code |
@@ -65,7 +65,8 @@ the application needs them.
 Benchmarked against Spring Boot, Quarkus, Micronaut and Javalin (plus a GraalVM
 native-image reference) with a single-command, containerised harness under pinned-core
 isolation on **bare-metal Arch Linux** (Intel i5-12500H, 64 concurrent connections, five
-30 s repetitions, medians):
+30 s repetitions, medians). These figures were measured on v3.4.0; a re-run on v3.5.0 with
+the same fixed heap for every framework (`BENCH_HEAP`) is pending:
 
 | Framework | Image (MB) | Startup (ms) | RSS (MB) | /plaintext (req/s) | /json (req/s) |
 |---|---|---|---|---|---|
@@ -76,18 +77,38 @@ isolation on **bare-metal Arch Linux** (Intel i5-12500H, 64 concurrent connectio
 | Javalin | 286.4 | **369** | 424.6 | 54,169 | 53,614 |
 | _Quarkus (native)_ | _72.8_ | _12_ | _25.1_ | _52,699_ | _50,073_ |
 
-- **Smallest JVM-mode deployable image** of the group, and a faster cold start than
-  Spring Boot and Micronaut.
+- **Smallest JVM-mode deployable image** of the group (about 5 % below the next one; the
+  shared JRE base dominates every image), and a faster cold start than Spring Boot and
+  Micronaut.
 - **Competitive throughput** with statistically indistinguishable tail latency
   (mean ≈ 1.3 ms, p99 ≈ 3.6 ms).
 - A follow-up run adding a **database-backed endpoint** (`/db`, a real `SELECT` over an
-  embedded in-memory database plus JSON) shows JxMVC pays **no measurable overhead**
-  (`/db` throughput ≈ `/json`), while Spring Boot and Micronaut give up 4–6 %.
+  embedded in-memory database plus JSON) leaves JxMVC's throughput at the `/json` level:
+  the HTTP layer, not the query, bounds it. Spring Boot and Micronaut give up 4–6 %.
 - Across the campaign the frameworks served **92.8 million requests with zero errors**.
 - The one clear trade-off is **resident memory**: JxMVC's RSS is the highest of the JVM
-  stacks, a direct consequence of the embedded servlet container.
+  stacks in that run, which did not cap the heap; the Tomcat container accounts for most of
+  it.
 
 Raw per-run data and the environment description live in [`benchmarks/`](benchmarks/).
+
+### Security by default
+
+Eighteen automated attacks against the same minimal app, every framework with its
+**default configuration** (no security module added), JxMVC 3.5.0:
+
+| | JxMVC | Spring Boot | Micronaut | Quarkus | Javalin |
+|---|---|---|---|---|---|
+| Protections present | **17/18** | 9/18 | 9/18 | 8/16 | 8/16 |
+
+JxMVC adds `nosniff`, clickjacking protection, `Referrer-Policy` and a minimal CSP to every
+response, rejects cross-origin `POST`s, oversized bodies, hostile and truncated JSON, open
+redirects and reflected `<script>`, and never leaks exception details. The one check it does
+not pass by default is login throttling: rate limiting is opt-in with `@JxRateLimit`, because
+a default limit would throttle every user at once behind an unconfigured reverse proxy.
+Quarkus and Javalin skip two JSON checks because their minimal apps have no JSON binding.
+Full table, probes and rules: [`benchmarks/results/SECURITY.md`](benchmarks/results/SECURITY.md)
+and [`benchmarks/security/`](benchmarks/security/); `./run.sh` reproduces it.
 
 * * *
 
@@ -116,7 +137,7 @@ mvn package cargo:run     # http://localhost:8080
 mvn package               # target/myapp.war, deployable on Tomcat 10.1+
 ```
 
-Drop `new myapp` to install only the framework. Set `JXMVC_VERSION=v3.4.2` to pin a release.
+Drop `new myapp` to install only the framework. Set `JXMVC_VERSION=v3.5.0` to pin a release.
 
 * * *
 
@@ -185,7 +206,7 @@ Results are written to [`benchmarks/results/`](benchmarks/results/) (`RESULTS-do
 plus the raw per-run CSV). For publication-quality numbers, run on bare-metal Linux with
 pinned cores; see [`benchmarks/docker/RUN-DB.md`](benchmarks/docker/RUN-DB.md).
 
-The core is verified by a **347-check test suite written without any external testing
+The core is verified by a **425-check test suite written without any external testing
 framework** — consistent with the zero-dependency principle.
 
 * * *
@@ -194,7 +215,7 @@ framework** — consistent with the zero-dependency principle.
 
 ```
 .
-├── JxMVC.Core/       the framework — 54 classes, zero runtime dependencies
+├── JxMVC.Core/       the framework — 55 classes, zero runtime dependencies
 ├── JxMVC2x/          demo web application (also powers jxmvc.ginit.dev)
 ├── benchmarks/       one-command Docker harness + raw results and environment
 ├── docs/             logo and assets
@@ -206,8 +227,7 @@ framework** — consistent with the zero-dependency principle.
 ## Paper
 
 The design decisions, from-scratch implementation experience, and empirical evaluation
-are written up in a manuscript **under review at the _Journal of Systems and Software_
-(Elsevier)**. The archived source is citable via Zenodo:
+are written up in a manuscript **in preparation**. The archived source is citable via Zenodo:
 **[10.5281/zenodo.21896137](https://doi.org/10.5281/zenodo.21896137)**. The article
 reference will be added here once available.
 

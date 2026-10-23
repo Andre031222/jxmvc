@@ -1,6 +1,14 @@
 # Changelog — JxMVC Core
 
-## Sin publicar
+## 3.5.0 — 2026-10-23
+
+Lectura y generación de PDF sin dependencias, endurecimientos encontrados por una evaluación de seguridad automatizada y un instalador de un comando.
+
+### ⚠ Cambios de comportamiento
+
+1. **JSON estricto**: `JxJson.fromJson` (y por tanto `@JxBody`) rechaza con **400** el JSON mal formado: llaves o corchetes sin cerrar, comas sobrantes, contenido después del valor, literales y números inválidos, escapes inválidos y caracteres de control sin escapar. Antes los aceptaba y devolvía datos incompletos.
+2. **Código de error real sin `error.jsp`**: si la app no define `/WEB-INF/views/shared/error.jsp`, los errores (403, 413, 500…) se responden con su propio código en texto plano. Antes el reenvío a la vista inexistente los convertía en 404.
+3. **CSP mínima por defecto**: toda respuesta lleva `Content-Security-Policy: base-uri 'self'; object-src 'none'; frame-ancestors 'self'` (`'none'` si `jxmvc.security.frame-options=DENY`). No restringe scripts ni estilos. `jxmvc.security.csp` la reemplaza y `jxmvc.security.csp=false` la quita.
 
 ### Nuevo
 
@@ -13,8 +21,13 @@
   - `JxPdf.create(título, texto)` genera un PDF de texto plano en A4 con paginado automático.
   - Entrada no confiable: tope de 64 MB por stream descomprimido, anidamiento máximo de 64 y errores siempre como `IllegalArgumentException`.
 
+- **Instalador** `install.sh` (macOS/Linux) e `install.ps1` (Windows): descarga el último release, compila e instala `jxmvc-core`, y con `new <nombre>` crea un proyecto listo para `mvn package cargo:run`.
+- **Evaluación de seguridad por defecto** (`benchmarks/security`): 18 sondas sobre la misma app mínima en los cinco frameworks. JxMVC 17/18, Spring Boot 9/18, Micronaut 9/18, Quarkus 8/16, Javalin 8/16.
+- **`BENCH_HEAP`** en `benchmarks/docker/bench.sh` fija el mismo heap para todos los frameworks JVM.
+
 ### Tests
 
+- **JsonTest**: 17 verificaciones nuevas del parser estricto. **SecurityTest**: CSP por defecto. Total: **425** en verde.
 - **PdfTest** (58 verificaciones): cifrados generados con una herramienta externa, los cinco filtros, páginas escaneadas, tildes de TeX, espaciado, 400 PDF corruptos y una *zip bomb*. Contra `pdftotext` sobre 80 PDF reales recupera el 98,7 % de las palabras (mediana 99,5 %).
 
 ## 3.4.0 — 2026-07-04

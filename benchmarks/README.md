@@ -28,7 +28,7 @@ Dos endpoints canónicos, iguales en todos los frameworks:
 
 ## 2. Regla de honestidad sobre el tamaño
 
-JxMVC empaqueta **solo el framework** (~253 KB); el servlet container (Tomcat/Jakarta EE) es
+JxMVC empaqueta **solo el framework** (~298 KB); el servlet container (Tomcat/Jakarta EE) es
 `provided` y NO va en el artefacto. Spring Boot/Quarkus/Micronaut producen *uber-JARs* que
 **incluyen** su servidor embebido. Por eso el tamaño se reporta de dos formas:
 

@@ -28,7 +28,7 @@ Salida:
 ## Apps (mismos dos endpoints: `/plaintext` y `/json`)
 | Framework | Versión | Runtime |
 |---|---|---|
-| JxMVC | 3.4.0 | Tomcat 10.1 (WAR, core compilado desde el repo) |
+| JxMVC | 3.5.0 | Tomcat 10.1 (WAR, core compilado desde el repo) |
 | Spring Boot | 3.3.4 | Tomcat embebido |
 | Quarkus | 3.11.3 (JVM) | fast-jar |
 | Micronaut | 4.5.3 | Netty |

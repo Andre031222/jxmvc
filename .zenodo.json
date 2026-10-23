@@ -1,6 +1,6 @@
 {
   "title": "JxMVC: A Security-by-Default Web Framework with Zero Third-Party Dependencies",
-  "description": "Full-stack MVC framework for Jakarta EE 10 in a 253 kB JAR with zero third-party runtime dependencies, enforcing security-by-default through a fixed fifteen-stage request pipeline. Includes a reproducible, single-command Docker benchmark harness.",
+  "description": "Full-stack MVC framework for Jakarta EE 10 in a 298 kB JAR with zero third-party runtime dependencies, enforcing security-by-default through a fixed fifteen-stage request pipeline. Includes a dependency-free PDF reader and writer, a one-command installer, and reproducible single-command Docker harnesses for performance and default-security evaluation.",
   "upload_type": "software",
   "license": "MIT",
   "access_right": "open",

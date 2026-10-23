@@ -10,9 +10,9 @@ Puerto interno `8080` salvo que se note.
 
 ---
 
-## JxMVC 3.4.0
+## JxMVC 3.5.0
 
-`BenchController` sobre `jxmvc-core:3.4.0` (dependencia única, `jakarta.jakartaee-api` provided),
+`BenchController` sobre `jxmvc-core:3.5.0` (dependencia única, `jakarta.jakartaee-api` provided),
 desplegado como WAR en Tomcat 10.1 (mismo container para todos los WAR).
 
 ```java
