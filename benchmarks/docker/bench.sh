@@ -75,7 +75,7 @@ for fw in "${APPS[@]}"; do
       rss_mb=$(docker stats --no-stream --format '{{.MemUsage}}' "bench_$fw" | awk -F'/' '{gsub(/[^0-9.]/,"",$1); print $1}')
       echo "$fw,$image_mb,$startup_ms,$rss_mb,$line" >> "$CSV"
       e=$(echo "$line" | awk -F, '{print ($5+$6)+0}')
-      [ "${e:-0}" -gt 0 ] && echo "  ⚠ $fw /$ep rep $r: errores/no-2xx=$e — medición SOSPECHOSA (revisa saturación/CPU del cliente)"
+      [ "${e:-0}" -gt 0 ] && echo "  (!) $fw /$ep rep $r: errores/no-2xx=$e — medición SOSPECHOSA (revisa saturación/CPU del cliente)"
     done
   done
 
@@ -95,7 +95,7 @@ med() {
   echo
   echo "Entorno: \`docker --cpus=$CPUS --memory=$MEM\`, misma base JRE. conns=$CONNS, dur=${DUR}s, reps=$REPS."
   echo "Generado por \`bench.sh\`. Números relativos comparables; ver README §8 (validez)."
-  echo "Arranque/RSS/rps son **mediana** de las $REPS repeticiones. \`⚠\` = el framework tuvo errores/no-2xx: cifra NO válida."
+  echo "Arranque/RSS/rps son **mediana** de las $REPS repeticiones. \`(!)\` = el framework tuvo errores/no-2xx: cifra NO válida."
   echo
   echo "| Framework | Imagen (MB) | Arranque (ms) | RSS (MB) | rps /plaintext (mediana) | rps /json (mediana) | rps /db (mediana) |"
   echo "|---|---|---|---|---|---|---|"
@@ -109,7 +109,7 @@ med() {
     js=$(med "$fw" 11 "http://localhost:8080/json")
     db=$(med "$fw" 11 "http://localhost:8080/db")             # "-" si no se corrió con BENCH_DB=1
     err=$(awk -F, -v f="$fw" '$1==f{e+=$9+$10} END{print e+0}' "$CSV")
-    flag=""; [ "${err:-0}" -gt 0 ] && flag=" ⚠"
+    flag=""; [ "${err:-0}" -gt 0 ] && flag=" (!)"
     [ -n "$im" ] && echo "| ${fw}${flag} | $im | $su | $rs | $pt | $js | $db |" || echo "| $fw | (no arrancó) | | | | | |"
   done
 } > "$OUT"
@@ -120,7 +120,7 @@ cat "$OUT"
 total_err=$(awk -F, 'NR>1{e+=$9+$10} END{print e+0}' "$CSV")
 if [ "${total_err:-0}" -gt 0 ]; then
   echo ""
-  echo "⚠⚠ ATENCIÓN: $total_err errores/no-2xx en total. Las filas marcadas con ⚠ NO son válidas para el paper."
+  echo "ATENCIÓN: $total_err errores/no-2xx en total. Las filas marcadas con (!) NO son válidas para el paper."
   echo "   Causas típicas: cliente saturado (usa BENCH_CLIENT_CPUS), poca CPU/RAM al contenedor, o el server falla bajo carga."
   exit 3
 fi

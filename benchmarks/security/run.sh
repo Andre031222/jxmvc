@@ -58,10 +58,10 @@ names = {
  "L2": "Cabecera de 200 KB rechazada", "S1": "Transfer-Encoding + Content-Length sin ambigüedad"}
 fws = list(dict.fromkeys(r["framework"] for r in rows))
 cell = {(r["framework"], r["id"]): r for r in rows}
-mark = {"PASS": "✅", "FAIL": "❌", "N/A": "—"}
+mark = {"PASS": "sí", "FAIL": "no", "N/A": "—"}
 lines = ["# Seguridad por defecto", "",
          "Cada framework con su configuración por defecto y la misma app mínima del benchmark (`benchmarks/docker/apps`).",
-         "Generado por `benchmarks/security/run.sh`; las sondas están en `SecProbe.java`. ✅ protege · ❌ no protege · — no aplica.", "",
+         "Generado por `benchmarks/security/run.sh`; las sondas están en `SecProbe.java`. sí: protege · no: no protege · —: no aplica.", "",
          "| # | Comprobación | " + " | ".join(fws) + " |", "|---|---|" + "---|" * len(fws)]
 for pid, name in names.items():
     lines.append(f"| {pid} | {name} | " + " | ".join(mark.get(cell.get((f, pid), {}).get("verdict", ""), "?") for f in fws) + " |")

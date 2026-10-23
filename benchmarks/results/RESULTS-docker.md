@@ -2,7 +2,7 @@
 
 Entorno: `docker --cpus=4 --memory=2g`, misma base JRE. conns=64, dur=30s, reps=5.
 Generado por `bench.sh`. Números relativos comparables; ver README §8 (validez).
-Arranque/RSS/rps son **mediana** de las 5 repeticiones. `⚠` = el framework tuvo errores/no-2xx: cifra NO válida.
+Arranque/RSS/rps son **mediana** de las 5 repeticiones. `(!)` = el framework tuvo errores/no-2xx: cifra NO válida.
 
 | Framework | Imagen (MB) | Arranque (ms) | RSS (MB) | rps /plaintext (mediana) | rps /json (mediana) | rps /db (mediana) |
 |---|---|---|---|---|---|---|

@@ -1,28 +1,28 @@
 # Seguridad por defecto
 
 Cada framework con su configuración por defecto y la misma app mínima del benchmark (`benchmarks/docker/apps`).
-Generado por `benchmarks/security/run.sh`; las sondas están en `SecProbe.java`. ✅ protege · ❌ no protege · — no aplica.
+Generado por `benchmarks/security/run.sh`; las sondas están en `SecProbe.java`. sí: protege · no: no protege · —: no aplica.
 
 | # | Comprobación | jxmvc | spring | quarkus | micronaut | javalin |
 |---|---|---|---|---|---|---|
-| H1 | X-Content-Type-Options: nosniff | ✅ | ❌ | ❌ | ❌ | ❌ |
-| H2 | Protección contra clickjacking | ✅ | ❌ | ❌ | ❌ | ❌ |
-| H3 | Referrer-Policy | ✅ | ❌ | ❌ | ❌ | ❌ |
-| H4 | Content-Security-Policy | ✅ | ❌ | ❌ | ❌ | ❌ |
-| H5 | Sin versión del servidor en cabeceras | ✅ | ✅ | ✅ | ✅ | ✅ |
-| B1 | Cuerpo de 20 MiB rechazado | ✅ | ❌ | ✅ | ✅ | ✅ |
-| B2 | JSON con 100 000 niveles rechazado (4xx) | ✅ | ✅ | — | ✅ | — |
-| B3 | JSON truncado responde 4xx, no 5xx | ✅ | ✅ | — | ✅ | — |
-| E1 | Excepción sin filtrar detalles internos | ✅ | ✅ | ✅ | ❌ | ✅ |
-| C1 | POST entre sitios rechazado (CSRF) | ✅ | ❌ | ❌ | ❌ | ❌ |
-| R1 | Sin redirección abierta | ✅ | ❌ | ❌ | ❌ | ❌ |
-| X1 | Parámetro reflejado sin <script> ejecutable | ✅ | ❌ | ❌ | ❌ | ❌ |
-| T1 | Sin path traversal | ✅ | ✅ | ✅ | ✅ | ✅ |
-| M1 | TRACE no refleja la petición | ✅ | ✅ | ✅ | ✅ | ✅ |
-| I1 | Sin endpoints internos expuestos | ✅ | ✅ | ✅ | ✅ | ✅ |
-| L1 | Fuerza bruta en /login limitada (429) | ❌ | ❌ | ❌ | ❌ | ❌ |
-| L2 | Cabecera de 200 KB rechazada | ✅ | ✅ | ✅ | ✅ | ✅ |
-| S1 | Transfer-Encoding + Content-Length sin ambigüedad | ✅ | ✅ | ✅ | ✅ | ✅ |
+| H1 | X-Content-Type-Options: nosniff | sí | no | no | no | no |
+| H2 | Protección contra clickjacking | sí | no | no | no | no |
+| H3 | Referrer-Policy | sí | no | no | no | no |
+| H4 | Content-Security-Policy | sí | no | no | no | no |
+| H5 | Sin versión del servidor en cabeceras | sí | sí | sí | sí | sí |
+| B1 | Cuerpo de 20 MiB rechazado | sí | no | sí | sí | sí |
+| B2 | JSON con 100 000 niveles rechazado (4xx) | sí | sí | — | sí | — |
+| B3 | JSON truncado responde 4xx, no 5xx | sí | sí | — | sí | — |
+| E1 | Excepción sin filtrar detalles internos | sí | sí | sí | no | sí |
+| C1 | POST entre sitios rechazado (CSRF) | sí | no | no | no | no |
+| R1 | Sin redirección abierta | sí | no | no | no | no |
+| X1 | Parámetro reflejado sin <script> ejecutable | sí | no | no | no | no |
+| T1 | Sin path traversal | sí | sí | sí | sí | sí |
+| M1 | TRACE no refleja la petición | sí | sí | sí | sí | sí |
+| I1 | Sin endpoints internos expuestos | sí | sí | sí | sí | sí |
+| L1 | Fuerza bruta en /login limitada (429) | no | no | no | no | no |
+| L2 | Cabecera de 200 KB rechazada | sí | sí | sí | sí | sí |
+| S1 | Transfer-Encoding + Content-Length sin ambigüedad | sí | sí | sí | sí | sí |
 | | **Total** | **17/18** | **9/18** | **8/16** | **9/18** | **8/16** |
 
 ## Detalle

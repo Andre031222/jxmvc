@@ -4,7 +4,7 @@
 
 Lectura y generación de PDF sin dependencias, endurecimientos encontrados por una evaluación de seguridad automatizada y un instalador de un comando.
 
-### ⚠ Cambios de comportamiento
+### Cambios de comportamiento
 
 1. **JSON estricto**: `JxJson.fromJson` (y por tanto `@JxBody`) rechaza con **400** el JSON mal formado: llaves o corchetes sin cerrar, comas sobrantes, contenido después del valor, literales y números inválidos, escapes inválidos y caracteres de control sin escapar. Antes los aceptaba y devolvía datos incompletos.
 2. **Código de error real sin `error.jsp`**: si la app no define `/WEB-INF/views/shared/error.jsp`, los errores (403, 413, 500…) se responden con su propio código en texto plano. Antes el reenvío a la vista inexistente los convertía en 404.
@@ -53,7 +53,7 @@ Autenticación de fábrica (OAuth 2.0 + PKCE con verificación OIDC y hashing PB
 
 Routing endurecido, capas de seguridad nuevas (CSRF, límites, anti open-redirect) y métricas más ricas. API pública intacta; todo lo nuevo es opt-in o corrección de comportamiento incorrecto.
 
-### ⚠ Cambios de comportamiento
+### Cambios de comportamiento
 
 1. **Rate limiting por acción**: la clave del bucket es la acción resuelta (`VERBO:controlador#accion`), no la URI cruda — rotar `/api/{id}` ya no evade el límite.
 2. **405 correcto**: pedir una ruta de plantilla (`{id}`) con el verbo equivocado responde 405 (antes 404). `HEAD` se resuelve como `GET` (antes 405).
@@ -100,7 +100,7 @@ jxmvc.redirect.external=false  # permitir redirecciones a otros dominios
 
 Auditoría completa de producción: concurrencia, recursos y seguridad. Cero dependencias, API pública intacta.
 
-### ⚠ Cambios de comportamiento
+### Cambios de comportamiento
 
 1. **Errores en producción**: con perfil `prod` (y devMode inactivo) los mensajes de excepciones no controladas ya no llegan al cliente; se responde un mensaje genérico y el detalle completo va al log. Las `JxException` lanzadas por el desarrollador conservan su mensaje siempre.
 2. **Endpoints internos**: `/jx/info`, `/jx/metrics` y `/jx/openapi` responden 404 en `prod` salvo `jxmvc.internal.expose=true`. `/jx/health` sigue disponible pero omite `version`/`profile`/`devMode` en prod.
