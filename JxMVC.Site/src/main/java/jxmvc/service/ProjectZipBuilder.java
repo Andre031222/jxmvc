@@ -109,7 +109,7 @@ public final class ProjectZipBuilder {
                         <dependency>
                             <groupId>jxmvc</groupId>
                             <artifactId>jxmvc-core</artifactId>
-                            <version>3.5.0</version>
+                            <version>3.5.1</version>
                         </dependency>
                 %s
                     </dependencies>
@@ -161,13 +161,13 @@ public final class ProjectZipBuilder {
             default -> "# Sin base de datos configurada\n";
         };
 
-        return "# JxMVC 3.5.0\n"
+        return "# JxMVC 3.5.1\n"
              + "jxmvc.controllers.package = " + pkg + "\n\n"
              + "# Base de datos\n" + dbSection + "\n"
              + "jxmvc.log.level           = INFO\n"
              + "jxmvc.profile             = dev\n"
              + "jxmvc.async.threads       = 8\n\n"
-             + "# Seguridad y endurecimiento (v3.5.0)\n"
+             + "# Seguridad y endurecimiento (v3.5.1)\n"
              + "jxmvc.security.frame-options = SAMEORIGIN\n"
              + "jxmvc.security.hsts          = false\n"
              + "jxmvc.security.csrf          = false      # token CSRF por sesión (jx:csrf en JSP)\n"
@@ -262,7 +262,7 @@ public final class ProjectZipBuilder {
                     @JxGetMapping("index")
                     public ActionResult index() {
                         model.setVar("appName", "%s");
-                        model.setVar("version", "3.5.0");
+                        model.setVar("version", "3.5.1");
                         return view("home/index");
                     }
 
@@ -338,7 +338,7 @@ public final class ProjectZipBuilder {
         return """
                     </main>
                     <footer class="text-center text-xs text-slate-400 py-8">
-                        Powered by <strong>JxMVC 3.5.0</strong>
+                        Powered by <strong>JxMVC 3.5.1</strong>
                     </footer>
                 </body>
                 </html>
@@ -399,7 +399,7 @@ public final class ProjectZipBuilder {
         );
 
         return "# " + appName + "\n\n"
-             + "Generated with **[JxMVC](https://jxmvc.ginit.dev) 3.5.0** — "
+             + "Generated with **[JxMVC](https://jxmvc.ginit.dev) 3.5.1** — "
              + "a zero-dependency MVC framework for Jakarta EE.\n\n"
              + "---\n\n"
              + "## Prerequisites\n\n"

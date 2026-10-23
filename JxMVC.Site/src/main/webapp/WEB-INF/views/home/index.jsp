@@ -5,7 +5,7 @@
   <div class="s-wrap">
     <div class="s-hero-grid">
       <div>
-        <p class="s-eyebrow">JxMVC 3.5.0 · Jakarta EE 10 · Java 17+</p>
+        <p class="s-eyebrow">JxMVC 3.5.1 · Jakarta EE 10 · Java 17+</p>
         <h1 class="s-h1">El framework MVC para Jakarta EE que es <span class="s-accent">seguro por defecto</span> y no trae dependencias.</h1>
         <p class="s-lead" style="margin-top:20px">Un solo JAR de 298 KB con routing, acceso a datos, pool de conexiones, JSON, caché, tareas programadas, WebSocket, OpenAPI, OpenID Connect y lectura de PDF. Las protecciones se aplican en cada petición, antes de tu código, sin módulos adicionales.</p>
         <div class="s-actions">
@@ -20,7 +20,7 @@
         <p class="s-small" style="margin-top:10px">Instala el core en tu repositorio Maven y crea un proyecto. En Windows usa el comando de PowerShell de <a class="s-accent" href="${pageContext.request.contextPath}/downloads">Descargas</a>.</p>
       </div>
       <div class="s-code">
-        <div class="s-code-top"><span>NoteController.java</span><span>compila con 3.5.0</span></div>
+        <div class="s-code-top"><span>NoteController.java</span><span>compila con 3.5.1</span></div>
 <pre><span class="a">@JxControllerMapping</span>(<span class="s">"notes"</span>)
 <span class="k">public class</span> <span class="t">NoteController</span> <span class="k">extends</span> <span class="t">JxController</span> {
 

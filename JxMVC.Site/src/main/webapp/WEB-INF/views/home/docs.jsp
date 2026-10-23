@@ -4,7 +4,7 @@
 <div class="s-wrap" style="color:var(--ink)">
   <div style="padding-top:clamp(16px,2vw,28px)">
     <p class="s-eyebrow">Documentación</p>
-    <h1 class="s-h2">JxMVC 3.5.0</h1>
+    <h1 class="s-h2">JxMVC 3.5.1</h1>
     <p class="s-lead" style="margin-top:10px">Jakarta EE 10 · Java 17+ · sin dependencias de terceros. Cada ejemplo usa la API pública del core.</p>
   </div>
   <div class="d-layout">
@@ -66,7 +66,7 @@ mvn install -f jxmvc/JxMVC.Core/pom.xml</pre></div><div class="d-code"><span>pom
 &lt;dependency&gt;
     &lt;groupId&gt;jxmvc&lt;/groupId&gt;
     &lt;artifactId&gt;jxmvc-core&lt;/artifactId&gt;
-    &lt;version&gt;3.5.0&lt;/version&gt;
+    &lt;version&gt;3.5.1&lt;/version&gt;
 &lt;/dependency&gt;</pre></div><div class="d-code"><span>src/main/resources/application.properties</span><pre>jxmvc.controllers.package = com.miapp.controllers
 jxmvc.services.package    = com.miapp.services
 jxmvc.profiles.active     = dev</pre></div>

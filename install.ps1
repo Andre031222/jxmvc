@@ -2,7 +2,7 @@ param([string]$Command = "", [string]$Name = "")
 
 $ErrorActionPreference = "Stop"
 $Repo = "Andre031222/jxmvc"
-$Tomcat = "10.1.31"
+$Tomcat = "10.1.61"
 $Tag = $env:JXMVC_VERSION
 
 function Fail([string]$msg) { Write-Host "jxmvc: $msg" -ForegroundColor Red; exit 1 }
@@ -18,19 +18,16 @@ function Test-Requirements {
 function Install-Core {
     if (-not $script:Tag) { $script:Tag = (Invoke-RestMethod "https://api.github.com/repos/$Repo/releases/latest").tag_name }
     if (-not $script:Tag) { Fail "no se pudo consultar el último release de $Repo" }
+    $script:Version = $script:Tag.TrimStart('v')
     $work = Join-Path ([IO.Path]::GetTempPath()) ("jxmvc-" + [Guid]::NewGuid())
     New-Item -ItemType Directory -Path $work | Out-Null
     try {
-        Write-Host "Descargando JxMVC $script:Tag desde https://github.com/$Repo"
-        $zip = Join-Path $work "src.zip"
-        Invoke-WebRequest "https://github.com/$Repo/archive/refs/tags/$script:Tag.zip" -OutFile $zip
-        Expand-Archive $zip -DestinationPath $work
-        $core = Get-ChildItem $work -Directory -Recurse -Depth 1 -Filter "JxMVC.Core" | Select-Object -First 1
-        if (-not $core) { Fail "el release $script:Tag no contiene JxMVC.Core" }
-        Write-Host "Compilando e instalando en el repositorio Maven local"
-        & mvn -q -DskipTests -f (Join-Path $core.FullName "pom.xml") install
-        if ($LASTEXITCODE -ne 0) { Fail "falló la compilación de JxMVC.Core" }
-        $script:Version = ([xml](Get-Content (Join-Path $core.FullName "pom.xml"))).project.version
+        $jar = Join-Path $work "jxmvc-core-$script:Version.jar"
+        Write-Host "Descargando jxmvc-core-$script:Version.jar desde https://github.com/$Repo/releases/tag/$script:Tag"
+        Invoke-WebRequest "https://github.com/$Repo/releases/download/$script:Tag/jxmvc-core-$script:Version.jar" -OutFile $jar
+        Write-Host "Instalando en el repositorio Maven local"
+        & mvn -q install:install-file "-Dfile=$jar" -DgroupId=jxmvc -DartifactId=jxmvc-core "-Dversion=$script:Version" -Dpackaging=jar
+        if ($LASTEXITCODE -ne 0) { Fail "falló mvn install:install-file" }
         Write-Host "Instalado jxmvc:jxmvc-core:$script:Version"
     } finally {
         Remove-Item $work -Recurse -Force -ErrorAction SilentlyContinue

@@ -18,11 +18,15 @@
     <div class="max-w-3xl mb-10 jx-reveal jx-delay-1">
         <p class="text-xs font-mono uppercase tracking-[0.25em] text-muted dark:text-[#86868b] mb-3" data-i18n="dl.tag">Generador de proyectos</p>
         <h1 class="text-4xl md:text-5xl font-bold tracking-tight text-ink dark:text-[#f5f5f7] mb-3">
-            JxMVC <span class="text-apple">3.5.0</span>
+            JxMVC <span class="text-apple">3.5.1</span>
         </h1>
         <p class="text-base text-muted dark:text-[#86868b] leading-relaxed" data-i18n="dl.subtitle">
-            Genera un proyecto starter personalizado y listo para desplegar.
+            Instala con un comando, genera un proyecto o descarga el JAR directamente.
         </p>
+        <div class="s-actions" style="margin-top:20px">
+            <a class="s-btn s-btn-primary" href="https://github.com/Andre031222/jxmvc/releases/latest/download/jxmvc-core.jar">Descargar jxmvc-core.jar</a>
+            <a class="s-btn s-btn-ghost" href="#jar">Cómo instalar el JAR</a>
+        </div>
     </div>
 
     <%-- ── Detección de plataforma ─────────────────────────────────── --%>
@@ -79,7 +83,7 @@
             </p>
             <div class="jx-code">
                 <div class="jx-code-label">PowerShell</div>
-                <pre># Instala JxMVC 3.5.0 y crea tu proyecto
+                <pre># Instala JxMVC 3.5.1 y crea tu proyecto
 &amp; ([scriptblock]::Create((irm https://raw.githubusercontent.com/Andre031222/jxmvc/main/install.ps1))) new mi-app
 
 # Compila y arranca (Tomcat se descarga solo)
@@ -95,7 +99,7 @@ mvn package cargo:run</pre>
             </p>
             <div class="jx-code">
                 <div class="jx-code-label">Terminal — zsh / bash</div>
-                <pre># Instala JxMVC 3.5.0 y crea tu proyecto
+                <pre># Instala JxMVC 3.5.1 y crea tu proyecto
 curl -fsSL https://raw.githubusercontent.com/Andre031222/jxmvc/main/install.sh | sh -s -- new mi-app
 
 # Compila y arranca (Tomcat se descarga solo)
@@ -110,7 +114,7 @@ cd mi-app &amp;&amp; mvn package cargo:run</pre>
             </p>
             <div class="jx-code">
                 <div class="jx-code-label">bash / zsh</div>
-                <pre># Instala JxMVC 3.5.0 y crea tu proyecto
+                <pre># Instala JxMVC 3.5.1 y crea tu proyecto
 curl -fsSL https://raw.githubusercontent.com/Andre031222/jxmvc/main/install.sh | sh -s -- new mi-app
 
 # Compila y arranca (Tomcat se descarga solo)
@@ -210,32 +214,43 @@ cd mi-app &amp;&amp; mvn package cargo:run</pre>
     </form>
 
     <%-- ── Descarga directa del JAR ──────────────────────────────────── --%>
-    <div class="border-t border-black/[0.06] dark:border-white/[0.06] pt-10 jx-reveal jx-delay-4">
-        <p class="text-xs font-mono uppercase tracking-[0.25em] text-muted dark:text-[#86868b] mb-6" data-i18n="dl.manual">Descarga manual</p>
-        <div class="grid sm:grid-cols-2 gap-4">
-
-            <div class="bg-white dark:bg-white/[0.05] border border-black/[0.06] dark:border-white/[0.06] rounded-2xl p-5 hover:border-apple/30 transition-colors">
-                <p class="text-xs font-mono uppercase tracking-[0.25em] text-muted dark:text-[#86868b] mb-2">JAR del framework</p>
-                <h3 class="text-base font-semibold text-ink dark:text-[#f5f5f7] mb-1">jxmvc-core-3.5.0.jar</h3>
-                <p class="text-xs text-muted dark:text-[#86868b] mb-3">298 KB — cero dependencias en runtime · <a class="text-apple" href="https://github.com/Andre031222/jxmvc/releases/latest" target="_blank" rel="noopener">última versión en GitHub</a></p>
-                <div class="jx-code">
-                    <pre>git clone https://github.com/Andre031222/jxmvc.git
-mvn install -f jxmvc/JxMVC.Core/pom.xml</pre>
+    <div id="jar" style="border-top:1px solid var(--line);padding-top:40px">
+        <p class="s-eyebrow">Descarga directa</p>
+        <div class="s-split" style="align-items:start">
+            <div>
+                <h2 class="s-h2">El framework es un solo JAR.</h2>
+                <p class="s-p" style="margin-top:12px">jxmvc-core 3.5.1 · 298 KB · Java 17+ · Jakarta EE 10 · sin dependencias de terceros. El enlace siempre entrega la última versión publicada.</p>
+                <div class="s-actions">
+                    <a class="s-btn s-btn-primary" href="https://github.com/Andre031222/jxmvc/releases/latest/download/jxmvc-core.jar">Descargar jxmvc-core.jar</a>
+                    <a class="s-btn s-btn-ghost" href="https://github.com/Andre031222/jxmvc/releases/latest" target="_blank" rel="noopener">Notas de la versión</a>
                 </div>
+                <p class="s-small" style="margin-top:14px">SHA-256 y versiones anteriores en <a class="s-accent" href="https://github.com/Andre031222/jxmvc/releases" target="_blank" rel="noopener">GitHub Releases</a>.</p>
             </div>
-
-            <div class="bg-white dark:bg-white/[0.05] border border-black/[0.06] dark:border-white/[0.06] rounded-2xl p-5 hover:border-apple/30 transition-colors">
-                <p class="text-xs font-mono uppercase tracking-[0.25em] text-muted dark:text-[#86868b] mb-2">Dependencia Maven</p>
-                <h3 class="text-base font-semibold text-ink dark:text-[#f5f5f7] mb-1">pom.xml</h3>
-                <div class="jx-code mt-3">
-<pre>&lt;dependency&gt;
+            <div class="s-grid-2" style="grid-template-columns:1fr">
+                <div class="s-item">
+                    <h3 class="s-h3">Con Maven</h3>
+                    <p class="s-p">Instala el JAR descargado en tu repositorio local y declara la dependencia.</p>
+                    <div class="d-code"><span>Terminal</span><pre>mvn install:install-file -Dfile=jxmvc-core.jar -DgroupId=jxmvc -DartifactId=jxmvc-core -Dversion=3.5.1 -Dpackaging=jar</pre></div>
+                    <div class="d-code"><span>pom.xml</span><pre>&lt;dependency&gt;
   &lt;groupId&gt;jxmvc&lt;/groupId&gt;
   &lt;artifactId&gt;jxmvc-core&lt;/artifactId&gt;
-  &lt;version&gt;3.5.0&lt;/version&gt;
-&lt;/dependency&gt;</pre>
+  &lt;version&gt;3.5.1&lt;/version&gt;
+&lt;/dependency&gt;</pre></div>
+                </div>
+                <div class="s-item">
+                    <h3 class="s-h3">Sin Maven</h3>
+                    <p class="s-p">Copia <code>jxmvc-core.jar</code> a <code>WEB-INF/lib</code> de tu aplicación y registra el servlet en <code>WEB-INF/web.xml</code>.</p>
+                    <div class="d-code"><span>WEB-INF/web.xml</span><pre>&lt;servlet&gt;
+  &lt;servlet-name&gt;MainLxServlet&lt;/servlet-name&gt;
+  &lt;servlet-class&gt;jxmvc.core.MainLxServlet&lt;/servlet-class&gt;
+  &lt;load-on-startup&gt;1&lt;/load-on-startup&gt;
+&lt;/servlet&gt;
+&lt;servlet-mapping&gt;
+  &lt;servlet-name&gt;MainLxServlet&lt;/servlet-name&gt;
+  &lt;url-pattern&gt;/&lt;/url-pattern&gt;
+&lt;/servlet-mapping&gt;</pre></div>
                 </div>
             </div>
-
         </div>
     </div>
 

@@ -9,7 +9,7 @@ third-party runtime dependencies**, and **security applied by default** in a
 fixed fifteen-stage request pipeline.
 
 [![Site](https://img.shields.io/badge/site-jxmvc.ginit.dev-0071E3?style=flat-square&logo=googlechrome&logoColor=white)](https://jxmvc.ginit.dev)
-[![Version](https://img.shields.io/badge/version-3.5.0-1565C0?style=flat-square)](https://github.com/Andre031222/jxmvc/releases)
+[![Version](https://img.shields.io/badge/version-3.5.1-1565C0?style=flat-square)](https://github.com/Andre031222/jxmvc/releases)
 [![License: MIT](https://img.shields.io/badge/license-MIT-15803d?style=flat-square)](LICENSE)
 [![Java 17+](https://img.shields.io/badge/Java-17%2B-007396?style=flat-square&logo=openjdk&logoColor=white)](https://openjdk.org/)
 [![Jakarta EE 10](https://img.shields.io/badge/Jakarta_EE-10-EE2A24?style=flat-square&logo=jakartaee&logoColor=white)](https://jakarta.ee/)
@@ -136,7 +136,7 @@ mvn package cargo:run     # http://localhost:8080
 mvn package               # target/myapp.war, deployable on Tomcat 10.1+
 ```
 
-Drop `new myapp` to install only the framework. Set `JXMVC_VERSION=v3.5.0` to pin a release.
+Drop `new myapp` to install only the framework. Set `JXMVC_VERSION=v3.5.1` to pin a release. The installer downloads the prebuilt `jxmvc-core-<version>.jar` from the release and installs it with `mvn install:install-file`; the same JAR is available at https://github.com/Andre031222/jxmvc/releases/latest/download/jxmvc-core.jar.
 
 * * *
 

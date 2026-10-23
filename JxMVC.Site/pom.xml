@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>jxmvc</groupId>
     <artifactId>jxmvc-site</artifactId>
-    <version>3.5.0</version>
+    <version>3.5.1</version>
     <packaging>war</packaging>
     <name>JxMVC site</name>
 
@@ -26,7 +26,7 @@
         <dependency>
             <groupId>jxmvc</groupId>
             <artifactId>jxmvc-core</artifactId>
-            <version>3.5.0</version>
+            <version>3.5.1</version>
         </dependency>
 
         <!-- PostgreSQL JDBC -->

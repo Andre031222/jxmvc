@@ -3,7 +3,7 @@ set -eu
 
 REPO="Andre031222/jxmvc"
 TAG="${JXMVC_VERSION:-}"
-TOMCAT="10.1.31"
+TOMCAT="10.1.61"
 
 say()  { printf '%s\n' "$*"; }
 fail() { printf 'jxmvc: %s\n' "$*" >&2; exit 1; }
@@ -22,15 +22,14 @@ latest_tag() {
 install_core() {
   [ -n "$TAG" ] || TAG=$(latest_tag)
   [ -n "$TAG" ] || fail "no se pudo consultar el último release de $REPO"
+  VERSION=${TAG#v}
   work=$(mktemp -d)
   trap 'rm -rf "$work"' EXIT
-  say "Descargando JxMVC $TAG desde https://github.com/$REPO"
-  curl -fsSL "https://github.com/$REPO/archive/refs/tags/$TAG.tar.gz" | tar -xz -C "$work"
-  core=$(find "$work" -maxdepth 2 -type d -name JxMVC.Core | head -1)
-  [ -n "$core" ] || fail "el release $TAG no contiene JxMVC.Core"
-  say "Compilando e instalando en el repositorio Maven local"
-  mvn -q -DskipTests -f "$core/pom.xml" install
-  VERSION=$(sed -n 's:.*<version>\(.*\)</version>.*:\1:p' "$core/pom.xml" | head -1)
+  jar="$work/jxmvc-core-$VERSION.jar"
+  say "Descargando jxmvc-core-$VERSION.jar desde https://github.com/$REPO/releases/tag/$TAG"
+  curl -fsSL -o "$jar" "https://github.com/$REPO/releases/download/$TAG/jxmvc-core-$VERSION.jar" || fail "no se pudo descargar el JAR de $TAG"
+  say "Instalando en el repositorio Maven local"
+  mvn -q install:install-file -Dfile="$jar" -DgroupId=jxmvc -DartifactId=jxmvc-core -Dversion="$VERSION" -Dpackaging=jar || fail "falló mvn install:install-file"
   say "Instalado jxmvc:jxmvc-core:$VERSION"
 }
 
