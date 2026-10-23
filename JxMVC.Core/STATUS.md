@@ -75,6 +75,13 @@ jxmvc.core/
 |                               null, String, Number, Boolean, List, Map,
 |                               DBRow, DBRowSet, POJO (via reflexion)
 |
+|-- Documentos
+|   `-- JxPdf                 Lectura y generacion de PDF sin dependencias:
+|                               texto por pagina, metadatos, cifrado RC4/AES
+|                               (R2-R6), filtros Flate/LZW/ASCII85/ASCIIHex/
+|                               RunLength con predictores, deteccion de paginas
+|                               escaneadas (sin OCR) y PDF de texto plano
+|
 `-- Tags JSP
     |-- JxTagFor              <jx:for> iteracion en vistas JSP
     `-- JxTagIf               <jx:if> condicional en vistas JSP

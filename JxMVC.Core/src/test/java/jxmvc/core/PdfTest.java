@@ -26,6 +26,13 @@ public class PdfTest {
         testFormAndInlineImage();
         testInfoUtf16();
         testGlyphNames();
+        testEncrypted();
+        testPasswords();
+        testFilters();
+        testScanned();
+        testSuperscript();
+        testSpacing();
+        testTexAccents();
         testRejects();
         testCorruptInput();
         testDeepNesting();
@@ -157,9 +164,89 @@ public class PdfTest {
         check("glifo desconocido → null", JxPdf.glyph("zzzglyph") == null);
     }
 
+    static byte[] fixture(String name) throws Exception {
+        try (var in = PdfTest.class.getResourceAsStream("/jxpdf/" + name + ".pdf")) {
+            return in.readAllBytes();
+        }
+    }
+
+    static final String SECRETO = "Contenido secreto: áéíóú Ñ €\nSegunda línea";
+
+    static void testEncrypted() throws Exception {
+        for (String name : new String[]{"rc4-40", "rc4-128", "aes-128", "aes-256-r5", "aes-256"}) {
+            var doc = JxPdf.read(fixture(name));
+            eq("cifrado " + name + ": texto", SECRETO, doc.page(0));
+            eq("cifrado " + name + ": título", "Documento cifrado ñ", doc.info().get("Title"));
+        }
+    }
+
+    static void testPasswords() throws Exception {
+        for (String name : new String[]{"aes-256-clave", "rc4-128-clave"}) {
+            byte[] pdf = fixture(name);
+            try {
+                JxPdf.read(pdf);
+                fail(name + " sin contraseña", "no lanzó");
+            } catch (IllegalArgumentException e) {
+                eq(name + " sin contraseña", "Contraseña incorrecta", e.getMessage());
+            }
+            eq(name + " con contraseña de usuario", SECRETO, JxPdf.read(pdf, "clave").page(0));
+            eq(name + " con contraseña de propietario", SECRETO, JxPdf.read(pdf, "propietario").page(0));
+        }
+    }
+
+    static void testFilters() throws Exception {
+        for (String name : new String[]{"ascii85", "asciihex", "lzw", "runlength", "chain", "predictor"}) {
+            eq("filtro " + name, "Filtro correcto: LZW ASCII85 RunLength\naaaaaaaaaaaaaaaaaaaa fin", JxPdf.read(fixture(name)).page(0));
+        }
+    }
+
+    static void testScanned() {
+        byte[] pdf = new Pdf()
+            .obj(1, "<< /Type /Catalog /Pages 2 0 R >>")
+            .obj(2, "<< /Type /Pages /Kids [3 0 R 6 0 R] /Count 2 >>")
+            .obj(3, "<< /Type /Page /Parent 2 0 R /Resources << /XObject << /Im1 5 0 R >> >> /Contents 4 0 R >>")
+            .stream(4, "q 595 0 0 842 0 0 cm /Im1 Do Q")
+            .stream(5, "/Type /XObject /Subtype /Image /Width 1 /Height 1 /ColorSpace /DeviceGray /BitsPerComponent 8", new byte[]{0})
+            .obj(6, "<< /Type /Page /Parent 2 0 R /Resources << /Font << /F1 8 0 R >> >> /Contents 7 0 R >>")
+            .stream(7, "BT /F1 12 Tf (Texto) Tj ET")
+            .obj(8, HELVETICA)
+            .end();
+        var doc = JxPdf.read(pdf);
+        check("página solo imagen → escaneada", doc.isScanned(0) && doc.page(0).isEmpty());
+        check("página con texto → no escaneada", !doc.isScanned(1) && doc.page(1).equals("Texto"));
+    }
+
+    static void testSuperscript() {
+        byte[] pdf = onePage(HELVETICA, "BT /F1 10 Tf 72 700 Td (Autor) Tj 0 4 Td /F1 6 Tf (1) Tj 0 -4 Td /F1 10 Tf (y otro) Tj 0 -14 Td (Siguiente) Tj ET").end();
+        String page = JxPdf.read(pdf).page(0);
+        check("superíndice en la misma línea", page.startsWith("Autor") && page.contains("otro\nSiguiente") && page.indexOf('\n') == page.indexOf("\nSiguiente"));
+    }
+
+    static final String MONO = "<< /Type /Font /Subtype /Type1 /BaseFont /Courier /FirstChar 32 /LastChar 126 /Widths 9 0 R >>";
+    static final String MONO_WIDTHS = "[" + "600 ".repeat(95).strip() + "]";
+
+    static void testSpacing() {
+        byte[] glyphs = onePage(MONO, "BT /F1 10 Tf 1 0 0 1 72 700 Tm (H) Tj 6 0 Td (o) Tj 6 0 Td (l) Tj 6 0 Td (a) Tj 12 0 Td (y) Tj ET")
+            .obj(9, MONO_WIDTHS).end();
+        eq("letras posicionadas una a una", "Hola y", JxPdf.read(glyphs).page(0));
+        byte[] justified = onePage(MONO, "BT /F1 10 Tf 72 700 Td [(uno)-160(dos)-30(tres)] TJ ET").obj(9, MONO_WIDTHS).end();
+        eq("hueco de 0,16 em separa palabras; 0,03 no", "uno dostres", JxPdf.read(justified).page(0));
+        byte[] boxes = onePage(MONO, "q 1 0 0 1 72 700 cm BT /F1 10 Tf (uno) Tj ET Q q 1 0 0 1 200 700 cm BT /F1 10 Tf (dos) Tj ET Q")
+            .obj(9, MONO_WIDTHS).end();
+        eq("cajas ubicadas con cm", "uno dos", JxPdf.read(boxes).page(0));
+    }
+
+    static void testTexAccents() {
+        String font = "<< /Type /Font /Subtype /Type1 /BaseFont /CMR10 /FirstChar 16 /LastChar 122 /Widths 9 0 R"
+            + " /Encoding << /Differences [16 /dotlessi 19 /acute] >> >>";
+        String widths = "[" + "500 ".repeat(107).strip() + "]";
+        byte[] pdf = onePage(font, "BT /F1 10 Tf 72 700 Td [(gesti\\023)500(on)-333(cap)111(\\023)389(\\020tulo)] TJ ET").obj(9, widths).end();
+        eq("tildes de TeX: ´o y ´ı", "gestión capítulo", JxPdf.read(pdf).page(0));
+    }
+
     static void testRejects() {
         expectIae("rechaza no-PDF", "hola".getBytes(StandardCharsets.ISO_8859_1));
-        expectIae("rechaza cifrado", onePage(HELVETICA, "BT (x) Tj ET").end("/Encrypt 9 0 R"));
+        expectIae("rechaza /Encrypt sin diccionario", onePage(HELVETICA, "BT (x) Tj ET").end("/Encrypt 9 0 R"));
         expectIae("rechaza sin páginas", new Pdf().obj(1, "<< /Type /Catalog >>").end());
     }
 

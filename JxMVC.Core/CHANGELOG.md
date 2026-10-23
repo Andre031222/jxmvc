@@ -1,5 +1,22 @@
 # Changelog — JxMVC Core
 
+## Sin publicar
+
+### Nuevo
+
+- **JxPdf**: lectura y generación de PDF sin dependencias externas, en reemplazo de iText/PDFBox para los casos comunes.
+  - `JxPdf.read(path)` devuelve el texto por página y el diccionario `/Info`; `JxPdf.read(path, contraseña)` abre PDF cifrados con contraseña de usuario o de propietario.
+  - Cifrado estándar completo: RC4 40/128 bits (R2–R4), AES-128 (AESV2) y AES-256 (R5 y R6), solo con `javax.crypto` del JDK.
+  - Filtros FlateDecode, LZWDecode, ASCII85Decode, ASCIIHexDecode y RunLengthDecode, encadenados y con predictores PNG/TIFF; object streams y xref rotas toleradas.
+  - Texto con espaciado por geometría real (anchos `/Widths` y `/W`, `Tc`, `Tw`, `TJ`, `cm`), fuentes con `ToUnicode`, `/Differences` y Type3, y composición de tildes de TeX (`´o` → `ó`).
+  - `doc.isScanned(i)` marca las páginas que son solo imagen; no hay OCR, porque requeriría una dependencia.
+  - `JxPdf.create(título, texto)` genera un PDF de texto plano en A4 con paginado automático.
+  - Entrada no confiable: tope de 64 MB por stream descomprimido, anidamiento máximo de 64 y errores siempre como `IllegalArgumentException`.
+
+### Tests
+
+- **PdfTest** (58 verificaciones): cifrados generados con una herramienta externa, los cinco filtros, páginas escaneadas, tildes de TeX, espaciado, 400 PDF corruptos y una *zip bomb*. Contra `pdftotext` sobre 80 PDF reales recupera el 98,7 % de las palabras (mediana 99,5 %).
+
 ## 3.4.0 — 2026-07-04
 
 Autenticación de fábrica (OAuth 2.0 + PKCE con verificación OIDC y hashing PBKDF2), endurecimientos y una mejora de rendimiento en el hot-path — todo sin dependencias externas. API pública intacta; lo nuevo es opt-in.
