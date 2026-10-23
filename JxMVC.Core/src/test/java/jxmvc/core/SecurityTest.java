@@ -16,6 +16,7 @@ public class SecurityTest {
         testSanitizeFileName();
         testMassAssignment();
         testHttpSchemeValidation();
+        testDefaultCsp();
         System.out.printf("SecurityTest: pass=%d fail=%d%n", passed, failed);
     }
 
@@ -99,5 +100,12 @@ public class SecurityTest {
         try { JxHttp.builder("GET", "https://example.com"); rejected = false; }
         catch (IllegalArgumentException e) { rejected = true; }
         check("https:// aceptado", !rejected);
+    }
+
+    static void testDefaultCsp() {
+        check("CSP por defecto con SAMEORIGIN",
+                MainLxServlet.defaultCsp("SAMEORIGIN").equals("base-uri 'self'; object-src 'none'; frame-ancestors 'self'"));
+        check("CSP por defecto con DENY", MainLxServlet.defaultCsp("DENY").endsWith("frame-ancestors 'none'"));
+        check("CSP sin frame-ancestors si frame-options=false", !MainLxServlet.defaultCsp("false").contains("frame-ancestors"));
     }
 }

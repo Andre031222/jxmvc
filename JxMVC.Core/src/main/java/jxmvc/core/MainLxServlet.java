@@ -924,6 +924,8 @@ public class MainLxServlet extends HttpServlet {
      *   jxmvc.security.hsts          = true          # Strict-Transport-Security
      *   jxmvc.security.hsts.maxage   = 31536000      # segundos (1 año)
      *   jxmvc.security.csp           = default-src 'self'   # Content-Security-Policy
+     *                                                       # por defecto: base-uri 'self'; object-src 'none';
+     *                                                       # frame-ancestors según frame-options; false la quita
      * </pre>
      */
     private void applySecurityHeaders(HttpServletResponse resp) {
@@ -947,7 +949,15 @@ public class MainLxServlet extends HttpServlet {
         }
 
         String csp = BaseDbResolver.property("jxmvc.security.csp", "");
-        if (!csp.isBlank()) resp.setHeader("Content-Security-Policy", csp);
+        if (csp.isBlank()) csp = defaultCsp(frameOpt);
+        if (!"false".equalsIgnoreCase(csp)) resp.setHeader("Content-Security-Policy", csp);
+    }
+
+    static String defaultCsp(String frameOptions) {
+        String base = "base-uri 'self'; object-src 'none'";
+        if ("DENY".equalsIgnoreCase(frameOptions)) return base + "; frame-ancestors 'none'";
+        if ("false".equalsIgnoreCase(frameOptions)) return base;
+        return base + "; frame-ancestors 'self'";
     }
 
     // ── Errores ───────────────────────────────────────────────────────────
@@ -990,14 +1000,24 @@ public class MainLxServlet extends HttpServlet {
         req.setAttribute("jx_error_code",    code);
         req.setAttribute("jx_error_message", msg);
         resp.setStatus(code);
-        if (wantsJson(req)) {
-            write(resp, "application/json;charset=UTF-8", jsonError(code, msg));
+        if (wantsJson(req) || !hasErrorView(req)) {
+            writeError(req, resp, code, msg);
             return;
         }
         try {
-            req.getRequestDispatcher("/WEB-INF/views/shared/error.jsp").forward(req, resp);
+            req.getRequestDispatcher(ERROR_VIEW).forward(req, resp);
         } catch (Exception ex) {
             if (!resp.isCommitted()) writeError(req, resp, code, msg);
+        }
+    }
+
+    private static final String ERROR_VIEW = "/WEB-INF/views/shared/error.jsp";
+
+    private boolean hasErrorView(HttpServletRequest req) {
+        try {
+            return req.getServletContext().getResource(ERROR_VIEW) != null;
+        } catch (java.net.MalformedURLException e) {
+            return false;
         }
     }
 

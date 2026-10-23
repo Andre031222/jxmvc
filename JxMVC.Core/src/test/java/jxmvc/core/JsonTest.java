@@ -22,6 +22,8 @@ public class JsonTest {
         testFromJsonPrimitive();
         testFromJsonPojo();
         testMap();
+        testStrictRejects();
+        testStrictAccepts();
         System.out.printf("JsonTest: pass=%d fail=%d%n", passed, failed);
     }
 
@@ -86,6 +88,27 @@ public class JsonTest {
         check("map json obj",  json.startsWith("{"));
         check("map has key",   json.contains("\"key\""));
         check("map has val",   json.contains("\"val\""));
+    }
+
+    static void testStrictRejects() {
+        String[] bad = {"{\"a\":", "{\"a\":1,}", "[1,2", "{\"a\" 1}", "nul", "tru", "01", "1.", "\"abc",
+                        "{\"a\":1} x", "\"\\x\"", "-", "\"a\nb\""};
+        for (String json : bad) {
+            try {
+                JxJson.fromJson(json, Object.class);
+                fail("rechaza " + json.replace("\n", "\\n"), "aceptó JSON mal formado");
+            } catch (JxException e) {
+                check("rechaza " + json.replace("\n", "\\n") + " con 400", e.getStatus() == 400);
+            }
+        }
+    }
+
+    static void testStrictAccepts() {
+        Map<?, ?> m = JxJson.fromJson(" {\"a\": [1, -0.5, 1e3, true, false, null], \"b\": {\"c\": \"\\u00f1\\n\"}} ", Map.class);
+        check("acepta JSON válido anidado", m != null && ((List<?>) m.get("a")).size() == 6);
+        eq("acepta escape unicode", ((Map<?, ?>) m.get("b")).get("c"), "ñ\n");
+        eq("acepta exponente", ((List<?>) m.get("a")).get(2), 1000.0);
+        check("null de nivel superior", JxJson.fromJson("null", Object.class) == null);
     }
 
     // Bean con getters para reflectToJson

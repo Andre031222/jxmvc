@@ -142,37 +142,44 @@ public final class JxJson {
         JsonParser(String src) { this.src = src; }
 
         Object parse() {
+            Object value = value();
             skipWs();
-            if (pos >= src.length()) return null;
+            if (pos < src.length()) throw invalid("contenido después del valor");
+            return value;
+        }
+
+        private Object value() {
+            skipWs();
+            if (pos >= src.length()) throw invalid("fin inesperado");
             return switch (src.charAt(pos)) {
-                case '{'  -> parseObject();
-                case '['  -> parseArray();
-                case '"'  -> parseString();
-                case 't', 'f' -> parseBool();
-                case 'n'  -> { pos += 4; yield null; }
-                default   -> parseNumber();
+                case '{' -> parseObject();
+                case '[' -> parseArray();
+                case '"' -> parseString();
+                case 't' -> literal("true", Boolean.TRUE);
+                case 'f' -> literal("false", Boolean.FALSE);
+                case 'n' -> literal("null", null);
+                default  -> parseNumber();
             };
         }
 
         private Map<String, Object> parseObject() {
             if (++depth > MAX_DEPTH) throw new JxException(400, "JSON demasiado anidado");
             Map<String, Object> map = new LinkedHashMap<>();
-            pos++;  // '{'
+            pos++;
             skipWs();
-            while (pos < src.length() && src.charAt(pos) != '}') {
+            if (peek() == '}') { pos++; depth--; return map; }
+            while (true) {
                 skipWs();
-                if (src.charAt(pos) == '"') {
-                    String key = parseString();
-                    skipWs();
-                    if (pos < src.length() && src.charAt(pos) == ':') pos++;
-                    skipWs();
-                    map.put(key, parse());
-                }
+                if (peek() != '"') throw invalid("se esperaba una clave");
+                String key = parseString();
                 skipWs();
-                if (pos < src.length() && src.charAt(pos) == ',') pos++;
+                expect(':');
+                map.put(key, value());
                 skipWs();
+                char c = next();
+                if (c == '}') break;
+                if (c != ',') throw invalid("se esperaba ',' o '}'");
             }
-            if (pos < src.length()) pos++;  // '}'
             depth--;
             return map;
         }
@@ -180,78 +187,108 @@ public final class JxJson {
         private List<Object> parseArray() {
             if (++depth > MAX_DEPTH) throw new JxException(400, "JSON demasiado anidado");
             List<Object> list = new ArrayList<>();
-            pos++;  // '['
+            pos++;
             skipWs();
-            while (pos < src.length() && src.charAt(pos) != ']') {
-                list.add(parse());
+            if (peek() == ']') { pos++; depth--; return list; }
+            while (true) {
+                list.add(value());
                 skipWs();
-                if (pos < src.length() && src.charAt(pos) == ',') pos++;
-                skipWs();
+                char c = next();
+                if (c == ']') break;
+                if (c != ',') throw invalid("se esperaba ',' o ']'");
             }
-            if (pos < src.length()) pos++;  // ']'
             depth--;
             return list;
         }
 
         private String parseString() {
-            pos++;  // '"'
+            pos++;
             StringBuilder sb = new StringBuilder();
-            while (pos < src.length()) {
+            while (true) {
+                if (pos >= src.length()) throw invalid("cadena sin cerrar");
                 char c = src.charAt(pos++);
-                if (c == '"') break;
-                if (c == '\\' && pos < src.length()) {
-                    char esc = src.charAt(pos++);
-                    switch (esc) {
-                        case '"'  -> sb.append('"');
-                        case '\\' -> sb.append('\\');
-                        case '/'  -> sb.append('/');
-                        case 'n'  -> sb.append('\n');
-                        case 'r'  -> sb.append('\r');
-                        case 't'  -> sb.append('\t');
-                        case 'b'  -> sb.append('\b');
-                        case 'f'  -> sb.append('\f');
-                        case 'u'  -> {
-                            if (pos + 4 <= src.length()) {
-                                try {
-                                    sb.append((char) Integer.parseInt(src.substring(pos, pos + 4), 16));
-                                    pos += 4;
-                                } catch (NumberFormatException ignored) {}
-                            }
+                if (c == '"') return sb.toString();
+                if (c < 0x20) throw invalid("carácter de control sin escapar");
+                if (c != '\\') { sb.append(c); continue; }
+                char esc = next();
+                switch (esc) {
+                    case '"'  -> sb.append('"');
+                    case '\\' -> sb.append('\\');
+                    case '/'  -> sb.append('/');
+                    case 'n'  -> sb.append('\n');
+                    case 'r'  -> sb.append('\r');
+                    case 't'  -> sb.append('\t');
+                    case 'b'  -> sb.append('\b');
+                    case 'f'  -> sb.append('\f');
+                    case 'u'  -> {
+                        if (pos + 4 > src.length()) throw invalid("escape \\u incompleto");
+                        int cp = 0;
+                        for (int i = 0; i < 4; i++) {
+                            int d = Character.digit(src.charAt(pos++), 16);
+                            if (d < 0) throw invalid("escape \\u inválido");
+                            cp = cp * 16 + d;
                         }
-                        default   -> sb.append(esc);
+                        sb.append((char) cp);
                     }
-                } else {
-                    sb.append(c);
+                    default -> throw invalid("escape inválido");
                 }
             }
-            return sb.toString();
         }
 
-        private boolean parseBool() {
-            if (src.startsWith("true", pos))  { pos += 4; return true; }
-            pos += 5;  // "false"
-            return false;
+        private Object literal(String word, Object value) {
+            if (!src.startsWith(word, pos)) throw invalid("literal desconocido");
+            pos += word.length();
+            return value;
         }
 
         private Number parseNumber() {
             int start = pos;
-            while (pos < src.length()) {
-                char c = src.charAt(pos);
-                if (c == ',' || c == '}' || c == ']' || Character.isWhitespace(c)) break;
+            if (peek() == '-') pos++;
+            if (peek() == '0') pos++;
+            else if (peek() >= '1' && peek() <= '9') digits();
+            else throw invalid("valor inesperado");
+            boolean decimal = false;
+            if (peek() == '.') { pos++; decimal = true; if (!digits()) throw invalid("número mal formado"); }
+            if (peek() == 'e' || peek() == 'E') {
                 pos++;
+                decimal = true;
+                if (peek() == '+' || peek() == '-') pos++;
+                if (!digits()) throw invalid("número mal formado");
             }
             String num = src.substring(start, pos);
-            if (num.contains(".") || num.contains("e") || num.contains("E")) {
-                try { return Double.parseDouble(num); } catch (NumberFormatException ignored) {}
+            if (!decimal) {
+                try { return Long.parseLong(num); } catch (NumberFormatException ignored) {}
             }
-            try { return Long.parseLong(num); }
-            catch (NumberFormatException e) {
-                try { return Double.parseDouble(num); } catch (NumberFormatException e2) { return 0; }
-            }
+            return Double.parseDouble(num);
+        }
+
+        private boolean digits() {
+            int start = pos;
+            while (pos < src.length() && src.charAt(pos) >= '0' && src.charAt(pos) <= '9') pos++;
+            return pos > start;
+        }
+
+        private char peek() { return pos < src.length() ? src.charAt(pos) : '\0'; }
+
+        private char next() {
+            if (pos >= src.length()) throw invalid("fin inesperado");
+            return src.charAt(pos++);
+        }
+
+        private void expect(char c) {
+            if (next() != c) throw invalid("se esperaba '" + c + "'");
+        }
+
+        private JxException invalid(String why) {
+            return new JxException(400, "JSON inválido en la posición " + pos + ": " + why);
         }
 
         private void skipWs() {
-            while (pos < src.length() && Character.isWhitespace(src.charAt(pos))) pos++;
+            while (pos < src.length()) {
+                char c = src.charAt(pos);
+                if (c != ' ' && c != '\t' && c != '\n' && c != '\r') return;
+                pos++;
+            }
         }
     }
 
