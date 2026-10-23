@@ -114,8 +114,8 @@ and [`benchmarks/security/`](benchmarks/security/); `./run.sh` reproduces it.
 
 JxMVC is published at **<https://github.com/Andre031222/jxmvc>**. Every release is listed
 under [Releases](https://github.com/Andre031222/jxmvc/releases), and every version is
-archived on Zenodo under [10.5281/zenodo.21896136](https://doi.org/10.5281/zenodo.21896136) (v3.5.1:
-[10.5281/zenodo.23604453](https://doi.org/10.5281/zenodo.23604453); v3.5.0, the version evaluated in the paper:
+archived on Zenodo under [10.5281/zenodo.21896136](https://doi.org/10.5281/zenodo.21896136) (v3.5.1, with the final measurements and the statistics script:
+[10.5281/zenodo.23604453](https://doi.org/10.5281/zenodo.23604453); v3.5.0, the framework code evaluated in the paper:
 [10.5281/zenodo.23585853](https://doi.org/10.5281/zenodo.23585853)).
 
 One command installs the framework into your local Maven repository and, optionally, creates

@@ -188,8 +188,8 @@
         <tbody>
           <tr><td>Repositorio</td><td><a class="s-accent" href="https://github.com/Andre031222/jxmvc" target="_blank" rel="noopener">github.com/Andre031222/jxmvc</a></td></tr>
           <tr><td>DOI de todas las versiones</td><td><a class="s-accent" href="https://doi.org/10.5281/zenodo.21896136" target="_blank" rel="noopener">10.5281/zenodo.21896136</a></td></tr>
-          <tr><td>DOI de la versión 3.5.1</td><td><a class="s-accent" href="https://doi.org/10.5281/zenodo.23604453" target="_blank" rel="noopener">10.5281/zenodo.23604453</a></td></tr>
-          <tr><td>DOI de la versión 3.5.0 (evaluada)</td><td><a class="s-accent" href="https://doi.org/10.5281/zenodo.23585853" target="_blank" rel="noopener">10.5281/zenodo.23585853</a></td></tr>
+          <tr><td>DOI de la versión 3.5.1 (con los datos finales)</td><td><a class="s-accent" href="https://doi.org/10.5281/zenodo.23604453" target="_blank" rel="noopener">10.5281/zenodo.23604453</a></td></tr>
+          <tr><td>DOI de la versión 3.5.0 (código evaluado)</td><td><a class="s-accent" href="https://doi.org/10.5281/zenodo.23585853" target="_blank" rel="noopener">10.5281/zenodo.23585853</a></td></tr>
           <tr><td>Datos y arneses</td><td><a class="s-accent" href="https://github.com/Andre031222/jxmvc/tree/main/benchmarks" target="_blank" rel="noopener">benchmarks/</a></td></tr>
         </tbody>
       </table>
