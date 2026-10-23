@@ -76,7 +76,7 @@ scripts/measure-memory.sh  <pid>
 scripts/run-load.sh http://localhost:PORT 64 30
 # 4) Medir tamaño desplegable
 scripts/measure-size.sh
-# 5) Repetir 1-4 por cada framework; agregar en results/RESULTS.md
+# 5) Repetir 1-4 por cada framework; agregar en results/2026-08/RESULTS.md
 ```
 
 Barridos recomendados de concurrencia: `1, 8, 32, 64, 128, 256` conexiones (curva de
@@ -84,7 +84,7 @@ throughput/latencia), 30 s por punto, 5 s de warmup.
 
 ## 7. Resultados
 
-Se consolidan en [`results/RESULTS.md`](results/RESULTS.md) (tabla + CSV crudo por corrida).
+Se consolidan en [`results/2026-08/RESULTS.md`](results/2026-08/RESULTS.md) (tabla + CSV crudo por corrida).
 Las filas vienen pre-cargadas con los datos ya conocidos y verificables de **tamaño y
 dependencias** de JxMVC; el resto se completa al correr el protocolo.
 

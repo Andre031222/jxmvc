@@ -1,14 +1,14 @@
 # Resultados dockerizados
 
-Entorno: `docker --cpus=4 --memory=2g --cpuset-cpus=0-3`, misma base JRE. conns=64, dur=30s, reps=5.
-Cliente aislado (taskset 4-7). Generado por `bench.sh`; ver README §8 (validez).
-Arranque/RSS/rps son **mediana** de las 5 repeticiones. `⚠` = errores/no-2xx: cifra NO válida.
+Entorno: `docker --cpus=4 --memory=2g`, misma base JRE. conns=64, dur=30s, reps=5.
+Generado por `bench.sh`. Números relativos comparables; ver README §8 (validez).
+Arranque/RSS/rps son **mediana** de las 5 repeticiones. `⚠` = el framework tuvo errores/no-2xx: cifra NO válida.
 
-| Framework | Imagen (MB) | Arranque (ms) | RSS (MB) | rps /plaintext (mediana) | rps /json (mediana) |
-|---|---|---|---|---|---|
-| jxmvc | 271.7 | 822 | 448.5 | 49061.8 | 48720.4 |
-| spring | 299.9 | 1945 | 375.6 | 49462.0 | 49896.2 |
-| quarkus | 295.9 | 606 | 431.2 | 55087.3 | 54208.6 |
-| micronaut | 292.5 | 1154 | 331.4 | 50973.9 | 50652.3 |
-| javalin | 286.4 | 369 | 424.6 | 54168.8 | 53613.9 |
-| quarkus-native | 72.8 | 12 | 25.12 | 52699.1 | 50072.9 |
+| Framework | Imagen (MB) | Arranque (ms) | RSS (MB) | rps /plaintext (mediana) | rps /json (mediana) | rps /db (mediana) |
+|---|---|---|---|---|---|---|
+| jxmvc | 274.2 | 1321 | 461.1 | 44342.8 | 44509.4 | 43919.8 |
+| spring | 302.4 | 2574 | 504.5 | 46450.3 | 47082.4 | 45925.2 |
+| quarkus | 298.4 | 862 | 432.6 | 50879.3 | 50438.8 | 49867.5 |
+| micronaut | 295.0 | 1232 | 456.9 | 47370.3 | 47371.2 | 42175.6 |
+| javalin | 288.9 | 451 | 471.7 | 49636.1 | 49187.3 | 50325.8 |
+| quarkus-native | 72.9 | 13 | 23.88 | 49027.5 | 48831.0 | - |

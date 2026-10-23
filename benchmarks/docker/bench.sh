@@ -18,6 +18,7 @@ PORT=8080
 #   BENCH_CPUSET="0,1"      -> fija el contenedor a esos núcleos (docker --cpuset-cpus)
 #   BENCH_CLIENT_CPUS="2,3" -> fija el LoadClient a OTROS núcleos (taskset) para no competir
 #   BENCH_HEAP="512m"       -> mismo heap fijo (-Xms/-Xmx) para todos los frameworks JVM
+#   BENCH_APPS="quarkus-native" BENCH_APPEND=1 -> mide solo esos y añade filas al CSV existente
 CPUSET="${BENCH_CPUSET:-}"
 CLIENT_CPUS="${BENCH_CLIENT_CPUS:-}"
 CLIENT_PREFIX=()
@@ -30,7 +31,7 @@ CSV="$HERE/../results/raw-docker.csv"
 
 # Orden: jxmvc primero, luego los rivales. El contexto de build de jxmvc es el REPO
 # (necesita compilar JxMVC.Core); el de los demás es su propia carpeta.
-APPS=(jxmvc spring quarkus micronaut javalin)
+APPS=(${BENCH_APPS:-jxmvc spring quarkus micronaut javalin})
 # BENCH_NATIVE=1 añade Quarkus compilado a binario nativo (GraalVM) — build lento (~5-10 min).
 [ "${BENCH_NATIVE:-0}" = "1" ] && APPS+=(quarkus-native)
 
@@ -38,7 +39,7 @@ command -v java >/dev/null || { echo "Falta java en el host (para LoadClient)"; 
 docker info >/dev/null 2>&1 || { echo "Docker no está corriendo. Inicia Docker Desktop."; exit 1; }
 [ -f "$HERE/../load/LoadClient.class" ] || (cd "$HERE/../load" && javac LoadClient.java)
 
-echo "framework,image_mb,startup_ms,rss_mb,endpoint,conns,dur,requests,errors,non2xx,rps,meanMs,p50,p90,p95,p99" > "$CSV"
+[ "${BENCH_APPEND:-0}" = "1" ] && [ -f "$CSV" ] || echo "framework,image_mb,startup_ms,rss_mb,endpoint,conns,dur,requests,errors,non2xx,rps,meanMs,p50,p90,p95,p99" > "$CSV"
 
 wait_up() {  # espera 200 en /plaintext, imprime ms de arranque
   local start now code
@@ -84,7 +85,8 @@ for fw in "${APPS[@]}"; do
 
   # warmup + medición de carga (host -> contenedor).
   # BENCH_DB=1 añade el endpoint /db (SELECT real sobre H2 in-memory).
-  for ep in plaintext json ${BENCH_DB:+db}; do
+  dbep=""; [ -n "${BENCH_DB:-}" ] && [ "$fw" != "quarkus-native" ] && dbep=db
+  for ep in plaintext json $dbep; do
     for r in $(seq 1 "$REPS"); do
       line=$( (cd "$HERE/../load" && ${CLIENT_PREFIX[@]+"${CLIENT_PREFIX[@]}"} java LoadClient "http://localhost:$PORT/$ep" "$CONNS" "$DUR" 5) 2>/dev/null )
       rss_mb=$(docker stats --no-stream --format '{{.MemUsage}}' "bench_$fw" | awk -F'/' '{gsub(/[^0-9.]/,"",$1); print $1}')
@@ -117,7 +119,9 @@ med() {
   echo
   echo "| Framework | Imagen (MB) | Arranque (ms) | RSS (MB) | rps /plaintext (mediana) | rps /json (mediana) | rps /db (mediana) |"
   echo "|---|---|---|---|---|---|---|"
-  for fw in "${APPS[@]}"; do
+  TABLE_APPS=($(awk -F, 'NR>1 && !s[$1]++{print $1}' "$CSV"))
+  for fw in "${APPS[@]}"; do [[ " ${TABLE_APPS[*]} " == *" $fw "* ]] || TABLE_APPS+=("$fw"); done
+  for fw in "${TABLE_APPS[@]}"; do
     im=$(awk -F, -v f="$fw" '$1==f{print $2; exit}' "$CSV")   # imagen: valor constante por framework
     su=$(med "$fw" 3)                                          # arranque: mediana
     rs=$(med "$fw" 4)                                          # RSS: mediana

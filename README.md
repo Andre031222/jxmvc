@@ -65,30 +65,28 @@ the application needs them.
 Benchmarked against Spring Boot, Quarkus, Micronaut and Javalin (plus a GraalVM
 native-image reference) with a single-command, containerised harness under pinned-core
 isolation on **bare-metal Arch Linux** (Intel i5-12500H, 64 concurrent connections, five
-30 s repetitions, medians). These figures were measured on v3.4.0; a re-run on v3.5.0 with
-the same fixed heap for every framework (`BENCH_HEAP`) is pending:
+30 s repetitions, medians). Run of 23 October 2026 on v3.5.0, with the same fixed 512 MB heap
+for every JVM framework:
 
-| Framework | Image (MB) | Startup (ms) | RSS (MB) | /plaintext (req/s) | /json (req/s) |
-|---|---|---|---|---|---|
-| **JxMVC** | **271.7** | 822 | 448.5 | 49,062 | 48,720 |
-| Spring Boot | 299.9 | 1,945 | 375.6 | 49,462 | 49,896 |
-| Quarkus | 295.9 | 606 | 431.2 | **55,087** | **54,209** |
-| Micronaut | 292.5 | 1,154 | **331.4** | 50,974 | 50,652 |
-| Javalin | 286.4 | **369** | 424.6 | 54,169 | 53,614 |
-| _Quarkus (native)_ | _72.8_ | _12_ | _25.1_ | _52,699_ | _50,073_ |
+| Framework | Image (MB) | Startup (ms) | RSS (MB) | /plaintext (req/s) | /json (req/s) | /db (req/s) |
+|---|---|---|---|---|---|---|
+| **JxMVC** | **274.2** | 1,321 | 461.1 | 44,343 | 44,509 | 43,920 |
+| Spring Boot | 302.4 | 2,574 | 504.5 | 46,450 | 47,082 | 45,925 |
+| Quarkus | 298.4 | 862 | **432.6** | **50,879** | **50,439** | 49,868 |
+| Micronaut | 295.0 | 1,232 | 456.9 | 47,370 | 47,371 | 42,176 |
+| Javalin | 288.9 | **451** | 471.7 | 49,636 | 49,187 | **50,326** |
+| _Quarkus (native)_ | _72.9_ | _13_ | _24.0_ | _49,028_ | _48,831_ | _—_ |
 
-- **Smallest JVM-mode deployable image** of the group (about 5 % below the next one; the
-  shared JRE base dominates every image), and a faster cold start than Spring Boot and
-  Micronaut.
-- **Competitive throughput** with statistically indistinguishable tail latency
-  (mean ≈ 1.3 ms, p99 ≈ 3.6 ms).
-- A follow-up run adding a **database-backed endpoint** (`/db`, a real `SELECT` over an
-  embedded in-memory database plus JSON) leaves JxMVC's throughput at the `/json` level:
-  the HTTP layer, not the query, bounds it. Spring Boot and Micronaut give up 4–6 %.
-- Across the campaign the frameworks served **92.8 million requests with zero errors**.
-- The one clear trade-off is **resident memory**: JxMVC's RSS is the highest of the JVM
-  stacks in that run, which did not cap the heap; the Tomcat container accounts for most of
-  it.
+- **Smallest JVM-mode deployable image** of the group (about 5 % below Javalin; the shared JRE
+  base dominates every image), and a cold start about twice as fast as Spring Boot.
+- **Resident memory in the middle of the group**, below Spring Boot and Javalin. An earlier run
+  that left each JVM to size its own heap had put JxMVC highest; with the heap fixed, that gap
+  disappears.
+- **Lowest throughput of the JVM group** on `/plaintext` and `/json` (5–15 % behind, every
+  difference significant at p = 0.008), with tail latency in the same band (p99 3.6–3.7 ms
+  against 3.3–4.1 ms). On the database-backed `/db` it overtakes Micronaut, whose rate drops
+  11 % with the query; JxMVC's own `/db` cost, 1.3 %, is not significant.
+- **120.9 million requests with zero errors** across the run.
 
 Raw per-run data and the environment description live in [`benchmarks/`](benchmarks/).
 
