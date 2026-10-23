@@ -40,7 +40,7 @@
   }
 </style>
 
-<section class="s-wrap" style="padding-top:48px;padding-bottom:48px">
+<section class="s-wrap" style="padding-top:20px;padding-bottom:48px">
   <div class="mb-10">
     <h1 class="text-4xl font-bold tracking-tight mb-3 text-ink dark:text-[#f5f5f7]">
       Panel de observabilidad

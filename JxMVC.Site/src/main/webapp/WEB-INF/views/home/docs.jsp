@@ -2,7 +2,7 @@
 <%@ include file="/WEB-INF/views/shared/header.jspf" %>
 
 <div class="s-wrap" style="color:var(--ink)">
-  <div style="padding-top:clamp(28px,4vw,48px)">
+  <div style="padding-top:clamp(16px,2vw,28px)">
     <p class="s-eyebrow">Documentación</p>
     <h1 class="s-h2">JxMVC 3.5.0</h1>
     <p class="s-lead" style="margin-top:10px">Jakarta EE 10 · Java 17+ · sin dependencias de terceros. Cada ejemplo usa la API pública del core.</p>

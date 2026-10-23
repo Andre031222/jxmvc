@@ -1,7 +1,7 @@
 <%@page contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ include file="/WEB-INF/views/shared/header.jspf" %>
 
-<section class="s-wrap" style="padding-top:40px;padding-bottom:40px;max-width:960px">
+<section class="s-wrap" style="padding-top:20px;padding-bottom:40px;max-width:960px">
 
     <%-- Encabezado --%>
     <p class="text-xs font-mono uppercase tracking-[0.25em] text-muted dark:text-[#86868b] jx-reveal jx-delay-1">

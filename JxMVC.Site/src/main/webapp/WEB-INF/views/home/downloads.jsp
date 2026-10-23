@@ -12,7 +12,7 @@
                  font-size:.72rem; line-height:1.65; color:var(--dc-text); }
 </style>
 
-<section class="s-wrap" style="padding-top:40px;padding-bottom:40px">
+<section class="s-wrap" style="padding-top:20px;padding-bottom:40px">
 
     <%-- ── Encabezado ─────────────────────────────────────────────── --%>
     <div class="max-w-3xl mb-10 jx-reveal jx-delay-1">
