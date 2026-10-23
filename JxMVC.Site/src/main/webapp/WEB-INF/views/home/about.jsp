@@ -7,11 +7,11 @@
 <div class="mb-12 jx-reveal jx-delay-1">
     <p class="text-[10px] font-mono uppercase tracking-[0.28em] text-muted dark:text-[#8E8E93] mb-3" data-i18n="about.tag">About</p>
     <h1 class="text-4xl sm:text-5xl font-bold tracking-tight mb-4 text-ink dark:text-white">
-        Lightning-X MVC <span class="text-apple">3.4.0</span>
+        JxMVC <span class="text-apple">3.5.0</span>
     </h1>
     <p class="text-base text-muted dark:text-[#8E8E93] max-w-2xl leading-relaxed" data-i18n="about.desc">
         Framework MVC para Jakarta EE construido desde cero — sin Spring, sin Hibernate,
-        sin dependencias en runtime. Un JAR de 253 KB con routing, pool de conexiones,
+        sin dependencias en runtime. Un JAR de 298 KB con routing, pool de conexiones,
         validación, JSON, WebSocket, métricas y OpenAPI integrados. Virtual Threads
         detectados automáticamente en Java 21+.
     </p>
@@ -20,7 +20,7 @@
 <%-- ── Métricas clave ──────────────────────────────────────────────── --%>
 <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-12 jx-reveal jx-delay-2">
     <div class="bg-white dark:bg-[#1C1C1E] border border-black/[0.06] dark:border-white/[0.07] rounded-2xl px-5 py-5 shadow-card">
-        <p class="text-2xl font-bold text-ink dark:text-white">253<span class="text-apple text-sm font-semibold"> KB</span></p>
+        <p class="text-2xl font-bold text-ink dark:text-white">298<span class="text-apple text-sm font-semibold"> KB</span></p>
         <p class="text-[11px] text-muted dark:text-[#8E8E93] mt-1">Tamaño del core</p>
     </div>
     <div class="bg-white dark:bg-[#1C1C1E] border border-black/[0.06] dark:border-white/[0.07] rounded-2xl px-5 py-5 shadow-card">
@@ -80,7 +80,7 @@
             <thead>
                 <tr class="border-b border-black/[0.06] dark:border-white/[0.06] bg-[#F5F5F7] dark:bg-white/[0.04]">
                     <th class="text-left px-5 py-3 font-semibold text-muted dark:text-[#8E8E93] uppercase tracking-wider">Aspecto</th>
-                    <th class="text-center px-4 py-3 font-semibold text-apple">JxMVC 3.4.0</th>
+                    <th class="text-center px-4 py-3 font-semibold text-apple">JxMVC 3.5.0</th>
                     <th class="text-center px-4 py-3 font-semibold text-muted dark:text-[#8E8E93]">Spring Boot 3</th>
                     <th class="text-center px-4 py-3 font-semibold text-muted dark:text-[#8E8E93]">Jakarta EE raw</th>
                 </tr>
@@ -88,8 +88,8 @@
             <tbody class="divide-y divide-black/[0.05] dark:divide-white/[0.05]">
                 <%
                 String[][] rows = {
-                    {"WAR / JAR mínimo",    "253 KB",   "~18 MB",     "~50 KB"},
-                    {"Dependencias runtime", "0",        "~50-150+",   "0"},
+                    {"Librerías runtime (app mínima)", "1", "34", "—"},
+                    {"Dependencias de terceros", "0", "33", "0"},
                     {"Routing",             "Conv+Ann",  "Ann",        "Manual"},
                     {"Pool de conexiones",  "propio",    "HikariCP",   "ninguno"},
                     {"DI",                  "propio",    "Spring DI",  "CDI"},
@@ -98,7 +98,7 @@
                     {"WebSocket",           "built-in",  "ext",        "manual"},
                     {"Métricas",            "built-in",  "Micrometer", "manual"},
                     {"OpenAPI",             "built-in",  "SpringDoc",  "manual"},
-                    {"Arranque (aprox.)",   "1.2 s",     "~3-8 s",     "< 300 ms"},
+                    {"Arranque en frío (medido)", "1.3 s", "2.6 s", "—"},
                 };
                 for (String[] row : rows) {
                 %>
@@ -121,7 +121,7 @@
         <%
         String[][] stack = {
             {"Lenguaje",  "Java 17+ / 21+",                  "Virtual Threads detectados automáticamente en Java 21+"},
-            {"Servidor",  "Apache Tomcat 10+",               "Jakarta EE 11, Servlet 6.0"},
+            {"Servidor",  "Apache Tomcat 10+",               "Jakarta EE 10, Servlet 6.0"},
             {"Build",     "Maven 3.8+",                      "WAR packaging, cargo-maven3-plugin"},
             {"DB",        "PostgreSQL · MySQL · SQL Server", "Driver JDBC estándar, sin ORM"},
             {"Vistas",    "JSP + Tailwind CSS",              "Sin JSTL requerido — EL puro"},

@@ -2,10 +2,10 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>jxmvc</groupId>
-    <artifactId>JxMVCx</artifactId>
-    <version>3.4.0</version>
+    <artifactId>jxmvc-site</artifactId>
+    <version>3.5.0</version>
     <packaging>war</packaging>
-    <name>JxMVC2x</name>
+    <name>JxMVC site</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -108,7 +108,7 @@
                     <deployables>
                         <deployable>
                             <groupId>jxmvc</groupId>
-                            <artifactId>JxMVCx</artifactId>
+                            <artifactId>jxmvc-site</artifactId>
                             <type>war</type>
                             <properties>
                                 <context>/lux</context>

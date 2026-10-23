@@ -180,11 +180,11 @@
       <div class="jx-hero-left text-center lg:text-left jx-reveal jx-delay-1">
         <h1 class="jx-hero-title">
           <span class="jx-grad2">JxMVC</span><br>
-          <span class="jx-hero-sub">Lightning-X Framework</span>
+          <span class="jx-hero-sub">Secure by default</span>
         </h1>
 
         <p class="jx-hero-desc mx-auto lg:mx-0" data-i18n="hero.desc">
-          Framework MVC para Jakarta EE. 253 KB, cero dependencias externas y arranque en 1.2 s.
+          Framework MVC para Jakarta EE. 298 KB, cero dependencias externas y seguridad activa por defecto.
         </p>
 
         <div class="jx-hero-cta justify-center lg:justify-start">
@@ -193,7 +193,7 @@
         </div>
 
         <div class="jx-stats">
-          <% String[][] metrics = {{"253","KB","Core"},{"0","deps","Runtime"},{"54","cls","Core"},{"1.2","s","Arranque"}}; %>
+          <% String[][] metrics = {{"298","KB","Core"},{"0","deps","Runtime"},{"55","cls","Core"},{"17","/18","Seguridad"}}; %>
           <% for (String[] m : metrics) { %>
           <div class="jx-stat">
             <b><span class="jx-counter" data-target="<%= m[0].replace(".","") %>"><%= m[0] %></span><span class="u"> <%= m[1] %></span></b>
@@ -349,7 +349,7 @@ jxmvc.log.level  = INFO</code></pre>
         <p class="text-[15px] leading-relaxed text-muted dark:text-[#8E8E93] max-w-md mb-7">
           Un solo <code class="font-mono text-ink dark:text-[#F5F5F7]">mvn install</code> y ya tienes el framework
           en tu repositorio local. Sin CDNs, sin descargas transitivas, sin sorpresas: el JAR pesa
-          <b class="text-ink dark:text-white">253 KB</b> y arrastra <b class="text-ink dark:text-white">cero</b> dependencias.
+          <b class="text-ink dark:text-white">298 KB</b> y arrastra <b class="text-ink dark:text-white">cero</b> dependencias.
         </p>
         <div class="flex flex-wrap items-center gap-3">
           <button class="jx-inst-copy" onclick="jxCopyInstall(this)">
@@ -371,9 +371,9 @@ jxmvc.log.level  = INFO</code></pre>
         </div>
         <div class="jx-inst-body">
           <div><span class="jx-t-prompt">$</span> <span class="jx-t-cmd">mvn install -f</span> <span class="jx-t-key">JxMVC.Core/pom.xml</span></div>
-          <div class="jx-t-mut">[INFO] Building <span class="jx-t-key">jxmvc-core</span> 3.4.0</div>
-          <div class="jx-t-mut">[INFO] Tests run: <span class="jx-t-ok">347</span>, Failures: 0, Errors: 0</div>
-          <div class="jx-t-mut">[INFO] <span class="jx-t-ok">BUILD SUCCESS</span> <span class="jx-t-dim">·</span> 253 KB <span class="jx-t-dim">·</span> 0 deps externas</div>
+          <div class="jx-t-mut">[INFO] Building <span class="jx-t-key">jxmvc-core</span> 3.5.0</div>
+          <div class="jx-t-mut">[INFO] Tests run: <span class="jx-t-ok">425</span>, Failures: 0, Errors: 0</div>
+          <div class="jx-t-mut">[INFO] <span class="jx-t-ok">BUILD SUCCESS</span> <span class="jx-t-dim">·</span> 298 KB <span class="jx-t-dim">·</span> 0 deps externas</div>
 
           <div class="jx-inst-grid">
             <div class="jx-inst-cell">
@@ -419,7 +419,7 @@ function jxCopyInstall(btn) {
     <div class="mb-12 jx-reveal jx-delay-1">
       <p class="text-[10px] font-mono uppercase tracking-[0.28em] text-muted dark:text-[#8E8E93] mb-3">Características</p>
       <h2 class="text-3xl sm:text-4xl font-bold text-ink dark:text-white leading-tight">Todo incluido.<br><span class="text-apple">Cero dependencias.</span></h2>
-      <p class="text-[14px] text-muted dark:text-[#8E8E93] mt-3 max-w-xl">Un único JAR de 253 KB con todo lo que necesita una aplicación Jakarta EE real. Sin Spring, sin Hibernate, sin Jackson.</p>
+      <p class="text-[14px] text-muted dark:text-[#8E8E93] mt-3 max-w-xl">Un único JAR de 298 KB con todo lo que necesita una aplicación Jakarta EE real. Sin Spring, sin Hibernate, sin Jackson.</p>
     </div>
 
     <%-- Bento grid --%>
@@ -489,7 +489,7 @@ function jxCopyInstall(btn) {
         <div class="w-10 h-10 rounded-xl flex items-center justify-center mb-4" style="background:#FF2D5520">
           <svg class="w-5 h-5" fill="none" stroke="#FF2D55" stroke-width="1.8" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg>
         </div>
-        <h3 class="text-[15px] font-semibold text-ink dark:text-white mb-2">253 KB. Cero dependencias en runtime.</h3>
+        <h3 class="text-[15px] font-semibold text-ink dark:text-white mb-2">298 KB. Cero dependencias en runtime.</h3>
         <p class="text-[12px] text-muted dark:text-[#8E8E93] leading-relaxed mb-4">21 anotaciones propias, scheduler cron, pool JDBC, JSON nativo, WebSocket, métricas y OpenAPI — todo en <strong class="text-ink dark:text-white">java.*</strong> puro.</p>
         <div class="flex gap-4 text-[11px]">
           <span class="flex items-center gap-1.5 text-muted dark:text-[#8E8E93]"><span class="w-1.5 h-1.5 rounded-full bg-[#30D158]"></span>Sin Jackson</span>
@@ -862,20 +862,21 @@ function jxPipeToggle(idx) {
   <div class="max-w-5xl mx-auto px-4 sm:px-6">
 
     <div class="mb-4">
-      <p class="text-[10px] font-mono uppercase tracking-[0.28em] text-muted dark:text-[#8E8E93] mb-3">Comparativa real · 5 frameworks</p>
-      <h2 class="text-3xl sm:text-4xl font-bold text-ink dark:text-white leading-tight">El más ligero.<br><span class="text-apple">El único con cero dependencias.</span></h2>
+      <p class="text-[10px] font-mono uppercase tracking-[0.28em] text-muted dark:text-[#8E8E93] mb-3">Medido · 5 frameworks · misma aplicación</p>
+      <h2 class="text-3xl sm:text-4xl font-bold text-ink dark:text-white leading-tight">Seguro por defecto.<br><span class="text-apple">Sin dependencias de terceros.</span></h2>
     </div>
 
     <div class="flex flex-wrap gap-2.5 mt-5 mb-10">
-      <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-apple/10 border border-apple/20 text-apple text-[11px] font-semibold">89× más pequeño que Spring Boot</span>
-      <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#FF2D55]/10 border border-[#FF2D55]/20 text-[#FF2D55] text-[11px] font-semibold">0 deps en runtime</span>
-      <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#30D158]/10 border border-[#30D158]/20 text-[#30D158] text-[11px] font-semibold">5× más rápido que Spring Boot</span>
+      <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-apple/10 border border-apple/20 text-apple text-[11px] font-semibold">17 de 18 ataques bloqueados</span>
+      <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#FF2D55]/10 border border-[#FF2D55]/20 text-[#FF2D55] text-[11px] font-semibold">0 dependencias de terceros</span>
+      <span class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-[#30D158]/10 border border-[#30D158]/20 text-[#30D158] text-[11px] font-semibold">Arranque 2× más rápido que Spring Boot</span>
     </div>
 
-    <div class="flex gap-2 mb-8">
-      <button class="jx-chart-tab active" onclick="jxChart('jar',this)">Tamaño JAR</button>
+    <div class="flex flex-wrap gap-2 mb-8">
+      <button class="jx-chart-tab active" onclick="jxChart('sec',this)">Seguridad</button>
       <button class="jx-chart-tab" onclick="jxChart('dep',this)">Dependencias</button>
-      <button class="jx-chart-tab" onclick="jxChart('start',this)">Arranque JVM</button>
+      <button class="jx-chart-tab" onclick="jxChart('img',this)">Imagen</button>
+      <button class="jx-chart-tab" onclick="jxChart('start',this)">Arranque</button>
     </div>
 
     <div class="bg-white dark:bg-[#1C1C1E] border border-black/[0.06] dark:border-white/[0.07] rounded-2xl p-8 shadow-card" style="position:relative;">
@@ -894,37 +895,48 @@ function jxPipeToggle(idx) {
 
 <script>
 var jxChartData = {
-  jar: {
-    unit: 'Tamaño del artefacto de producción — menor es mejor',
-    note: 'JAR/WAR sin dependencias transitivas del servidor. JxMVC: 253 KB. Spring Boot uber-JAR incluye Tomcat embebido.',
+  sec: {
+    unit: 'Protecciones activas sin configurar nada — de 18 ataques — mayor es mejor',
+    note: 'Quarkus y Javalin: 8 de 16, porque las dos pruebas de JSON no aplican. Login throttling es opt-in en JxMVC y no lo trae activo ningún framework.',
     rows: [
-      {name:'JxMVC 3.4',   val:'253 KB', raw:0.253, jx:true},
-      {name:'Javalin 6',   val:'1.5 MB', raw:1.5,   jx:false},
-      {name:'Quarkus 3',   val:'18 MB',  raw:18,    jx:false},
-      {name:'Spring Boot', val:'20 MB',  raw:20,    jx:false},
-      {name:'Micronaut 4', val:'25 MB',  raw:25,    jx:false},
+      {name:'JxMVC',       val:'17', raw:17, jx:true},
+      {name:'Spring Boot', val:'9',  raw:9,  jx:false},
+      {name:'Micronaut',   val:'9',  raw:9,  jx:false},
+      {name:'Quarkus',     val:'8',  raw:8,  jx:false},
+      {name:'Javalin',     val:'8',  raw:8,  jx:false},
     ]
   },
   dep: {
-    unit: 'Dependencias en runtime — menor es mejor',
-    note: 'JxMVC solo necesita el servlet container. Sin JAR externo en classpath de producción.',
+    unit: 'Librerías en el class path de producción — menor es mejor',
+    note: 'Aplicación mínima, framework y servidor embebido incluidos, contado con Maven. JxMVC: solo su propio JAR; Tomcat se instala aparte.',
     rows: [
-      {name:'JxMVC 3.3',   val:'0',    raw:0,   jx:true},
-      {name:'Javalin 6',   val:'~10',  raw:10,  jx:false},
-      {name:'Quarkus 3',   val:'~80',  raw:80,  jx:false},
-      {name:'Spring Boot', val:'~210', raw:210, jx:false},
-      {name:'Micronaut 4', val:'~150', raw:150, jx:false},
+      {name:'JxMVC',       val:'1',   raw:1,   jx:true},
+      {name:'Javalin',     val:'22',  raw:22,  jx:false},
+      {name:'Spring Boot', val:'34',  raw:34,  jx:false},
+      {name:'Micronaut',   val:'36',  raw:36,  jx:false},
+      {name:'Quarkus',     val:'104', raw:104, jx:false},
+    ]
+  },
+  img: {
+    unit: 'Imagen de contenedor desplegable — MB — menor es mejor',
+    note: 'Misma imagen base de Java 17 en todos; el runtime ocupa la mayor parte de cada imagen.',
+    rows: [
+      {name:'JxMVC',       val:'274.2 MB', raw:274.2, jx:true},
+      {name:'Javalin',     val:'288.9 MB', raw:288.9, jx:false},
+      {name:'Micronaut',   val:'295.0 MB', raw:295.0, jx:false},
+      {name:'Quarkus',     val:'298.4 MB', raw:298.4, jx:false},
+      {name:'Spring Boot', val:'302.4 MB', raw:302.4, jx:false},
     ]
   },
   start: {
-    unit: 'Tiempo de arranque en JVM — segundos — menor es mejor',
-    note: 'JVM estándar sin AOT. Quarkus y Micronaut requieren compilación nativa para sus cifras AOT más bajas.',
+    unit: 'Arranque en frío hasta la primera respuesta 200 — ms — menor es mejor',
+    note: 'JVM, sin compilación nativa, Linux bare metal. A cambio, JxMVC tuvo entre 5 y 15 % menos throughput en endpoints mínimos.',
     rows: [
-      {name:'Quarkus 3',   val:'0.3 s', raw:0.3, jx:false},
-      {name:'Micronaut 4', val:'0.4 s', raw:0.4, jx:false},
-      {name:'Javalin 6',   val:'0.5 s', raw:0.5, jx:false},
-      {name:'JxMVC 3.3',   val:'1.2 s', raw:1.2, jx:true},
-      {name:'Spring Boot', val:'6.0 s', raw:6.0, jx:false},
+      {name:'Javalin',     val:'451 ms',  raw:451,  jx:false},
+      {name:'Quarkus',     val:'862 ms',  raw:862,  jx:false},
+      {name:'Micronaut',   val:'1232 ms', raw:1232, jx:false},
+      {name:'JxMVC',       val:'1321 ms', raw:1321, jx:true},
+      {name:'Spring Boot', val:'2574 ms', raw:2574, jx:false},
     ]
   }
 };
@@ -933,8 +945,8 @@ var jxAnimFrame = null;
 
 /* El color sigue al framework, no a la posición: mismo color en las 3 pestañas. */
 var jxFwPalette = {
-  light: {'JxMVC 3.3':'#0071E3','Javalin 6':'#FF9500','Quarkus 3':'#5E5CE6','Spring Boot':'#30D158','Micronaut 4':'#FF2D55'},
-  dark:  {'JxMVC 3.3':'#0071E3','Javalin 6':'#CC7A00','Quarkus 3':'#5E5CE6','Spring Boot':'#27A24C','Micronaut 4':'#FF2D55'}
+  light: {'JxMVC':'#0071E3','Javalin':'#FF9500','Quarkus':'#5E5CE6','Spring Boot':'#30D158','Micronaut':'#FF2D55'},
+  dark:  {'JxMVC':'#0071E3','Javalin':'#CC7A00','Quarkus':'#5E5CE6','Spring Boot':'#27A24C','Micronaut':'#FF2D55'}
 };
 
 function jxFwColor(name, isDark) {
@@ -1095,7 +1107,7 @@ document.addEventListener('DOMContentLoaded', function(){
   var io2 = new IntersectionObserver(function(entries){
     if (entries[0].isIntersecting && !fired) {
       fired = true;
-      jxRenderChart('jar');
+      jxRenderChart('sec');
     }
   }, {threshold: 0.2});
   var sec = document.getElementById('jxChartSec');
@@ -1119,14 +1131,14 @@ new MutationObserver(jxRedrawActiveChart).observe(document.documentElement, { at
   <div class="max-w-5xl mx-auto px-4 sm:px-6">
 
     <div class="mb-10">
-      <h2 class="text-3xl sm:text-4xl font-bold text-ink dark:text-white leading-tight">52 clases. 253 KB.<br><span class="text-apple">Todo el framework.</span></h2>
+      <h2 class="text-3xl sm:text-4xl font-bold text-ink dark:text-white leading-tight">55 clases. 298 KB.<br><span class="text-apple">Todo el framework.</span></h2>
       <p class="text-[14px] text-muted dark:text-[#8E8E93] mt-3 max-w-xl">Sin dependencias que auditar ni versiones que conciliar: cada módulo está escrito dentro del propio JAR.</p>
     </div>
 
     <div class="grid lg:grid-cols-2 gap-8 items-center">
       <div class="flex justify-center" style="position:relative;">
         <svg id="jxDonut" width="300" height="300" viewBox="0 0 300 300" role="img"
-             aria-label="Distribución de las 52 clases del core por módulo"></svg>
+             aria-label="Distribución de las 55 clases del core por módulo"></svg>
         <div id="jxDonutTip" style="position:absolute; pointer-events:none; opacity:0; transition:opacity .13s ease-out;
              background:rgba(29,29,31,.92); color:#F5F5F7; font:600 11px 'Space Grotesk',sans-serif;
              padding:6px 10px; border-radius:8px; white-space:nowrap; z-index:5;"></div>
@@ -1135,7 +1147,7 @@ new MutationObserver(jxRedrawActiveChart).observe(document.documentElement, { at
       <div>
         <ul id="jxDonutLegend" class="space-y-2.5"></ul>
         <p class="text-[10px] text-muted dark:text-[#636366] mt-6 leading-relaxed">
-          Clases contadas en <code class="font-mono">jxmvc.core</code> de la v3.4.0.
+          Clases contadas en <code class="font-mono">jxmvc.core</code> de la v3.5.0.
           Métricas en vivo del propio sitio en el <a href="${pageContext.request.contextPath}/home/panel" class="text-apple hover:underline">panel de observabilidad</a>.
         </p>
       </div>
@@ -1145,12 +1157,12 @@ new MutationObserver(jxRedrawActiveChart).observe(document.documentElement, { at
 
 <script>
 var jxDonutData = [
-  {name:'Infraestructura y config', n:15, c:null},
-  {name:'HTTP y routing',           n:12, c:0},
-  {name:'Datos y transacciones',    n:8,  c:1},
-  {name:'API, JSON y observabilidad',n:6, c:2},
-  {name:'Tiempo real y tareas',     n:6,  c:3},
-  {name:'Seguridad',                n:5,  c:4}
+  {name:'HTTP y routing',            n:15, c:null},
+  {name:'Infraestructura y config',  n:10, c:0},
+  {name:'Datos y transacciones',     n:9,  c:1},
+  {name:'Seguridad',                 n:9,  c:2},
+  {name:'API, JSON, PDF y métricas', n:6,  c:3},
+  {name:'Tiempo real, tareas y caché', n:6, c:4}
 ];
 
 function jxDonutColors() {
@@ -1190,7 +1202,7 @@ function jxRenderDonut() {
     a0 = a1;
   });
   parts.push('<text x="150" y="143" text-anchor="middle" fill="' + col.ink + '" style="font:700 30px \'Space Grotesk\',sans-serif;">' + total + '</text>');
-  parts.push('<text x="150" y="166" text-anchor="middle" fill="' + col.sub + '" style="font:500 12px \'Space Grotesk\',sans-serif;">clases · 253 KB</text>');
+  parts.push('<text x="150" y="166" text-anchor="middle" fill="' + col.sub + '" style="font:500 12px \'Space Grotesk\',sans-serif;">clases · 298 KB</text>');
   svg.innerHTML = parts.join('');
 
   var legend = document.getElementById('jxDonutLegend');
@@ -1279,7 +1291,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <div id="jxEpPane" class="jx-code-pane overflow-auto" style="min-height:240px">
 <pre><code id="jxEpCode" class="language-json">{
   "status": "UP",
-  "version": "3.4.0",
+  "version": "3.5.0",
   "uptime": "00:04:12",
   "pool": {
     "active": 2,
@@ -1306,11 +1318,11 @@ document.addEventListener('DOMContentLoaded', function() {
 var jxEpSamples = {
   health: {
     label: 'GET /jx/health',
-    code: '{\n  "status": "UP",\n  "version": "3.4.0",\n  "uptime": "00:04:12",\n  "pool": {\n    "active": 2,\n    "idle": 8,\n    "total": 10\n  },\n  "threads": {\n    "active": 4,\n    "virtual": true\n  },\n  "memory": {\n    "usedMB": 48,\n    "maxMB": 512\n  }\n}'
+    code: '{\n  "status": "UP",\n  "version": "3.5.0",\n  "uptime": "00:04:12",\n  "pool": {\n    "active": 2,\n    "idle": 8,\n    "total": 10\n  },\n  "threads": {\n    "active": 4,\n    "virtual": true\n  },\n  "memory": {\n    "usedMB": 48,\n    "maxMB": 512\n  }\n}'
   },
   info: {
     label: 'GET /jx/info',
-    code: '{\n  "framework": "JxMVC",\n  "version": "3.4.0",\n  "profile": "prod",\n  "java": "21.0.3",\n  "server": "Apache Tomcat/10.1.20",\n  "startedAt": "2026-06-07T08:00:00Z",\n  "controllers": 6,\n  "routes": 24\n}'
+    code: '{\n  "framework": "JxMVC",\n  "version": "3.5.0",\n  "profile": "prod",\n  "java": "21.0.3",\n  "server": "Apache Tomcat/10.1.20",\n  "startedAt": "2026-06-07T08:00:00Z",\n  "controllers": 6,\n  "routes": 24\n}'
   },
   metrics: {
     label: 'GET /jx/metrics',
@@ -1318,7 +1330,7 @@ var jxEpSamples = {
   },
   openapi: {
     label: 'GET /jx/openapi',
-    code: '{\n  "openapi": "3.0.1",\n  "info": {\n    "title": "JxMVC API",\n    "version": "3.4.0"\n  },\n  "paths": {\n    "/api/persona/{id}": {\n      "get": {\n        "summary": "Obtener persona",\n        "parameters": [{\n          "name": "id",\n          "in": "path",\n          "required": true\n        }]\n      }\n    }\n  }\n}'
+    code: '{\n  "openapi": "3.0.1",\n  "info": {\n    "title": "JxMVC API",\n    "version": "3.5.0"\n  },\n  "paths": {\n    "/api/persona/{id}": {\n      "get": {\n        "summary": "Obtener persona",\n        "parameters": [{\n          "name": "id",\n          "in": "path",\n          "required": true\n        }]\n      }\n    }\n  }\n}'
   }
 };
 
@@ -1433,7 +1445,7 @@ document.querySelectorAll('.jx-pipe-node, .jx-bar, .jx-counter').forEach(functio
   <div class="jx-strands-veil"></div>
   <div class="jx-strands-inner">
     <h2>Del cero al deploy en minutos</h2>
-    <p>Genera tu proyecto Lux, compílalo con Maven y despliégalo en Tomcat. Un solo JAR, sin dependencias externas.</p>
+    <p>Genera tu proyecto JxMVC, compílalo con Maven y despliégalo en Tomcat. Un solo JAR, sin dependencias externas.</p>
     <div class="jx-strands-cta">
       <a href="${pageContext.request.contextPath}/downloads" class="jx-cta-primary">Descargar</a>
       <a href="${pageContext.request.contextPath}/docs" class="jx-cta-light">Ver documentación</a>

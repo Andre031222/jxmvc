@@ -1,4 +1,4 @@
-# JxMVC2x — Sitio oficial + generador / plantilla de arranque
+# JxMVC.Site — Sitio oficial + generador / plantilla de arranque
 
 ## Estructura
 

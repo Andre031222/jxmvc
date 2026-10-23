@@ -68,9 +68,9 @@ public final class JxOpenApi {
     // ── Construcción ──────────────────────────────────────────────────────
 
     private static String build() {
-        String title   = BaseDbResolver.property("jxmvc.openapi.title",   "Lux API");
+        String title   = BaseDbResolver.property("jxmvc.openapi.title",   "JxMVC API");
         String version = BaseDbResolver.property("jxmvc.openapi.version", "1.0.0");
-        String desc    = BaseDbResolver.property("jxmvc.openapi.description", "Generado por Lux Framework");
+        String desc    = BaseDbResolver.property("jxmvc.openapi.description", "Generado por JxMVC");
         String server  = BaseDbResolver.property("jxmvc.openapi.server",  "http://localhost:8080");
 
         StringBuilder sb = new StringBuilder();

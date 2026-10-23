@@ -215,7 +215,7 @@ framework** — consistent with the zero-dependency principle.
 ```
 .
 ├── JxMVC.Core/       the framework — 55 classes, zero runtime dependencies
-├── JxMVC2x/          demo web application (also powers jxmvc.ginit.dev)
+├── JxMVC.Site/       demo web application (also powers jxmvc.ginit.dev)
 ├── benchmarks/       one-command Docker harness + raw results and environment
 ├── docs/             logo and assets
 └── README.md

@@ -5,7 +5,7 @@ import jxmvc.core.JxMapping.*;
 import jxmvc.service.ProjectZipBuilder;
 
 /**
- * Genera y descarga un proyecto Lux / JxMVC personalizado como ZIP.
+ * Genera y descarga un proyecto JxMVC personalizado como ZIP.
  * Accesible desde /home/downloads.
  */
 @JxControllerMapping("generate")
@@ -24,7 +24,7 @@ public class GeneratorController extends BaseController {
                          + (pkgSuffix.isEmpty() ? "" : "." + pkgSuffix));
 
         byte[] zip = ProjectZipBuilder.build(groupId, artifactId, pkg, db, appName);
-        view.raw(zip, "application/zip", artifactId + "-lux-starter.zip");
+        view.raw(zip, "application/zip", artifactId + "-jxmvc-starter.zip");
         return null;
     }
 

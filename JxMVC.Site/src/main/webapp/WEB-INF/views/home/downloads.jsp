@@ -18,7 +18,7 @@
     <div class="max-w-3xl mb-10 jx-reveal jx-delay-1">
         <p class="text-xs font-mono uppercase tracking-[0.25em] text-muted dark:text-[#86868b] mb-3" data-i18n="dl.tag">Generador de proyectos</p>
         <h1 class="text-4xl md:text-5xl font-bold tracking-tight text-ink dark:text-[#f5f5f7] mb-3">
-            JxMVC <span class="text-apple">3.4.0</span>
+            JxMVC <span class="text-apple">3.5.0</span>
         </h1>
         <p class="text-base text-muted dark:text-[#86868b] leading-relaxed" data-i18n="dl.subtitle">
             Genera un proyecto starter personalizado y listo para desplegar.
@@ -75,17 +75,14 @@
         <%-- Windows --%>
         <div id="jxOs-win" class="jx-os-panel px-5 py-5">
             <p class="text-xs text-muted dark:text-[#86868b] mb-3">
-                Requisitos: Java 17+, Apache Tomcat 10+, Maven 3.8+. Instala y genera en <strong class="text-ink dark:text-[#f5f5f7]">PowerShell</strong>:
+                Requisitos: Java 17+ y Maven 3.8+. Un solo comando en <strong class="text-ink dark:text-[#f5f5f7]">PowerShell</strong>:
             </p>
             <div class="jx-code">
                 <div class="jx-code-label">PowerShell</div>
-                <pre># 1. Instala el core en tu repositorio Maven local
-mvn install -f JxMVC.Core\pom.xml
+                <pre># Instala JxMVC 3.5.0 y crea tu proyecto
+&amp; ([scriptblock]::Create((irm https://raw.githubusercontent.com/Andre031222/jxmvc/main/install.ps1))) new mi-app
 
-# 2. Genera tu proyecto con el formulario ↓ y descomprime
-Expand-Archive .\mi-app.zip -DestinationPath .\mi-app
-
-# 3. Compila y arranca (Tomcat embebido)
+# Compila y arranca (Tomcat se descarga solo)
 cd mi-app
 mvn package cargo:run</pre>
             </div>
@@ -94,36 +91,30 @@ mvn package cargo:run</pre>
         <%-- macOS --%>
         <div id="jxOs-mac" class="jx-os-panel hidden px-5 py-5">
             <p class="text-xs text-muted dark:text-[#86868b] mb-3">
-                Requisitos: <code class="text-apple font-mono">brew install openjdk@17 maven</code>, Tomcat 10+. Luego en <strong class="text-ink dark:text-[#f5f5f7]">Terminal</strong>:
+                Requisitos: <code class="text-apple font-mono">brew install openjdk@17 maven</code>. Un solo comando en <strong class="text-ink dark:text-[#f5f5f7]">Terminal</strong>:
             </p>
             <div class="jx-code">
                 <div class="jx-code-label">Terminal — zsh / bash</div>
-                <pre># 1. Instala el core en tu repositorio Maven local
-mvn install -f JxMVC.Core/pom.xml
+                <pre># Instala JxMVC 3.5.0 y crea tu proyecto
+curl -fsSL https://raw.githubusercontent.com/Andre031222/jxmvc/main/install.sh | sh -s -- new mi-app
 
-# 2. Genera tu proyecto con el formulario ↓ y descomprime
-unzip mi-app.zip -d mi-app
-
-# 3. Compila y arranca (Tomcat embebido)
-cd mi-app && mvn package cargo:run</pre>
+# Compila y arranca (Tomcat se descarga solo)
+cd mi-app &amp;&amp; mvn package cargo:run</pre>
             </div>
         </div>
 
         <%-- Linux --%>
         <div id="jxOs-lin" class="jx-os-panel hidden px-5 py-5">
             <p class="text-xs text-muted dark:text-[#86868b] mb-3">
-                Requisitos: <code class="text-apple font-mono">sudo apt install openjdk-17-jdk maven</code>, Tomcat 10+. Luego en <strong class="text-ink dark:text-[#f5f5f7]">bash</strong>:
+                Requisitos: <code class="text-apple font-mono">sudo apt install openjdk-17-jdk maven</code>. Un solo comando en <strong class="text-ink dark:text-[#f5f5f7]">bash</strong>:
             </p>
             <div class="jx-code">
                 <div class="jx-code-label">bash / zsh</div>
-                <pre># 1. Instala el core en tu repositorio Maven local
-mvn install -f JxMVC.Core/pom.xml
+                <pre># Instala JxMVC 3.5.0 y crea tu proyecto
+curl -fsSL https://raw.githubusercontent.com/Andre031222/jxmvc/main/install.sh | sh -s -- new mi-app
 
-# 2. Genera tu proyecto con el formulario ↓ y descomprime
-unzip mi-app.zip -d mi-app
-
-# 3. Compila y arranca (Tomcat embebido)
-cd mi-app && mvn package cargo:run</pre>
+# Compila y arranca (Tomcat se descarga solo)
+cd mi-app &amp;&amp; mvn package cargo:run</pre>
             </div>
         </div>
 
@@ -225,8 +216,8 @@ cd mi-app && mvn package cargo:run</pre>
 
             <div class="bg-white dark:bg-white/[0.05] border border-black/[0.06] dark:border-white/[0.06] rounded-2xl p-5 hover:border-apple/30 transition-colors">
                 <p class="text-xs font-mono uppercase tracking-[0.25em] text-muted dark:text-[#86868b] mb-2">JAR del framework</p>
-                <h3 class="text-base font-semibold text-ink dark:text-[#f5f5f7] mb-1">jxmvc-core-3.4.0.jar</h3>
-                <p class="text-xs text-muted dark:text-[#86868b] mb-3">253 KB — cero dependencias en runtime</p>
+                <h3 class="text-base font-semibold text-ink dark:text-[#f5f5f7] mb-1">jxmvc-core-3.5.0.jar</h3>
+                <p class="text-xs text-muted dark:text-[#86868b] mb-3">298 KB — cero dependencias en runtime</p>
                 <div class="jx-code">
                     <pre>mvn install -f JxMVC.Core/pom.xml</pre>
                 </div>
@@ -239,7 +230,7 @@ cd mi-app && mvn package cargo:run</pre>
 <pre>&lt;dependency&gt;
   &lt;groupId&gt;jxmvc&lt;/groupId&gt;
   &lt;artifactId&gt;jxmvc-core&lt;/artifactId&gt;
-  &lt;version&gt;3.4.0&lt;/version&gt;
+  &lt;version&gt;3.5.0&lt;/version&gt;
 &lt;/dependency&gt;</pre>
                 </div>
             </div>

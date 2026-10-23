@@ -4,15 +4,15 @@
  * reemplazando el Play CDN (compilaba en el navegador en cada carga).
  *
  * Compilar:
- *   npx tailwindcss@3 -c JxMVC2x/tailwind.config.js \
- *       -i JxMVC2x/tailwind.input.css \
- *       -o JxMVC2x/src/main/webapp/assets/css/tailwind.css --minify
+ *   npx tailwindcss@3 -c JxMVC.Site/tailwind.config.js \
+ *       -i JxMVC.Site/tailwind.input.css \
+ *       -o JxMVC.Site/src/main/webapp/assets/css/tailwind.css --minify
  */
 module.exports = {
   darkMode: 'class',
   content: [
-    './JxMVC2x/src/main/webapp/**/*.jsp',
-    './JxMVC2x/src/main/webapp/**/*.jspf',
+    './JxMVC.Site/src/main/webapp/**/*.jsp',
+    './JxMVC.Site/src/main/webapp/**/*.jspf',
   ],
   theme: {
     extend: {

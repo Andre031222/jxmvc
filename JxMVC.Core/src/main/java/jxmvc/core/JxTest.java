@@ -11,7 +11,7 @@ import java.util.*;
 
 /**
  * Utilidades de testing para controladores y servicios — sin Tomcat, sin MockMvc.
- * Permite probar acciones del controlador directamente invocando el pipeline de Lux.
+ * Permite probar acciones del controlador directamente invocando el pipeline de JxMVC.
  *
  * <pre>
  *   // Test de un endpoint REST

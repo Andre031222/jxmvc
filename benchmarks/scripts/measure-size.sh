@@ -16,7 +16,7 @@ echo "== JxMVC (framework solo) =="
 show "$ROOT/JxMVC.Core/target/jxmvc-core-3.4.0.jar"
 echo
 echo "== JxMVC (WAR de la app demo, sin el container) =="
-show "$ROOT/JxMVC2x/target/jxmvc.war"
+show "$ROOT/JxMVC.Site/target/jxmvc.war"
 echo
 echo "Recordatorio: para el tamaño DESPLEGABLE justo, sumar el servlet container"
 echo "(Tomcat mínimo ~ pocos MB) al artefacto de JxMVC, y compararlo con el uber-JAR"
