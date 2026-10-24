@@ -15,7 +15,7 @@ import java.util.concurrent.Executors;
 
 @MultipartConfig(maxFileSize = 20_971_520, maxRequestSize = 41_943_040)
 public class MainLxServlet extends HttpServlet {
-    public static final String VERSION = "3.7.0";
+    public static final String VERSION = "4.0.0-SNAPSHOT";
 
     private static final boolean TRUST_PROXY = BaseDbResolver.propertyBool("jxmvc.trustProxy", false);
 
